@@ -1,4 +1,0 @@
-[submodule "client/godot-cpp"]
-	path = client/godot-cpp
-	url = https://github.com/godotengine/godot-cpp
-	branch = 3.5
