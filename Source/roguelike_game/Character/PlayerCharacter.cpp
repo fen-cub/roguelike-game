@@ -89,22 +89,22 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 		if (y > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Right;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (y < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Left;
-			GetSprite()->SetRelativeScale3D(FVector(-0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(-1.0f, 1.0f, 1.0f));
 		}
 		else if (x < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Down;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (x > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Up;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 	}
 }
