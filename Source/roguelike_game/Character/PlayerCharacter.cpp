@@ -22,7 +22,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
-	GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -89,22 +89,22 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 		if (y > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Right;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (y < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Left;
-			GetSprite()->SetRelativeScale3D(FVector(-0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(-1.0f, 1.0f, 1.0f));
 		}
 		else if (x < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Down;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (x > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Up;
-			GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 	}
 }
