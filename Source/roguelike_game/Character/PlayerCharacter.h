@@ -6,10 +6,6 @@
 #include "PaperCharacter.h"
 #include "PlayerCharacter.generated.h"
 
-/**
- test description
- */
-
 UENUM(BlueprintType, Category = "AnimationCharacter|Animation")
 enum class EAnimationDirection : uint8
 {
@@ -18,6 +14,7 @@ enum class EAnimationDirection : uint8
 	Left,
 	Right
 };
+
 
 USTRUCT(BlueprintType, Category = "Animation")
 struct FAnimationFlipbooks
@@ -31,17 +28,39 @@ struct FAnimationFlipbooks
 	class UPaperFlipbook* IdleRight{nullptr};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UPaperFlipbook* IdleDown{nullptr};
+	class UPaperFlipbook* IdleLeft{nullptr};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UPaperFlipbook* WalkRight{nullptr};
+	class UPaperFlipbook* IdleDown{nullptr};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* WalkUp{nullptr};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* WalkRight{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* WalkLeft{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* WalkDown{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* RunUp{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* RunRight{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* RunLeft{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* RunDown{nullptr};
 };
+
+/*
+The character controlled by the player during the game process.
+ */
 
 UCLASS()
 class ROGUELIKE_GAME_API APlayerCharacter : public APaperCharacter
@@ -52,9 +71,14 @@ public:
 	APlayerCharacter();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bDead;
+	bool bIsDead;
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
+	uint8 bIsMoving : 1;
+
+	const float ComparisonErrorTolerance = 1e-7;
+
 	virtual void BeginPlay() override;
 
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
@@ -79,11 +103,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter|Config")
 	FAnimationFlipbooks Flipbooks;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter|Config")
-	uint8 bIsMoving : 1;
-
-	void MoveForward(float Axis);
-	void MoveRight(float Axis);
+	void MoveForwardOrDown(float Axis);
+	void MoveRightOrLeft(float Axis);
+	void Sprint();
+	void StopSprint();
 
 public:
 	virtual void Tick(float DeltaSeconds) override;

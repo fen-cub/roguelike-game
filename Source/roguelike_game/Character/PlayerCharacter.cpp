@@ -39,7 +39,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 
-	bDead = false;
+	bIsDead = false;
 	bIsMoving = false;
 }
 
@@ -73,8 +73,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForwardOrDown", this, &APlayerCharacter::MoveForwardOrDown);
+	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &APlayerCharacter::MoveRightOrLeft);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 }
 
 void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
@@ -82,29 +85,25 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 	const float x = Velocity.GetSafeNormal().X;
 	const float y = Velocity.GetSafeNormal().Y;
 
-	bIsMoving = x != 0.0f || y != 0.0f;
+	bIsMoving = !FMath::IsNearlyZero(x, ComparisonErrorTolerance) || !FMath::IsNearlyZero(y, ComparisonErrorTolerance);
 
 	if (bIsMoving)
 	{
 		if (y > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Right;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (y < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Left;
-			GetSprite()->SetRelativeScale3D(FVector(-1.0f, 1.0f, 1.0f));
 		}
 		else if (x < -0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Down;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 		else if (x > 0.5f)
 		{
 			CurrentAnimationDirection = EAnimationDirection::Up;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 		}
 	}
 }
@@ -113,27 +112,7 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 {
 	SetCurrentAnimationDirection(OldVelocity);
 
-	if (OldVelocity.Size() > 0.0f)
-	{
-		switch (CurrentAnimationDirection)
-		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.WalkUp);
-			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.WalkDown);
-			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
-			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
-			break;
-		default:
-			break;
-		}
-	}
-	else
+	if (FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance))
 	{
 		switch (CurrentAnimationDirection)
 		{
@@ -144,7 +123,7 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 			GetSprite()->SetFlipbook(Flipbooks.IdleDown);
 			break;
 		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.IdleRight);
+			GetSprite()->SetFlipbook(Flipbooks.IdleLeft);
 			break;
 		case EAnimationDirection::Right:
 			GetSprite()->SetFlipbook(Flipbooks.IdleRight);
@@ -152,12 +131,50 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 		default:
 			break;
 		}
+	} else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
+	{
+		switch (CurrentAnimationDirection)
+		{
+		case EAnimationDirection::Up:
+			GetSprite()->SetFlipbook(Flipbooks.RunUp);
+			break;
+		case EAnimationDirection::Left:
+			GetSprite()->SetFlipbook(Flipbooks.RunLeft);
+			break;
+		case EAnimationDirection::Right:
+			GetSprite()->SetFlipbook(Flipbooks.RunRight);
+			break;
+		case EAnimationDirection::Down:
+			GetSprite()->SetFlipbook(Flipbooks.RunDown);
+			break;
+		default:
+			break;
+		}
+	} else
+	{
+		switch (CurrentAnimationDirection)
+		{
+		case EAnimationDirection::Up:
+			GetSprite()->SetFlipbook(Flipbooks.WalkUp);
+			break;
+		case EAnimationDirection::Left:
+			GetSprite()->SetFlipbook(Flipbooks.WalkLeft);
+			break;
+		case EAnimationDirection::Right:
+			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
+			break;
+		case EAnimationDirection::Down:
+			GetSprite()->SetFlipbook(Flipbooks.WalkDown);
+			break;
+		default:
+			break;
+		}
 	}
 }
 
-void APlayerCharacter::MoveForward(float Axis)
+void APlayerCharacter::MoveForwardOrDown(float Axis)
 {
-	if ((Controller != nullptr) && (Axis != 0) && !bDead)
+	if ((Controller != nullptr) && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance) && !bIsDead)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -167,9 +184,9 @@ void APlayerCharacter::MoveForward(float Axis)
 	}
 }
 
-void APlayerCharacter::MoveRight(float Axis)
+void APlayerCharacter::MoveRightOrLeft(float Axis)
 {
-	if ((Controller != nullptr) && (Axis != 0) && !bDead)
+	if ((Controller != nullptr) && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance) && !bIsDead)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -177,4 +194,14 @@ void APlayerCharacter::MoveRight(float Axis)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Axis, true);
 	}
+}
+
+void APlayerCharacter::Sprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+}
+
+void APlayerCharacter::StopSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 }
