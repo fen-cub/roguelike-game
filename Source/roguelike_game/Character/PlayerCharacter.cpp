@@ -11,19 +11,33 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+// Set default player settings
 APlayerCharacter::APlayerCharacter()
 {
+	// Default logic settings
+	bIsDead = false;
+
+	// Default rotation settings
 	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
+	// Default movement settings
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	bIsMoving = false;
+
+
+	// Default capsule component settings
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
+	// Default sprite settings
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
+	// Default camera boom settings
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetRelativeRotation(FRotator(-90.0f, 180.0f, 180.0f));
@@ -32,43 +46,28 @@ APlayerCharacter::APlayerCharacter()
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
 
+	// Default camera settings
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>("Follow Camera");
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
-
-	bIsDead = false;
-	bIsMoving = false;
 }
 
+// Called when spawned
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::Animate);
 }
 
+// Called when moves
 void APlayerCharacter::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
 {
-	auto MovementComponent = GetMovementComponent();
-
-	if (MovementComponent)
-	{
-		MovementComponent->AddInputVector(WorldDirection * ScaleValue, bForce);
-	}
-	else
-	{
-		Internal_AddMovementInput(WorldDirection * ScaleValue, bForce);
-	}
+	GetMovementComponent()->AddInputVector(WorldDirection * ScaleValue, bForce);
 }
 
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
+// Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -81,6 +80,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 }
 
+// Called every animation while alive
 void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 {
 	const float x = Velocity.GetSafeNormal().X;
@@ -109,6 +109,7 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 	}
 }
 
+// Called while alive or dying
 void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
 	if (bIsDead)
@@ -132,12 +133,14 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 			break;
 		}
 
+		// Removes animating on movement
 		OnCharacterMovementUpdated.RemoveDynamic(this, &APlayerCharacter::Animate);
 		return;
 	}
 
 	SetCurrentAnimationDirection(OldVelocity);
 
+	// If standing still
 	if (FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance))
 	{
 		switch (CurrentAnimationDirection)
@@ -158,6 +161,7 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 			break;
 		}
 	}
+	// If sprinting
 	else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
 	{
 		switch (CurrentAnimationDirection)
@@ -178,6 +182,7 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 			break;
 		}
 	}
+	// If walking
 	else
 	{
 		switch (CurrentAnimationDirection)
@@ -200,6 +205,7 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 	}
 }
 
+// Called when W or S keys pressed
 void APlayerCharacter::MoveForwardOrDown(const float Axis)
 {
 	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
@@ -212,6 +218,7 @@ void APlayerCharacter::MoveForwardOrDown(const float Axis)
 	}
 }
 
+// Called when A or D keys pressed
 void APlayerCharacter::MoveRightOrLeft(const float Axis)
 {
 	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
@@ -224,18 +231,27 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 	}
 }
 
+// Called when shift pressed
 void APlayerCharacter::Sprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
 }
 
+// Called when shift released
 void APlayerCharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 }
 
+// Called when dying 
 void APlayerCharacter::Die()
 {
 	bIsDead = true;
 	GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
