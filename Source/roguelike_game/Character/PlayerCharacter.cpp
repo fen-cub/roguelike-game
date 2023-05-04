@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Set default player settings
 APlayerCharacter::APlayerCharacter()
@@ -18,7 +19,20 @@ APlayerCharacter::APlayerCharacter()
 	bIsDead = false;
 	bIsMoving = false;
 	CurrentCharacterDirection = ECharacterDirection::Down;
+	
+	// HUD
+	PlayerHUDClass = nullptr;
+	PlayerHUD = nullptr;
 
+	// Health
+	MaxHealth = 25.f;
+	Health = MaxHealth;
+
+	// Stamina
+	MaxStamina = 25.f;
+	Stamina = MaxStamina;
+	PowerRegenerateRate = 1.f;
+	
 	// Default rotation settings
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -59,7 +73,37 @@ void APlayerCharacter::BeginPlay()
 
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::AnimateMovement);
+	
+	if (IsLocallyControlled() && PlayerHUDClass)
+	{
+		APlayerController* Fpc = GetController<APlayerController>();
+		check(Fpc);
+		PlayerHUD = CreateWidget<UPlayerHUD>(Fpc, PlayerHUDClass);
+		check(PlayerHUD);
+		PlayerHUD->AddToPlayerScreen();
+		PlayerHUD->SetHealth(Health, MaxHealth);
+		PlayerHUD->SetStamina(Stamina, MaxStamina);
+	}
 }
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(APlayerCharacter, Health, COND_OwnerOnly);
+}
+
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		// We can't destroy the widget directly, let the GC take care of it.
+		PlayerHUD = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 
 // Called when moves
 void APlayerCharacter::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
@@ -112,6 +156,11 @@ void APlayerCharacter::SetCurrentCharacterDirection(FVector const& Velocity)
 // Called while moves
 void APlayerCharacter::AnimateMovement(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
+	if (FMath::IsNearlyZero(Stamina, ComparisonErrorTolerance))
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	}
+
 	SetCurrentCharacterDirection(OldVelocity);
 
 	// If standing still
@@ -138,6 +187,11 @@ void APlayerCharacter::AnimateMovement(float DeltaTime, FVector OldLocation, FVe
 	// If sprinting
 	else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
 	{
+		Stamina -= 0.05f;;
+		if (PlayerHUD)
+		{
+			PlayerHUD->SetStamina(Stamina, MaxStamina);
+		}
 		switch (CurrentCharacterDirection)
 		{
 		case ECharacterDirection::Up:
@@ -234,7 +288,10 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 // Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+	if (!FMath::IsNearlyZero(Stamina, ComparisonErrorTolerance))
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+	}
 }
 
 // Called when shift is released
@@ -251,8 +308,38 @@ void APlayerCharacter::Die()
 	AnimateDeath();
 }
 
+
+void APlayerCharacter::OnRepHealth()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetHealth(Health, MaxHealth);
+	}
+}
+
+void APlayerCharacter::RegenerateStamina()
+{
+	Stamina = FMath::Clamp( Stamina + (PowerRegenerateRate * GetWorld()->GetDeltaSeconds()), 0.f, MaxStamina);
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetStamina(Stamina, MaxStamina);
+	}
+}
+
+void APlayerCharacter::UpdateHealth(float HealthDelta)
+{
+	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
+
+	if (Health == 0.f)
+	{
+		// Handle player elimination.
+	}
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	RegenerateStamina();
 }

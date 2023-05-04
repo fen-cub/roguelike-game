@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
+#include "../HUD/PlayerHUD.h"
 #include "PlayerCharacter.generated.h"
 
 // Possible character directions
@@ -98,6 +99,9 @@ public:
 	// Set default player settings
 	APlayerCharacter();
 
+	/** Setup properties that should be replicated from the server to clients. */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	// True if character is dead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsDead;
@@ -111,6 +115,9 @@ protected:
 
 	// Sets spawn settings
 	virtual void BeginPlay() override;
+	
+	// Sets spawn settings
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	// Sets direction vector every moving
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
@@ -175,7 +182,38 @@ protected:
 	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
+	
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
+
+	UPROPERTY()
+	class UPlayerHUD* PlayerHUD;
+
+
+	UPROPERTY(EditAnywhere)
+	float MaxHealth;
+
+	UPROPERTY(ReplicatedUsing = OnRepHealth)
+	float Health;
+	
+	UFUNCTION()
+	void OnRepHealth(); 
+	
+	UPROPERTY(EditAnywhere)
+	float MaxStamina;
+	
+	float Stamina;
+	
+	UPROPERTY(EditAnywhere)
+	float PowerRegenerateRate;
+	
+	void RegenerateStamina();
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
+	
+
+	void UpdateHealth(float HealthDelta);
+	
 };
