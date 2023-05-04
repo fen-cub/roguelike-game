@@ -8,7 +8,7 @@
 
 // Possible character directions
 UENUM(BlueprintType, Category = "AnimationCharacter | Animation")
-enum class EAnimationDirection : uint8
+enum class ECharacterDirection : uint8
 {
 	Up,
 	Down,
@@ -16,9 +16,9 @@ enum class EAnimationDirection : uint8
 	Right
 };
 
-// All character animations flipbooks
+// Idle character animations flipbooks
 USTRUCT(BlueprintType, Category = "Animation")
-struct FAnimationFlipbooks
+struct FIdleAnimationFlipbooks
 {
 	GENERATED_BODY()
 
@@ -33,6 +33,13 @@ struct FAnimationFlipbooks
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* IdleDown{nullptr};
+};
+
+// Walk character animations flipbooks
+USTRUCT(BlueprintType, Category = "Animation")
+struct FWalkingAnimationFlipbooks
+{
+	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* WalkUp{nullptr};
@@ -45,6 +52,13 @@ struct FAnimationFlipbooks
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* WalkDown{nullptr};
+};
+
+// Run character animations flipbooks
+USTRUCT(BlueprintType, Category = "Animation")
+struct FRunningAnimationFlipbooks
+{
+	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* RunUp{nullptr};
@@ -57,6 +71,13 @@ struct FAnimationFlipbooks
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* RunDown{nullptr};
+};
+
+// Death character animations flipbooks
+USTRUCT(BlueprintType, Category = "Animation")
+struct FDeathAnimationFlipbooks
+{
+	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* DieRight{nullptr};
@@ -68,7 +89,6 @@ struct FAnimationFlipbooks
 /*
 The character controlled by the player during the game process.
  */
-
 UCLASS()
 class ROGUELIKE_GAME_API APlayerCharacter : public APaperCharacter
 {
@@ -78,6 +98,7 @@ public:
 	// Set default player settings
 	APlayerCharacter();
 
+	// True if character is dead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsDead;
 
@@ -88,35 +109,44 @@ protected:
 	// Epsilon for float types comparison
 	const float ComparisonErrorTolerance = 1e-7;
 
-	// Called when spawned
+	// Sets spawn settings
 	virtual void BeginPlay() override;
 
-	// Called when moves
+	// Sets direction vector every moving
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
 
-	// Called to bind functionality to input
+	// Sets and binds input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	// Called every animation while alive
+	// Sets current character direction while moving
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
-	void SetCurrentAnimationDirection(FVector const& Velocity);
+	void SetCurrentCharacterDirection(FVector const& Velocity);
 
-	// Called while alive or dying
+	// Sets moving flipbooks if moving or idle otherwise
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
-	void Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
+	void AnimateMovement(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
 
+	// Sets death animation and stops movement animations
+	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
+	void AnimateDeath();
+
+	// Moves character forward or down
 	UFUNCTION(BlueprintCallable, Category="MovementCharacter | Movements")
 	void MoveForwardOrDown(const float Axis);
 
+	// Moves character right or left
 	UFUNCTION(BlueprintCallable, Category="MovementCharacter | Movements")
 	void MoveRightOrLeft(const float Axis);
 
+	// Increases maximum speed
 	UFUNCTION(BlueprintCallable, Category="MovementCharacter | Movements")
 	void Sprint();
 
+	// Sets maximum speed to default  
 	UFUNCTION(BlueprintCallable, Category="MovementCharacter | Movements")
 	void StopSprint();
 
+	// Stops movements and calls death animation
 	UFUNCTION(BlueprintCallable, Category="MovementCharacter | Movements")
 	void Die();
 
@@ -127,10 +157,19 @@ protected:
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	EAnimationDirection CurrentAnimationDirection{EAnimationDirection::Down};
+	ECharacterDirection CurrentCharacterDirection{ECharacterDirection::Down};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FAnimationFlipbooks Flipbooks;
+	FIdleAnimationFlipbooks IdleFlipbooks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FWalkingAnimationFlipbooks WalkingFlipbooks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FRunningAnimationFlipbooks RunningFlipbooks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FDeathAnimationFlipbooks DeathFlipbooks;
 
 public:
 	virtual void Tick(float DeltaSeconds) override;

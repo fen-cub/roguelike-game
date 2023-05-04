@@ -58,7 +58,7 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Animate character on movement
-	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::Animate);
+	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::AnimateMovement);
 }
 
 // Called when moves
@@ -81,7 +81,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 }
 
 // Called every animation while alive
-void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
+void APlayerCharacter::SetCurrentCharacterDirection(FVector const& Velocity)
 {
 	const float x = Velocity.GetSafeNormal().X;
 	const float y = Velocity.GetSafeNormal().Y;
@@ -92,70 +92,44 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 	{
 		if (y > 0.5f)
 		{
-			CurrentAnimationDirection = EAnimationDirection::Right;
+			CurrentCharacterDirection = ECharacterDirection::Right;
 		}
 		else if (y < -0.5f)
 		{
-			CurrentAnimationDirection = EAnimationDirection::Left;
+			CurrentCharacterDirection = ECharacterDirection::Left;
 		}
 		else if (x < -0.5f)
 		{
-			CurrentAnimationDirection = EAnimationDirection::Down;
+			CurrentCharacterDirection = ECharacterDirection::Down;
 		}
 		else if (x > 0.5f)
 		{
-			CurrentAnimationDirection = EAnimationDirection::Up;
+			CurrentCharacterDirection = ECharacterDirection::Up;
 		}
 	}
 }
 
-// Called while alive or dying
-void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
+// Called while moves
+void APlayerCharacter::AnimateMovement(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-	if (bIsDead)
-	{
-		GetSprite()->SetLooping(false);
-		switch (CurrentAnimationDirection)
-		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.DieRight);
-			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.DieLeft);
-			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.DieLeft);
-			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.DieRight);
-			break;
-		default:
-			break;
-		}
-
-		// Removes animating on movement
-		OnCharacterMovementUpdated.RemoveDynamic(this, &APlayerCharacter::Animate);
-		return;
-	}
-
-	SetCurrentAnimationDirection(OldVelocity);
+	SetCurrentCharacterDirection(OldVelocity);
 
 	// If standing still
 	if (FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance))
 	{
-		switch (CurrentAnimationDirection)
+		switch (CurrentCharacterDirection)
 		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.IdleUp);
+		case ECharacterDirection::Up:
+			GetSprite()->SetFlipbook(IdleFlipbooks.IdleUp);
 			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.IdleDown);
+		case ECharacterDirection::Down:
+			GetSprite()->SetFlipbook(IdleFlipbooks.IdleDown);
 			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.IdleLeft);
+		case ECharacterDirection::Left:
+			GetSprite()->SetFlipbook(IdleFlipbooks.IdleLeft);
 			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.IdleRight);
+		case ECharacterDirection::Right:
+			GetSprite()->SetFlipbook(IdleFlipbooks.IdleRight);
 			break;
 		default:
 			break;
@@ -164,19 +138,19 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 	// If sprinting
 	else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
 	{
-		switch (CurrentAnimationDirection)
+		switch (CurrentCharacterDirection)
 		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.RunUp);
+		case ECharacterDirection::Up:
+			GetSprite()->SetFlipbook(RunningFlipbooks.RunUp);
 			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.RunLeft);
+		case ECharacterDirection::Left:
+			GetSprite()->SetFlipbook(RunningFlipbooks.RunLeft);
 			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.RunRight);
+		case ECharacterDirection::Right:
+			GetSprite()->SetFlipbook(RunningFlipbooks.RunRight);
 			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.RunDown);
+		case ECharacterDirection::Down:
+			GetSprite()->SetFlipbook(RunningFlipbooks.RunDown);
 			break;
 		default:
 			break;
@@ -185,19 +159,19 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 	// If walking
 	else
 	{
-		switch (CurrentAnimationDirection)
+		switch (CurrentCharacterDirection)
 		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.WalkUp);
+		case ECharacterDirection::Up:
+			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkUp);
 			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.WalkLeft);
+		case ECharacterDirection::Left:
+			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkLeft);
 			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
+		case ECharacterDirection::Right:
+			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkRight);
 			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.WalkDown);
+		case ECharacterDirection::Down:
+			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkDown);
 			break;
 		default:
 			break;
@@ -205,7 +179,33 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 	}
 }
 
-// Called when W or S keys pressed
+// Called when dying
+void APlayerCharacter::AnimateDeath()
+{
+	GetSprite()->SetLooping(false);
+	switch (CurrentCharacterDirection)
+	{
+	case ECharacterDirection::Up:
+		GetSprite()->SetFlipbook(DeathFlipbooks.DieRight);
+		break;
+	case ECharacterDirection::Down:
+		GetSprite()->SetFlipbook(DeathFlipbooks.DieLeft);
+		break;
+	case ECharacterDirection::Left:
+		GetSprite()->SetFlipbook(DeathFlipbooks.DieLeft);
+		break;
+	case ECharacterDirection::Right:
+		GetSprite()->SetFlipbook(DeathFlipbooks.DieRight);
+		break;
+	default:
+		break;
+	}
+
+	// Removes Movement Animating 
+	OnCharacterMovementUpdated.RemoveDynamic(this, &APlayerCharacter::AnimateMovement);
+}
+
+// Called when W or S keys are pressed
 void APlayerCharacter::MoveForwardOrDown(const float Axis)
 {
 	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
@@ -218,7 +218,7 @@ void APlayerCharacter::MoveForwardOrDown(const float Axis)
 	}
 }
 
-// Called when A or D keys pressed
+// Called when A or D keys are pressed
 void APlayerCharacter::MoveRightOrLeft(const float Axis)
 {
 	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
@@ -231,13 +231,13 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 	}
 }
 
-// Called when shift pressed
+// Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
 }
 
-// Called when shift released
+// Called when shift is released
 void APlayerCharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
@@ -248,6 +248,7 @@ void APlayerCharacter::Die()
 {
 	bIsDead = true;
 	GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+	AnimateDeath();
 }
 
 // Called every frame
