@@ -73,11 +73,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForwardOrDown", this, &APlayerCharacter::MoveForwardOrDown);
+	PlayerInputComponent->BindAxis("MoveUpOrDown", this, &APlayerCharacter::MoveForwardOrDown);
 	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &APlayerCharacter::MoveRightOrLeft);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 }
 
 void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
@@ -110,6 +111,31 @@ void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
 
 void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
+	if (bIsDead)
+	{
+		GetSprite()->SetLooping(false);
+		switch (CurrentAnimationDirection)
+		{
+		case EAnimationDirection::Up:
+			GetSprite()->SetFlipbook(Flipbooks.DieRight);
+			break;
+		case EAnimationDirection::Down:
+			GetSprite()->SetFlipbook(Flipbooks.DieLeft);
+			break;
+		case EAnimationDirection::Left:
+			GetSprite()->SetFlipbook(Flipbooks.DieLeft);
+			break;
+		case EAnimationDirection::Right:
+			GetSprite()->SetFlipbook(Flipbooks.DieRight);
+			break;
+		default:
+			break;
+		}
+
+		OnCharacterMovementUpdated.RemoveDynamic(this, &APlayerCharacter::Animate);
+		return;
+	}
+
 	SetCurrentAnimationDirection(OldVelocity);
 
 	if (FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance))
@@ -131,7 +157,8 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 		default:
 			break;
 		}
-	} else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
+	}
+	else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
 	{
 		switch (CurrentAnimationDirection)
 		{
@@ -150,7 +177,8 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 		default:
 			break;
 		}
-	} else
+	}
+	else
 	{
 		switch (CurrentAnimationDirection)
 		{
@@ -172,9 +200,9 @@ void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector con
 	}
 }
 
-void APlayerCharacter::MoveForwardOrDown(float Axis)
+void APlayerCharacter::MoveForwardOrDown(const float Axis)
 {
-	if ((Controller != nullptr) && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance) && !bIsDead)
+	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -184,9 +212,9 @@ void APlayerCharacter::MoveForwardOrDown(float Axis)
 	}
 }
 
-void APlayerCharacter::MoveRightOrLeft(float Axis)
+void APlayerCharacter::MoveRightOrLeft(const float Axis)
 {
-	if ((Controller != nullptr) && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance) && !bIsDead)
+	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -204,4 +232,10 @@ void APlayerCharacter::Sprint()
 void APlayerCharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+}
+
+void APlayerCharacter::Die()
+{
+	bIsDead = true;
+	GetCharacterMovement()->MaxWalkSpeed = 0.0f;
 }

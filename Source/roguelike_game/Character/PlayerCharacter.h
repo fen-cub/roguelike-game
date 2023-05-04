@@ -56,6 +56,12 @@ struct FAnimationFlipbooks
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* RunDown{nullptr};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* DieRight{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* DieLeft{nullptr};
 };
 
 /*
@@ -103,10 +109,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter|Config")
 	FAnimationFlipbooks Flipbooks;
 
-	void MoveForwardOrDown(float Axis);
-	void MoveRightOrLeft(float Axis);
+	void MoveForwardOrDown(const float Axis);
+	void MoveRightOrLeft(const float Axis);
 	void Sprint();
 	void StopSprint();
+	void Die();
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
