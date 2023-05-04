@@ -16,6 +16,8 @@ APlayerCharacter::APlayerCharacter()
 {
 	// Default logic settings
 	bIsDead = false;
+	bIsMoving = false;
+	CurrentCharacterDirection = ECharacterDirection::Down;
 
 	// Default rotation settings
 	PrimaryActorTick.bCanEverTick = true;
@@ -27,8 +29,6 @@ APlayerCharacter::APlayerCharacter()
 	// Default movement settings
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
-	bIsMoving = false;
-
 
 	// Default capsule component settings
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);

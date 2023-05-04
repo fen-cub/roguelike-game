@@ -104,7 +104,7 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AnimationCharacter | Config")
-	uint8 bIsMoving : 1;
+	bool bIsMoving;
 
 	// Epsilon for float types comparison
 	const float ComparisonErrorTolerance = 1e-7;
@@ -156,18 +156,23 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class UCameraComponent* FollowCamera;
 
+	// Current direction, default - Down
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	ECharacterDirection CurrentCharacterDirection{ECharacterDirection::Down};
+	ECharacterDirection CurrentCharacterDirection;
 
+	// Idle flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FIdleAnimationFlipbooks IdleFlipbooks;
 
+	// Walking flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FWalkingAnimationFlipbooks WalkingFlipbooks;
 
+	// Running flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FRunningAnimationFlipbooks RunningFlipbooks;
 
+	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
 
