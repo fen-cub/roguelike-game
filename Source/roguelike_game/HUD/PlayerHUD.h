@@ -7,7 +7,8 @@
 #include "PlayerHUD.generated.h"
 
 /**
- * 
+  Player Head-Up-Display
+  Health indicator + Stamina indicator
  */
 UCLASS()
 class ROGUELIKE_GAME_API UPlayerHUD : public UUserWidget

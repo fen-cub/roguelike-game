@@ -6,6 +6,8 @@
 #include "PaperFlipbookComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/CharacterAnimationComponent.h"
+#include "Components/CharacterAttributesComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -18,21 +20,15 @@ APlayerCharacter::APlayerCharacter()
 	// Default logic settings
 	bIsDead = false;
 	bIsMoving = false;
-	CurrentCharacterDirection = ECharacterDirection::Down;
-	
+	bIsSprinting = false;
+	ComparisonErrorTolerance = 1e-7;
+	StaminaRegenerateRate = 0.25f;
+	RunningStaminaLossRate = -0.5f;
+
 	// HUD
 	PlayerHUDClass = nullptr;
 	PlayerHUD = nullptr;
 
-	// Health
-	MaxHealth = 25.f;
-	Health = MaxHealth;
-
-	// Stamina
-	MaxStamina = 25.f;
-	Stamina = MaxStamina;
-	PowerRegenerateRate = 1.f;
-	
 	// Default rotation settings
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -41,8 +37,10 @@ APlayerCharacter::APlayerCharacter()
 	bUseControllerRotationYaw = false;
 
 	// Default movement settings
+	SprintSpeed = 200.0f;
+	WalkSpeed = 100.0f;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	// Default capsule component settings
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
@@ -64,6 +62,15 @@ APlayerCharacter::APlayerCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>("Follow Camera");
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	// Default animation settings
+	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
+	AnimationComponent->SetupAttachment(RootComponent);
+	AnimationComponent->SetupOwner(GetSprite());
+	
+	// Default animation settings
+	AttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>("Attributes Component");
+	AnimationComponent->SetupAttachment(RootComponent);
 }
 
 // Called when spawned
@@ -72,8 +79,8 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Animate character on movement
-	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::AnimateMovement);
-	
+	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::UpdateMovementProperties);
+
 	if (IsLocallyControlled() && PlayerHUDClass)
 	{
 		APlayerController* Fpc = GetController<APlayerController>();
@@ -81,15 +88,16 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD = CreateWidget<UPlayerHUD>(Fpc, PlayerHUDClass);
 		check(PlayerHUD);
 		PlayerHUD->AddToPlayerScreen();
-		PlayerHUD->SetHealth(Health, MaxHealth);
-		PlayerHUD->SetStamina(Stamina, MaxStamina);
+		AttributesComponent->SetUpHUD(PlayerHUD);
 	}
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(APlayerCharacter, Health, COND_OwnerOnly);
+	DOREPLIFETIME(APlayerCharacter, bIsSprinting);
+	DOREPLIFETIME(APlayerCharacter, bIsMoving);
+	DOREPLIFETIME(APlayerCharacter, bIsDead);
 }
 
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -103,7 +111,6 @@ void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	Super::EndPlay(EndPlayReason);
 }
-
 
 // Called when moves
 void APlayerCharacter::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
@@ -124,139 +131,30 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 }
 
-// Called every animation while alive
-void APlayerCharacter::SetCurrentCharacterDirection(FVector const& Velocity)
+void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-	const float x = Velocity.GetSafeNormal().X;
-	const float y = Velocity.GetSafeNormal().Y;
+	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
-	bIsMoving = !FMath::IsNearlyZero(x, ComparisonErrorTolerance) || !FMath::IsNearlyZero(y, ComparisonErrorTolerance);
+	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 
-	if (bIsMoving)
+	// UE_LOG(LogTemp, Warning, TEXT("bIsSprinting %d"), bIsSprinting);
+
+	if (bIsMoving && !bIsDead)
 	{
-		if (y > 0.5f)
+		if (bIsSprinting)
 		{
-			CurrentCharacterDirection = ECharacterDirection::Right;
+			AnimationComponent->AnimateRunning();
+			AttributesComponent->UpdateStamina(RunningStaminaLossRate);
 		}
-		else if (y < -0.5f)
+		else
 		{
-			CurrentCharacterDirection = ECharacterDirection::Left;
-		}
-		else if (x < -0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Down;
-		}
-		else if (x > 0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Up;
+			AnimationComponent->AnimateWalking();
 		}
 	}
-}
-
-// Called while moves
-void APlayerCharacter::AnimateMovement(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
-{
-	if (FMath::IsNearlyZero(Stamina, ComparisonErrorTolerance))
+	else if (!bIsDead)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+		AnimationComponent->AnimateIdle();
 	}
-
-	SetCurrentCharacterDirection(OldVelocity);
-
-	// If standing still
-	if (FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance))
-	{
-		switch (CurrentCharacterDirection)
-		{
-		case ECharacterDirection::Up:
-			GetSprite()->SetFlipbook(IdleFlipbooks.IdleUp);
-			break;
-		case ECharacterDirection::Down:
-			GetSprite()->SetFlipbook(IdleFlipbooks.IdleDown);
-			break;
-		case ECharacterDirection::Left:
-			GetSprite()->SetFlipbook(IdleFlipbooks.IdleLeft);
-			break;
-		case ECharacterDirection::Right:
-			GetSprite()->SetFlipbook(IdleFlipbooks.IdleRight);
-			break;
-		default:
-			break;
-		}
-	}
-	// If sprinting
-	else if (FMath::IsNearlyEqual(GetCharacterMovement()->MaxWalkSpeed, 200.0f, ComparisonErrorTolerance))
-	{
-		Stamina -= 0.05f;;
-		if (PlayerHUD)
-		{
-			PlayerHUD->SetStamina(Stamina, MaxStamina);
-		}
-		switch (CurrentCharacterDirection)
-		{
-		case ECharacterDirection::Up:
-			GetSprite()->SetFlipbook(RunningFlipbooks.RunUp);
-			break;
-		case ECharacterDirection::Left:
-			GetSprite()->SetFlipbook(RunningFlipbooks.RunLeft);
-			break;
-		case ECharacterDirection::Right:
-			GetSprite()->SetFlipbook(RunningFlipbooks.RunRight);
-			break;
-		case ECharacterDirection::Down:
-			GetSprite()->SetFlipbook(RunningFlipbooks.RunDown);
-			break;
-		default:
-			break;
-		}
-	}
-	// If walking
-	else
-	{
-		switch (CurrentCharacterDirection)
-		{
-		case ECharacterDirection::Up:
-			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkUp);
-			break;
-		case ECharacterDirection::Left:
-			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkLeft);
-			break;
-		case ECharacterDirection::Right:
-			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkRight);
-			break;
-		case ECharacterDirection::Down:
-			GetSprite()->SetFlipbook(WalkingFlipbooks.WalkDown);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-// Called when dying
-void APlayerCharacter::AnimateDeath()
-{
-	GetSprite()->SetLooping(false);
-	switch (CurrentCharacterDirection)
-	{
-	case ECharacterDirection::Up:
-		GetSprite()->SetFlipbook(DeathFlipbooks.DieRight);
-		break;
-	case ECharacterDirection::Down:
-		GetSprite()->SetFlipbook(DeathFlipbooks.DieLeft);
-		break;
-	case ECharacterDirection::Left:
-		GetSprite()->SetFlipbook(DeathFlipbooks.DieLeft);
-		break;
-	case ECharacterDirection::Right:
-		GetSprite()->SetFlipbook(DeathFlipbooks.DieRight);
-		break;
-	default:
-		break;
-	}
-
-	// Removes Movement Animating 
-	OnCharacterMovementUpdated.RemoveDynamic(this, &APlayerCharacter::AnimateMovement);
 }
 
 // Called when W or S keys are pressed
@@ -288,52 +186,65 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 // Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
-	if (!FMath::IsNearlyZero(Stamina, ComparisonErrorTolerance))
+	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+		SetSprinting(true);
 	}
 }
 
 // Called when shift is released
 void APlayerCharacter::StopSprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	if (!bIsDead)
+	{
+		SetSprinting(false);
+	}
 }
 
 // Called when dying 
 void APlayerCharacter::Die()
 {
-	bIsDead = true;
-	GetCharacterMovement()->MaxWalkSpeed = 0.0f;
-	AnimateDeath();
-}
-
-
-void APlayerCharacter::OnRepHealth()
-{
-	if (PlayerHUD)
+	if (!HasAuthority())
 	{
-		PlayerHUD->SetHealth(Health, MaxHealth);
+		ServerSetDying();
+	} else
+	{
+		bIsDead = true;
+		OnRep_IsDead();
 	}
 }
 
-void APlayerCharacter::RegenerateStamina()
+void APlayerCharacter::SetSprinting(bool bNewSprinting)
 {
-	Stamina = FMath::Clamp( Stamina + (PowerRegenerateRate * GetWorld()->GetDeltaSeconds()), 0.f, MaxStamina);
-	if (PlayerHUD)
+	if (!HasAuthority())
 	{
-		PlayerHUD->SetStamina(Stamina, MaxStamina);
+		ServerSetSprinting(bNewSprinting);
+	} else
+	{
+		bIsSprinting = bNewSprinting;
+		OnRep_IsSprinting();
 	}
 }
 
-void APlayerCharacter::UpdateHealth(float HealthDelta)
+void APlayerCharacter::OnRep_IsSprinting()
 {
-	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
+	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
+}
 
-	if (Health == 0.f)
-	{
-		// Handle player elimination.
-	}
+void APlayerCharacter::OnRep_IsDead()
+{
+	AnimationComponent->AnimateDeath();
+	EndPlay(EEndPlayReason::Destroyed);
+}
+
+void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
+{
+	SetSprinting(bNewSprinting);
+}
+
+void APlayerCharacter::ServerSetDying_Implementation()
+{
+	Die();
 }
 
 // Called every frame
@@ -341,5 +252,15 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	RegenerateStamina();
+	if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+	{
+		Die();
+	}
+
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
+	{
+		StopSprint();
+	}
+
+	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 }
