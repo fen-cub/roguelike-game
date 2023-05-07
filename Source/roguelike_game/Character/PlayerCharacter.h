@@ -28,19 +28,22 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State" )
 	bool bIsDead;
 
+	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
 
+	// True if character is sprinting
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting, Category = "MovementCharacter | Config")
 	bool bIsSprinting;
 
+	// Max sprint speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float SprintSpeed;
 
+	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
-
-
+	
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 
@@ -100,25 +103,32 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
+	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
-	
+
+	// Set sprint state
 	UFUNCTION()
 	void SetSprinting(bool bNewSprinting);
 
+	// Calls server to set sprinting
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bNewSprinting);
 
-	UFUNCTION(Server, Reliable)
-	void ServerSetDying();
-
+	// Called back from server to set sprint
 	UFUNCTION()
 	void OnRep_IsSprinting();
 
+	// Calls server to set dying
+	UFUNCTION(Server, Reliable)
+	void ServerSetDying();
+	
+	// Calls back from server to set dying
 	UFUNCTION()
 	void OnRep_IsDead();
 
 public:
+	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
 
 };

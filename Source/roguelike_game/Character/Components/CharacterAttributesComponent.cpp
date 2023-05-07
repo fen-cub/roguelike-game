@@ -32,11 +32,13 @@ void UCharacterAttributesComponent::BeginPlay()
 	// ...
 }
 
+// Updates health on the server
 void UCharacterAttributesComponent::ServerUpdateHealth_Implementation(float HealthDelta)
 {
 	UpdateHealth(HealthDelta);
 }
 
+// Changes HUD after server health replication
 void UCharacterAttributesComponent::OnRepHealth()
 {
 	if (PlayerHUD)
@@ -45,6 +47,7 @@ void UCharacterAttributesComponent::OnRepHealth()
 	}
 }
 
+// Set Player's HUD
 void UCharacterAttributesComponent::SetUpHUD(UPlayerHUD* HUD)
 {
 	PlayerHUD = HUD;
@@ -52,22 +55,25 @@ void UCharacterAttributesComponent::SetUpHUD(UPlayerHUD* HUD)
 	PlayerHUD->SetStamina(Stamina, MaxStamina);
 }
 
+// Calls server to update health or updates health locally on the server
 void UCharacterAttributesComponent::UpdateHealth(float HealthDelta)
 {
 	if (!GetOwner()->HasAuthority())
 	{
 		ServerUpdateHealth(HealthDelta);
-	} else
+	}
+	else
 	{
 		Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
 		OnRepHealth();
 	}
 }
 
+// Calls server to update stamina or updates stamina locally on the server
 void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 {
 	UE_LOG(LogTemp, Warning, TEXT("UpdateStamina %f"), StaminaDelta);
-	
+
 	Stamina = FMath::Clamp(Stamina + StaminaDelta, 0.f, MaxStamina);
 
 	if (PlayerHUD)
@@ -76,11 +82,13 @@ void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 	}
 }
 
+// Returns current health
 float UCharacterAttributesComponent::GetHealth() const
 {
 	return Health;
 }
 
+// Returns current stamina
 float UCharacterAttributesComponent::GetStamina() const
 {
 	return Stamina;

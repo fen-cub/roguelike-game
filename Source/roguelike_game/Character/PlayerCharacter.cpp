@@ -17,10 +17,11 @@
 // Set default player settings
 APlayerCharacter::APlayerCharacter()
 {
-	// Default logic settings
+	// Default game logic settings
 	bIsDead = false;
 	bIsMoving = false;
 	bIsSprinting = false;
+	PrimaryActorTick.bCanEverTick = true;
 	ComparisonErrorTolerance = 1e-7;
 	StaminaRegenerateRate = 0.25f;
 	RunningStaminaLossRate = -0.5f;
@@ -28,10 +29,8 @@ APlayerCharacter::APlayerCharacter()
 	// HUD
 	PlayerHUDClass = nullptr;
 	PlayerHUD = nullptr;
-
+	
 	// Default rotation settings
-	PrimaryActorTick.bCanEverTick = true;
-
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
@@ -81,6 +80,7 @@ void APlayerCharacter::BeginPlay()
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::UpdateMovementProperties);
 
+	// Create and draw HUD
 	if (IsLocallyControlled() && PlayerHUDClass)
 	{
 		APlayerController* Fpc = GetController<APlayerController>();
@@ -92,6 +92,7 @@ void APlayerCharacter::BeginPlay()
 	}
 }
 
+// Replicate variables on the server
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -100,6 +101,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
 }
 
+// Called when dying or in the end
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (PlayerHUD)
