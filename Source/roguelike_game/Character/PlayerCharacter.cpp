@@ -14,10 +14,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 
-// Set default player settings
+// Set default player properties
 APlayerCharacter::APlayerCharacter()
 {
-	// Default game logic settings
+	// Default game logic properties
 	bIsDead = false;
 	bIsMoving = false;
 	bIsSprinting = false;
@@ -29,26 +29,26 @@ APlayerCharacter::APlayerCharacter()
 	// HUD
 	PlayerHUDClass = nullptr;
 	PlayerHUD = nullptr;
-	
-	// Default rotation settings
+
+	// Default rotation properties
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
-	// Default movement settings
+	// Default movement properties
 	SprintSpeed = 200.0f;
 	WalkSpeed = 100.0f;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-	// Default capsule component settings
+	// Default capsule component properties
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
-	// Default sprite settings
+	// Default sprite properties
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
-	// Default camera boom settings
+	// Default camera boom properties
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetRelativeRotation(FRotator(-90.0f, 180.0f, 180.0f));
@@ -57,17 +57,17 @@ APlayerCharacter::APlayerCharacter()
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
 
-	// Default camera settings
+	// Default camera properties
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>("Follow Camera");
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	// Default animation settings
+	// Default animation properties
 	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
-	
-	// Default animation settings
+
+	// Default attributes properties
 	AttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>("Attributes Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 }
@@ -92,6 +92,18 @@ void APlayerCharacter::BeginPlay()
 	}
 }
 
+// Called when dying or in the end
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 // Replicate variables on the server
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -99,19 +111,6 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, bIsSprinting);
 	DOREPLIFETIME(APlayerCharacter, bIsMoving);
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
-}
-
-// Called when dying or in the end
-void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->RemoveFromParent();
-		// We can't destroy the widget directly, let the GC take care of it.
-		PlayerHUD = nullptr;
-	}
-
-	Super::EndPlay(EndPlayReason);
 }
 
 // Called when moves
@@ -138,8 +137,6 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
-
-	// UE_LOG(LogTemp, Warning, TEXT("bIsSprinting %d"), bIsSprinting);
 
 	if (bIsMoving && !bIsDead)
 	{
@@ -209,51 +206,58 @@ void APlayerCharacter::Die()
 	if (!HasAuthority())
 	{
 		ServerSetDying();
-	} else
+	}
+	else
 	{
 		bIsDead = true;
 		OnRep_IsDead();
 	}
 }
 
+// Called when start sprinting
 void APlayerCharacter::SetSprinting(bool bNewSprinting)
 {
 	if (!HasAuthority())
 	{
 		ServerSetSprinting(bNewSprinting);
-	} else
+	}
+	else
 	{
 		bIsSprinting = bNewSprinting;
 		OnRep_IsSprinting();
 	}
 }
 
+// Called when client start sprinting
+void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
+{
+	SetSprinting(bNewSprinting);
+}
+
+// Calls back from server when start sprinting
 void APlayerCharacter::OnRep_IsSprinting()
 {
 	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
 }
 
+// Called when client dying
+void APlayerCharacter::ServerSetDying_Implementation()
+{
+	Die();
+}
+
+// Calls back from server when dying
 void APlayerCharacter::OnRep_IsDead()
 {
 	AnimationComponent->AnimateDeath();
 	EndPlay(EEndPlayReason::Destroyed);
 }
 
-void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
-{
-	SetSprinting(bNewSprinting);
-}
-
-void APlayerCharacter::ServerSetDying_Implementation()
-{
-	Die();
-}
-
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
 	{
 		Die();

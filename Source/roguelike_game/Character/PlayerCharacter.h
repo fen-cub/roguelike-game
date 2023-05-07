@@ -17,15 +17,12 @@ class ROGUELIKE_GAME_API APlayerCharacter : public APaperCharacter
 	GENERATED_BODY()
 
 public:
-	// Set default player settings
+	// Set default player properties
 	APlayerCharacter();
-
-	/** Setup properties that should be replicated from the server to clients. */
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// True if character is dead
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State" )
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
 
 	// True if character is moving
@@ -33,7 +30,8 @@ protected:
 	bool bIsMoving;
 
 	// True if character is sprinting
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting, Category = "MovementCharacter | Config")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting,
+		Category = "MovementCharacter | Config")
 	bool bIsSprinting;
 
 	// Max sprint speed
@@ -43,15 +41,20 @@ protected:
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
-	
+
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 
-	// Sets spawn settings
+	// Sets spawn properties
+	UFUNCTION()
 	virtual void BeginPlay() override;
 
-	// Sets spawn settings
+	// Sets spawn properties
+	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	// Setup properties that should be replicated from the server to clients.
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Sets direction vector every moving
 	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
@@ -99,7 +102,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float RunningStaminaLossRate;
-	
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
@@ -122,7 +125,7 @@ protected:
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)
 	void ServerSetDying();
-	
+
 	// Calls back from server to set dying
 	UFUNCTION()
 	void OnRep_IsDead();
@@ -130,5 +133,4 @@ protected:
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
-
 };
