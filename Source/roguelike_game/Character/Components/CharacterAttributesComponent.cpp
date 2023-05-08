@@ -72,8 +72,6 @@ void UCharacterAttributesComponent::UpdateHealth(float HealthDelta)
 // Calls server to update stamina or updates stamina locally on the server
 void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 {
-	UE_LOG(LogTemp, Warning, TEXT("UpdateStamina %f"), StaminaDelta);
-
 	Stamina = FMath::Clamp(Stamina + StaminaDelta, 0.f, MaxStamina);
 
 	if (PlayerHUD)

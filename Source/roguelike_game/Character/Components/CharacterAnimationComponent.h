@@ -99,7 +99,7 @@ class ROGUELIKE_GAME_API UCharacterAnimationComponent : public UPaperSpriteCompo
 public:
 	UCharacterAnimationComponent();
 
-	// Sets death animation 
+	// Sets owner character
 	UFUNCTION(BlueprintCallable, Category="Config")
 	void SetupOwner(UPaperFlipbookComponent* FlipbookComponent);
 

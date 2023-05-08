@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/CharacterAnimationComponent.h"
 #include "Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Items/Item.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -70,6 +71,13 @@ APlayerCharacter::APlayerCharacter()
 	// Default attributes properties
 	AttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>("Attributes Component");
 	AnimationComponent->SetupAttachment(RootComponent);
+	
+	// Default trigger capsule properties
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger capsule");
+	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
+	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);  
 }
 
 // Called when spawned
@@ -130,6 +138,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -214,6 +223,28 @@ void APlayerCharacter::Die()
 	}
 }
 
+void APlayerCharacter::Interact()
+{
+	TArray<AActor*> OverlappingActors;
+	TriggerCapsule->GetOverlappingActors(OverlappingActors);
+	
+
+	AActor* Actor = OverlappingActors.Last();
+	if (Actor && Actor != this)
+	{
+		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
+		if (Interface)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s"), *Actor->GetName());
+			Interface->Interact();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
+	}
+}
+
 // Called when start sprinting
 void APlayerCharacter::SetSprinting(bool bNewSprinting)
 {
@@ -269,4 +300,14 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 
 	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+}
+
+// Called when some actor in overlap
+void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// check if Actors do not equal nullptr
+	if (OtherActor && OtherActor != this) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName() );
+	}
 }

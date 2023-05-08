@@ -85,6 +85,10 @@ protected:
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void Die();
 
+	// Stops movements and calls death animation
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void Interact();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
@@ -96,6 +100,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
+	class UCapsuleComponent* TriggerCapsule;
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;
@@ -133,4 +140,10 @@ protected:
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
+
+	// Called when on Overlap
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
 };

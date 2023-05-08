@@ -13,6 +13,7 @@ UCharacterAnimationComponent::UCharacterAnimationComponent()
 void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookComponent)
 {
 	OwnerFlipbookComponent = FlipbookComponent;
+	AnimateIdle();
 }
 
 // Called while walking
