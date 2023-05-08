@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components\CapsuleComponent.h"
 #include "../Interfaces/InteractableInterface.h"
-#include "roguelike_game/roguelike_game.h"
 #include "PaperSpriteActor.h"
 #include "Item.generated.h"
 
@@ -13,10 +12,14 @@ USTRUCT(BlueprintType)
 struct FItemData
 {
 	GENERATED_BODY()
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TSubclassOf<AItem> ItemClass;
+	TSubclassOf<AItem> Class;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	class UTexture2D* Image; 
+	class UTexture2D* Image{nullptr};
+	
+	bool IsEmpty() const;
 };
 
 /**
@@ -45,5 +48,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* ItemFlipbook{nullptr};
 
-	virtual void Interact() override;
+	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
+
+	UFUNCTION(BlueprintCallable)
+	FItemData GetItemData() const;
 };

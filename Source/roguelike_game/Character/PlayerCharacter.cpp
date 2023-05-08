@@ -10,6 +10,7 @@
 #include "Components/CharacterAttributesComponent.h"
 #include "roguelike_game/Items/Item.h"
 #include "Components/InputComponent.h"
+#include "Components/ItemStorageComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -73,11 +74,15 @@ APlayerCharacter::APlayerCharacter()
 	AnimationComponent->SetupAttachment(RootComponent);
 	
 	// Default trigger capsule properties
-	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger capsule");
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger Capsule");
 	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
-	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);  
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
+
+	// Default inventory properties
+	Inventory = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
+	Inventory->SetStorageSize(9);
 }
 
 // Called when spawned
@@ -95,8 +100,12 @@ void APlayerCharacter::BeginPlay()
 		check(Fpc);
 		PlayerHUD = CreateWidget<UPlayerHUD>(Fpc, PlayerHUDClass);
 		check(PlayerHUD);
+		PlayerHUD->SetOwningPlayer(Fpc);
 		PlayerHUD->AddToPlayerScreen();
+
+		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
+		Inventory->SetUpHUD(PlayerHUD);
 	}
 }
 
@@ -236,7 +245,7 @@ void APlayerCharacter::Interact()
 		if (Interface)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s"), *Actor->GetName());
-			Interface->Interact();
+			Interface->Interact(this);
 		}
 	}
 	else

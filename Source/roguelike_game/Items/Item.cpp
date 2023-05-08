@@ -4,7 +4,14 @@
 #include "Item.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperSpriteComponent.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
+#include "roguelike_game/Character/Components/ItemStorageComponent.h"
 
+
+bool FItemData::IsEmpty() const
+{
+	return Image == nullptr;
+}
 
 AItem::AItem()
 {
@@ -20,9 +27,10 @@ AItem::AItem()
 		Sprite->SetCollisionProfileName(CollisionProfileName);
 		Sprite->SetGenerateOverlapEvents(false);
 	}
-
-	Sprite->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
+	
 	Sprite->SetFlipbook(ItemFlipbook);
+	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
+	SetActorRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
 	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
@@ -30,7 +38,16 @@ AItem::AItem()
 	TriggerCapsule->SetupAttachment(RootComponent);
 }
 
-void AItem::Interact()
+void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
-	Destroy();
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->Inventory->AddItem(GetItemData());
+		Destroy();
+	}
+}
+
+FItemData AItem::GetItemData() const
+{
+	return Data;
 }

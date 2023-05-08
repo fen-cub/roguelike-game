@@ -6,6 +6,7 @@
 #include "PaperCharacter.h"
 #include "Components/CharacterAnimationComponent.h"
 #include "../HUD/PlayerHUD.h"
+#include "EnvironmentQuery/EnvQueryDebugHelpers.h"
 #include "PlayerCharacter.generated.h"
 
 /*
@@ -104,18 +105,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+	// Sets up on the BeginPlay()
+	UPROPERTY()
+	class UPlayerHUD* PlayerHUD;
+
+	// How much Stamina regenerates for a Tick
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;
 
+	// How much Stamina losses for a Tick while running
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float RunningStaminaLossRate;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
-
-	// Sets up on the BeginPlay()
-	UPROPERTY()
-	class UPlayerHUD* PlayerHUD;
 
 	// Set sprint state
 	UFUNCTION()
@@ -146,4 +149,7 @@ public:
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UItemStorageComponent* Inventory;
 };
