@@ -13,6 +13,7 @@
 #include "Components/ItemStorageComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/InputSettings.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -72,7 +73,7 @@ APlayerCharacter::APlayerCharacter()
 	// Default attributes properties
 	AttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>("Attributes Component");
 	AnimationComponent->SetupAttachment(RootComponent);
-	
+
 	// Default trigger capsule properties
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger Capsule");
 	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
@@ -143,6 +144,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAxis("MoveUpOrDown", this, &APlayerCharacter::MoveForwardOrDown);
 	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &APlayerCharacter::MoveRightOrLeft);
+	PlayerInputComponent->BindAxis("UseItem", this, &APlayerCharacter::UseItem);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
@@ -236,7 +238,7 @@ void APlayerCharacter::Interact()
 {
 	TArray<AActor*> OverlappingActors;
 	TriggerCapsule->GetOverlappingActors(OverlappingActors);
-	
+
 
 	AActor* Actor = OverlappingActors.Last();
 	if (Actor && Actor != this)
@@ -251,6 +253,15 @@ void APlayerCharacter::Interact()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
+	}
+}
+
+void APlayerCharacter::UseItem(const float Axis)
+{
+	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Use Item: %d"), FMath::RoundToInt(Axis));
+		Inventory->UseItem(FMath::RoundToInt(Axis) - 1);
 	}
 }
 
@@ -312,11 +323,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 }
 
 // Called when some actor in overlap
-void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+									const FHitResult& SweepResult)
 {
 	// check if Actors do not equal nullptr
-	if (OtherActor && OtherActor != this) 
+	if (OtherActor && OtherActor != this)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName() );
+		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
 	}
 }

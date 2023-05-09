@@ -24,7 +24,7 @@ protected:
 
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
-	TArray<FItemData> Items;
+	TArray<FItemData> ItemStorage;
 
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
@@ -47,6 +47,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = Storage)
 	void RemoveItem(int64 Position);
+
+	UFUNCTION(BlueprintCallable, Category = Storage)
+    void UseItem(int64 Position);
 
 	// Called when HUD created
 	void SetUpHUD(class UPlayerHUD* HUD);

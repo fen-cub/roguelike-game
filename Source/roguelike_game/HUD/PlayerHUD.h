@@ -37,7 +37,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void InsertItem(int64 Position, FItemData Item);
-
+	
 	UFUNCTION(BlueprintCallable)
 	void SetGridPanelSizes(int64 RowCount, int64 ColumnCount);
 

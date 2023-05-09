@@ -17,7 +17,7 @@ struct FItemData
 	TSubclassOf<AItem> Class;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	class UTexture2D* Image{nullptr};
+	class UPaperSprite* Image{nullptr};
 	
 	bool IsEmpty() const;
 };
@@ -30,6 +30,7 @@ class ROGUELIKE_GAME_API AItem : public APaperSpriteActor, public IInteractableI
 {
 	GENERATED_BODY()
 
+public:
 	AItem();
 
 protected:
@@ -40,7 +41,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
-	UPROPERTY(EditAnywhere, Category = Config)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
 	FItemData Data;
 
 public:
@@ -52,4 +53,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FItemData GetItemData() const;
+
+	virtual void Use(class APlayerCharacter* PlayerCharacter);
 };

@@ -86,9 +86,13 @@ protected:
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void Die();
 
-	// Stops movements and calls death animation
+	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void Interact();
+
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void UseItem(const float Axis);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
@@ -98,9 +102,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 	class UCharacterAnimationComponent* AnimationComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
-	class UCharacterAttributesComponent* AttributesComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
@@ -150,6 +151,10 @@ public:
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* Inventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UCharacterAttributesComponent* AttributesComponent;
+	
 };

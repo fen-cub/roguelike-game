@@ -51,3 +51,8 @@ FItemData AItem::GetItemData() const
 {
 	return Data;
 }
+
+void AItem::Use(APlayerCharacter* PlayerCharacter)
+{
+	
+}
