@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components\CapsuleComponent.h"
+#include "Components\TextRenderComponent.h"
 #include "../Interfaces/InteractableInterface.h"
 #include "PaperSpriteActor.h"
 #include "Item.generated.h"
@@ -12,13 +13,13 @@ USTRUCT(BlueprintType)
 struct FItemData
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TSubclassOf<AItem> Class;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UPaperSprite* Image{nullptr};
-	
+
 	bool IsEmpty() const;
 };
 
@@ -34,15 +35,24 @@ public:
 	AItem();
 
 protected:
-	// The main skeletal mesh associated with this item.
-	UPROPERTY(Category = Item, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UPaperFlipbookComponent* Sprite;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Tooltip)
+	class UTextRenderComponent* Tooltip;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
 	FItemData Data;
+
+	// Called when on Overlap
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+					class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:
 	// Flipbook texture of item

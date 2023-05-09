@@ -95,10 +95,9 @@ void APlayerCharacter::BeginPlay()
 	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::UpdateMovementProperties);
 
 	// Create and draw HUD
-	if (IsLocallyControlled() && PlayerHUDClass)
+	APlayerController* Fpc = GetController<APlayerController>();
+	if (IsLocallyControlled() && PlayerHUDClass && Fpc)
 	{
-		APlayerController* Fpc = GetController<APlayerController>();
-		check(Fpc);
 		PlayerHUD = CreateWidget<UPlayerHUD>(Fpc, PlayerHUDClass);
 		check(PlayerHUD);
 		PlayerHUD->SetOwningPlayer(Fpc);

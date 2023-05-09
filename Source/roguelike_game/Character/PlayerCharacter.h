@@ -111,11 +111,11 @@ protected:
 	class UPlayerHUD* PlayerHUD;
 
 	// How much Stamina regenerates for a Tick
-	UPROPERTY(EditAnywhere, Category = Attributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;
 
 	// How much Stamina losses for a Tick while running
-	UPROPERTY(EditAnywhere, Category = Attributes)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float RunningStaminaLossRate;
 
 	UPROPERTY(EditAnywhere)
