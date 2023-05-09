@@ -29,7 +29,7 @@ void UItemStorageComponent::AddItem(FItemData Item)
 	{
 		ItemStorage[FirstEmptySlotPosition] = Item;
 		UE_LOG(LogTemp, Warning, TEXT("Insert item on slot: %d"), static_cast<int>(FirstEmptySlotPosition));
-		PlayerHUD->InsertItem(FirstEmptySlotPosition, Item);
+		PlayerHUD->SetItem(FirstEmptySlotPosition, Item);
 
 		while (FirstEmptySlotPosition < StorageSize && !ItemStorage[FirstEmptySlotPosition].IsEmpty())
 		{
@@ -49,7 +49,7 @@ void UItemStorageComponent::RemoveItem(int64 Position)
 	{
 		ItemStorage[Position] = EmptySlot;
 		UE_LOG(LogTemp, Warning, TEXT("Remove item on slot: %d"), static_cast<int>(Position));
-		PlayerHUD->InsertItem(Position, EmptySlot);
+		PlayerHUD->SetItem(Position, EmptySlot);
 
 		FirstEmptySlotPosition = FMath::Min(Position, FirstEmptySlotPosition);
 	} else
