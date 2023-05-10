@@ -44,6 +44,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
 	FItemData Data;
 
+	// Setup properties that should be replicated from the server to clients.
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	// Called when on Overlap
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,

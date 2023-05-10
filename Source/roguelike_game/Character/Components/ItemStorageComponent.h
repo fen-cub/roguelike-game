@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "roguelike_game/HUD/PlayerHUD.h"
+#include "roguelike_game/Widgets/Inventory.h"
 #include "roguelike_game/Items/Item.h"
 #include "ItemStorageComponent.generated.h"
 
@@ -21,6 +21,9 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	// Setup properties that should be replicated from the server to clients.
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
@@ -39,7 +42,7 @@ protected:
 	
 	// Need to be set at the begining of the game
 	UPROPERTY()
-	class UPlayerHUD* PlayerHUD;
+	class UInventory* InventoryWidget;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = Storage)
@@ -52,7 +55,10 @@ public:
     void UseItem(int64 Position);
 
 	// Called when HUD created
-	void SetUpHUD(class UPlayerHUD* HUD);
+	void SetUpInventoryWidget(class UInventory* Widget);
 	
 	void SetStorageSize(int64 Size);
+
+	int64 GetStorageSize() const;
 };
+

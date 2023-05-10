@@ -4,6 +4,7 @@
 #include "Item.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperSpriteComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Character/Components/ItemStorageComponent.h"
 
@@ -15,14 +16,18 @@ bool FItemData::IsEmpty() const
 
 AItem::AItem()
 {
+	SetReplicates(true);
+	
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
-	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
+	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
-	
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
+	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
+
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
 	Tooltip->SetAbsolute(false, true, false);
@@ -34,7 +39,7 @@ AItem::AItem()
 	Tooltip->SetText(FText::FromString("Press E to take item"));
 	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
 	Tooltip->SetHiddenInGame(true);
-	
+
 	GetRenderComponent()->SetMobility(EComponentMobility::Movable);
 	GetRenderComponent()->SetSimulatePhysics(true);
 	GetRenderComponent()->SetEnableGravity(true);
@@ -43,9 +48,6 @@ AItem::AItem()
 	GetRenderComponent()->GetBodyInstance()->bLockYRotation = true;
 	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
-
-	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
-	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
 }
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)
@@ -64,12 +66,16 @@ FItemData AItem::GetItemData() const
 
 void AItem::Use(APlayerCharacter* PlayerCharacter)
 {
-	
+}
+
+void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
 void AItem::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-									const FHitResult& SweepResult)
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+							const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
 	{
@@ -77,11 +83,11 @@ void AItem::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AAct
 	}
 }
 
-void AItem::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AItem::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
 	{
 		Tooltip->SetHiddenInGame(true);
 	}
 }
-

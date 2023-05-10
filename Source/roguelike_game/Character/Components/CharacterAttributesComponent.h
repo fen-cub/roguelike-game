@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "../../HUD/PlayerHUD.h"
+#include "roguelike_game/Widgets/PlayerHUD.h"
 #include "CharacterAttributesComponent.generated.h"
 
 

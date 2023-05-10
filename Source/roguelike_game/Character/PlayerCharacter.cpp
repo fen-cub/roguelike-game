@@ -102,10 +102,11 @@ void APlayerCharacter::BeginPlay()
 		check(PlayerHUD);
 		PlayerHUD->SetOwningPlayer(Fpc);
 		PlayerHUD->AddToPlayerScreen();
+		PlayerHUD->InventoryWidget->SetGridPanelSizes(1, Inventory->GetStorageSize());
 
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
-		Inventory->SetUpHUD(PlayerHUD);
+		Inventory->SetUpInventoryWidget(PlayerHUD->InventoryWidget);
 	}
 }
 

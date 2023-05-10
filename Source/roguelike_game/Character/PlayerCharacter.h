@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
 #include "Components/CharacterAnimationComponent.h"
-#include "../HUD/PlayerHUD.h"
+#include "roguelike_game/Widgets/PlayerHUD.h"
 #include "EnvironmentQuery/EnvQueryDebugHelpers.h"
 #include "PlayerCharacter.generated.h"
 

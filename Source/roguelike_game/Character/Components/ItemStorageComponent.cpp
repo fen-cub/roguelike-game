@@ -4,11 +4,13 @@
 #include "ItemStorageComponent.h"
 
 #include "EnvironmentQuery/EnvQueryDebugHelpers.h"
+#include "roguelike_game/Widgets/Inventory.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 // Sets default values for this component's properties
 UItemStorageComponent::UItemStorageComponent()
 {
+	SetIsReplicated(true);
 	SetStorageSize(9);
 	FirstEmptySlotPosition = 0;
 }
@@ -22,20 +24,28 @@ void UItemStorageComponent::BeginPlay()
 	// ...
 }
 
+void UItemStorageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
 void UItemStorageComponent::AddItem(FItemData Item)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Storage size: %d"), static_cast<int>(StorageSize));
+	UE_LOG(LogTemp, Warning, TEXT("Calls add item on client: %p"), this);
 	if (StorageSize > 0 && FirstEmptySlotPosition != StorageSize)
 	{
 		ItemStorage[FirstEmptySlotPosition] = Item;
 		UE_LOG(LogTemp, Warning, TEXT("Insert item on slot: %d"), static_cast<int>(FirstEmptySlotPosition));
-		PlayerHUD->SetItem(FirstEmptySlotPosition, Item);
+		if (InventoryWidget)
+		{
+			InventoryWidget->SetItem(FirstEmptySlotPosition, Item);
+		}
 
 		while (FirstEmptySlotPosition < StorageSize && !ItemStorage[FirstEmptySlotPosition].IsEmpty())
 		{
 			FirstEmptySlotPosition++;
 		}
-	} else
+	} else if (InventoryWidget)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("There are no empty slots in Storage"));
 	}
@@ -44,12 +54,15 @@ void UItemStorageComponent::AddItem(FItemData Item)
 void UItemStorageComponent::RemoveItem(int64 Position)
 {
 	check (Position >= 0 && Position < StorageSize);
-
+	
 	if (!ItemStorage[Position].IsEmpty())
 	{
 		ItemStorage[Position] = EmptySlot;
 		UE_LOG(LogTemp, Warning, TEXT("Remove item on slot: %d"), static_cast<int>(Position));
-		PlayerHUD->SetItem(Position, EmptySlot);
+		if (InventoryWidget)
+		{
+			InventoryWidget->SetItem(Position, EmptySlot);
+		}
 
 		FirstEmptySlotPosition = FMath::Min(Position, FirstEmptySlotPosition);
 	} else
@@ -71,24 +84,19 @@ void UItemStorageComponent::UseItem(int64 Position)
 			CDOItem->Use(PlayerCharacter);
 		}
 		RemoveItem(Position);
-	} else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("This is an empty slot"));
-	}
+	} 
 }
 
-// Set Player's HUD
-void UItemStorageComponent::SetUpHUD(UPlayerHUD* HUD)
+void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
 {
-	PlayerHUD = HUD;
-
-	PlayerHUD->SetGridPanelSizes(1, StorageSize);
+	InventoryWidget = Widget;
 
 	for (int64 Position = 0; Position < StorageSize; ++Position)
 	{
-		PlayerHUD->InsertItem(Position, ItemStorage[Position]);
+		InventoryWidget->InsertItem(Position, ItemStorage[Position]);
 	} 
 }
+
 
 void UItemStorageComponent::SetStorageSize(int64 Size)
 {
@@ -96,3 +104,9 @@ void UItemStorageComponent::SetStorageSize(int64 Size)
 
 	ItemStorage.Init(EmptySlot, StorageSize);
 }
+
+int64 UItemStorageComponent::GetStorageSize() const
+{
+	return StorageSize;
+}
+
