@@ -2,19 +2,19 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "RoomActor.h"
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ProceduralLevel1.generated.h"
+#include "DefaultRoom.generated.h"
 
 UCLASS()
-class ROGUELIKE_GAME_API AProceduralLevel1 : public AActor
+class ROGUELIKE_GAME_API ADefaultRoom : public ARoomActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AProceduralLevel1();
+	ADefaultRoom();
 
 protected:
 	// Called when the game starts or when spawned
@@ -24,10 +24,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
-	UPROPERTY(EditAnywhere, Category = "Room")
-	TSubclassOf<ARoomActor> RoomActorClass;
-
-	uint8 NumOfRooms;
+	//ADefaultRoom(const TArray<bool> Doors);
 
 };

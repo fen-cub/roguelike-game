@@ -2,7 +2,7 @@
 
 
 #include "ProceduralLevel1.h"
-#include "PaperTileSet.h"
+
 
 // Sets default values
 AProceduralLevel1::AProceduralLevel1()
@@ -11,87 +11,120 @@ AProceduralLevel1::AProceduralLevel1()
 	PrimaryActorTick.bCanEverTick = true;
 	UClass* ClassA = ARoomActor::StaticClass();
 	RoomActorClass = ClassA;
-	NumOfRooms = 6;
 }
 
+struct MapCell
+{
+	TSet<int> Doors;
+	bool IsInQueue = false;
+};
+
+int8 DirX[] = {0, 1, 0, -1};
+int8 DirY[] = {-1, 0, 1, 0};
+
+float CorrDirX[] = {112.f, -80.f, -256.f, -80.f};
+float CorrDirY[] = {80.f, -112.f, 80.f, 256.f};
 
 void AProceduralLevel1::BeginPlay()
 {
 	Super::BeginPlay();
 
+	NumOfRooms = FMath::RandRange(0, 1) + 5 + 1 * 2.6;
 	uint8 RoomsExist = 0;
 
-	TQueue<ARoomActor*> RoomQueue;
+	TQueue<TPair<uint8, uint8>> RoomQueue;
+	TArray<ARoomActor*> EndRooms;
+	TQueue<ARoomActor*> AllRooms;
 
-	ARoomActor* MyRoom = CreateRoomWithDoors();
-	RoomsExist++;
+	MapCell Map[10][10];
 
-	RoomQueue.Enqueue(MyRoom);
-	UE_LOG(LogTemp, Warning, TEXT("Add in queue"))
-
-	while (!RoomQueue.IsEmpty() && RoomsExist <= NumOfRooms)
+	while (true)
 	{
-		ARoomActor* FromQueue = nullptr;
-		RoomQueue.Peek(FromQueue);
-		RoomQueue.Pop();
-		UE_LOG(LogTemp, Warning, TEXT("From queue"))
-		for (uint8 i = 0; i < 4; i++)
+		const TPair<uint8, uint8> StartRoom(4, 4);
+
+		RoomQueue.Enqueue(StartRoom);
+		RoomsExist++;
+		UE_LOG(LogTemp, Warning, TEXT("Add in queue"))
+
+		while (RoomQueue.IsEmpty() != true)
 		{
-			if (FromQueue->RoomComponent->Doors[i])
-			{
-				const FVector PrevLocation = FromQueue->GetActorLocation();
-				ARoomActor* NewRoom = CreateRoomWithDir((i + 2) % 4, PrevLocation);
+			TPair<uint8, uint8> FromQueue;
+			RoomQueue.Peek(FromQueue);
+			Map[FromQueue.Key][FromQueue.Value].IsInQueue = false;
+			RoomQueue.Pop();
+			for (uint8 i = 0; i < 4; i++) {
+				if (FromQueue.Key + DirX[i] < 0 || FromQueue.Key + DirX[i] >= 10 || FromQueue.Value + DirY[i] < 0 || FromQueue.Value + DirY[i] >= 10)
+				{
+					continue;
+				}
+				if (Map[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]].Doors.Num() != 0) {
+					continue;
+				}
+				if (RoomsExist == NumOfRooms)
+				{
+					continue;
+				}
+				if (FMath::RandRange(0, 2) == 0)
+				{
+					continue;
+				}
 				RoomsExist++;
-				RoomQueue.Enqueue(NewRoom);
-				FromQueue->RoomComponent->Doors[i] = false;
+				Map[FromQueue.Key][FromQueue.Value].Doors.Add(i);
+				Map[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]].Doors.Add((2 + i) % 4);
+				if (Map[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]].IsInQueue == false)
+				{
+					RoomQueue.Enqueue(TPair<int, int>(FromQueue.Key + DirX[i],FromQueue.Value + DirY[i]));
+					Map[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]].IsInQueue = true;
+				}
+			}
+			if (Map[FromQueue.Key][FromQueue.Value].Doors.Num() != 0)
+			{
+				FVector NewRoomLocation = FVector((StartRoom.Value - FromQueue.Value) * (256.f + 112.f), (StartRoom.Key - FromQueue.Key) * (256.f + 112.f), 0.f);
+				ARoomActor* NewRoom = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewRoomLocation, FRotator(0.f, 90.f, -90.f), FActorSpawnParameters());
+				NewRoom->Init(Map[FromQueue.Key][FromQueue.Value].Doors, 16, 16);
+				AllRooms.Enqueue(NewRoom);
+				for (const int& x : Map[FromQueue.Key][FromQueue.Value].Doors)
+				{
+					FVector NewCorridorLocation = FVector((StartRoom.Value - FromQueue.Value) * (256.f + 112.f) + CorrDirX[x], (StartRoom.Key - FromQueue.Key) * (256.f + 112.f) + CorrDirY[x], 0.f);
+					ARoomActor* NewCorridor = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewCorridorLocation, FRotator(0.f, 90.f, -90.f), FActorSpawnParameters());
+					TSet<int> CorridorDir;
+					if (x % 2 == 0)
+					{
+						CorridorDir.Add(0);
+						CorridorDir.Add(2);
+						NewCorridor->Init(CorridorDir, 6, 7);
+					} else
+					{
+						CorridorDir.Add(1);
+						CorridorDir.Add(3);
+						NewCorridor->Init(CorridorDir, 7, 6);
+					}
+					AllRooms.Enqueue(NewCorridor);
+				}
+				if (Map[FromQueue.Key][FromQueue.Value].Doors.Num() == 1)
+				{
+					EndRooms.Add(NewRoom);
+				}
+			}
+		
+		}
+
+		if (RoomsExist == NumOfRooms)
+		{
+			break;
+		} else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Bad Room Set"))
+			while(AllRooms.IsEmpty() != 0)
+			{
+				ARoomActor* RoomToDelete;
+				AllRooms.Peek(RoomToDelete);
+				AllRooms.Pop();
+				RoomToDelete->Destroy();
 			}
 		}
 	}
 	
-	while(!RoomQueue.IsEmpty()) {
-		UPaperTileSet *TileSet = LoadObject<UPaperTileSet>(
-	nullptr, TEXT("/Game/Textures/TX_Tileset_Grass_TileSet"));
-		FPaperTileInfo TileInfo;
-		TileInfo.TileSet = TileSet;
-		TileInfo.PackedTileIndex = 32;
-		ARoomActor* FromQueue = nullptr;
-		RoomQueue.Peek(FromQueue);
-		RoomQueue.Pop();
-		for (uint8 i = 0; i < 4; i++)
-		{
-			if (FromQueue->RoomComponent->Doors[i])
-			{
-				switch (i) {
-				case 0:
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 - 2, 0, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 - 1, 0, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2, 0, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 + 1, 0, 0, TileInfo);
-					break;
-				case 1:
-					FromQueue->RoomComponent->SetTile(0, FromQueue->RoomComponent->RoomHeight / 2 - 2, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(0, FromQueue->RoomComponent->RoomHeight / 2 - 1, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(0, FromQueue->RoomComponent->RoomHeight / 2, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(0, FromQueue->RoomComponent->RoomHeight / 2 + 1, 0, TileInfo);
-					break;
-				case 2:
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 - 2, FromQueue->RoomComponent->RoomHeight - 1, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 - 1, FromQueue->RoomComponent->RoomHeight - 1, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2, FromQueue->RoomComponent->RoomHeight - 1, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth / 2 + 1, FromQueue->RoomComponent->RoomHeight - 1, 0, TileInfo);
-					break;
-				default:
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth - 1, FromQueue->RoomComponent->RoomHeight / 2 - 2, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth - 1, FromQueue->RoomComponent->RoomHeight / 2 - 1, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth - 1, FromQueue->RoomComponent->RoomHeight / 2, 0, TileInfo);
-					FromQueue->RoomComponent->SetTile(FromQueue->RoomComponent->RoomWidth - 1, FromQueue->RoomComponent->RoomHeight / 2 + 1, 0, TileInfo);
-					break;
-				}
-			}
-		}
-		FromQueue->RoomComponent->SetLayerCollision(0, true, true, 100);
-	}
-
 }
 
 
@@ -102,94 +135,4 @@ void AProceduralLevel1::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-ARoomActor* AProceduralLevel1::CreateRoomWithDoors() const
-{
-	ARoomActor* MyRoom;
-	const int32 MaxAttempts = 5;
-	int32 Attempts = 0;
-
-	while (true)
-	{
-		ARoomActor* FirstRoom = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, FVector::ZeroVector, FRotator(0.f, 90.f, -90.f));
-		UE_LOG(LogTemp, Warning, TEXT("Create First Room"))
-		if(Attempts	>= MaxAttempts)
-		{
-			MyRoom = FirstRoom;
-			break;
-		}
-
-		if (FirstRoom->RoomComponent->Doors[0] == false && FirstRoom->RoomComponent->Doors[1] == false && FirstRoom->RoomComponent->Doors[2] == false && FirstRoom->RoomComponent->Doors[3] == false)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Bad Room"))	
-			FirstRoom->Destroy();
-			UE_LOG(LogTemp, Warning, TEXT("Bad Room Destroyed"))
-			Attempts++;
-		} else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Good Room"))
-			MyRoom = FirstRoom;
-			break;
-		}
-	}
-	
-	return MyRoom;
-}
-
-ARoomActor* AProceduralLevel1::CreateRoomWithDir(const uint8 Direction, FVector PrevLocation) const
-{
-	float NewX, NewY;
-	const int32 MaxAttempts = 5;
-	int32 Attempts = 0;
-	switch (Direction)
-	{
-	case 0:
-		NewX = -320.f;
-		NewY = 0.f;
-		break;
-	case 1:
-		NewX = 0.f;
-		NewY = 320.f;
-		break;
-	case 2:
-		NewX = 320.f;
-		NewY = 0.f;
-		break;
-	default:
-		NewX = 0.f;
-		NewY = -320.f;
-		break;
-	}
-	FVector NewLocation = FVector(PrevLocation.X + NewX, PrevLocation.Y + NewY, PrevLocation.Z);
-	ARoomActor* MyRoom;
-
-	while (true)
-	{
-		ARoomActor* FirstRoom = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewLocation, FRotator(0.f, 90.f, -90.f));
-		UE_LOG(LogTemp, Warning, TEXT("Create Dir Room"))
-		if(Attempts	>= MaxAttempts)
-		{
-			MyRoom = FirstRoom;
-			break;
-		}
-
-		if (FirstRoom->RoomComponent->Doors[Direction] == false)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Bad Room"))	
-			FirstRoom->Destroy();
-			UE_LOG(LogTemp, Warning, TEXT("Bad Room Destroyed"))
-			Attempts++;
-		} else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Good Room"))
-			MyRoom = FirstRoom;
-			break;
-		}
-	}
-
-	MyRoom->RoomComponent->Doors[Direction] = false;
-	
-	return MyRoom;
-}
-
 

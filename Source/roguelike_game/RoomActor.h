@@ -23,9 +23,10 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-public:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room")
 	URoom* RoomComponent;
+
+	void Init(TSet<int> Doors, int Width, int Height);
 	
 };

@@ -30,20 +30,32 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height)
 
 	for (int32 X = 0; X < Width; ++X) {
 		for (int32 Y = 0; Y < Height; ++Y) {
-			if (X == 0 || Y == 0 || X == Width - 1 || Y == Height - 1) {
-				if (!(Doors[0] && Y == 0 && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1)))
-				{
-					if(!(Doors[1] && X == 0 && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1)))
-					{
-						if (!(Doors[2] && Y == Height - 1 && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1)))
-						{
-							if(!(Doors[3] && X == Width - 1 && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1)))
-							{
-								TileInfo.PackedTileIndex = 32;
-								SetTile(X, Y, 0, TileInfo);
-							}
-						}
-					}
+			if (Y == 0)
+			{
+				if (!(Doors[0] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
+					TileInfo.PackedTileIndex = 32;
+					SetTile(X, Y, 0, TileInfo);
+				}
+			}
+			if (X == 0)
+			{
+				if (!(Doors[1] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
+					TileInfo.PackedTileIndex = 32;
+					SetTile(X, Y, 0, TileInfo);
+				}
+			}
+			if (Y == Height - 1)
+			{
+				if (!(Doors[2] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
+					TileInfo.PackedTileIndex = 32;
+					SetTile(X, Y, 0, TileInfo);
+				}
+			}
+			if (X == Width - 1)
+			{
+				if (!(Doors[3] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
+					TileInfo.PackedTileIndex = 32;
+					SetTile(X, Y, 0, TileInfo);
 				}
 			}
 			TileInfo.PackedTileIndex = FMath::RandRange(0, 31);
@@ -61,3 +73,4 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height)
 	SetLayerCollision(1, true, true, 1);
 	SetLayerCollision(0, true, true, 100);
 }
+
