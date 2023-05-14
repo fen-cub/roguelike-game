@@ -63,14 +63,8 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height)
 		}
 	}
 
-	UPaperTileSet *TileSetObj = LoadObject<UPaperTileSet>(
-	nullptr, TEXT("/Game/Textures/TX_Props_TileSet"));
-
-	TileInfo.TileSet = TileSetObj;
-	TileInfo.PackedTileIndex = 83;
-	SetTile(10, 10, 0, TileInfo);
-
 	SetLayerCollision(1, true, true, 1);
 	SetLayerCollision(0, true, true, 100);
+	
 }
 
