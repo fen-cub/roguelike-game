@@ -5,16 +5,6 @@
 
 // Rotation -90 180 180
 
-void URoom::SetDoors(TArray<bool> DoorsInfo)
-{
-	Doors = MoveTemp(DoorsInfo);
-}
-
-TArray<bool> URoom::GetDoors()
-{
-	return Doors;
-}
-
 void URoom::CreateRoom(const uint8 Width, const uint8 Height)
 {
 	RoomWidth = Width;
@@ -30,28 +20,28 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height)
 
 	for (int32 X = 0; X < Width; ++X) {
 		for (int32 Y = 0; Y < Height; ++Y) {
-			if (Y == 0)
+			if (Y == 0 && Walls[0])
 			{
 				if (!(Doors[0] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
 					TileInfo.PackedTileIndex = 32;
 					SetTile(X, Y, 0, TileInfo);
 				}
 			}
-			if (X == 0)
+			if (X == 0 && Walls[1])
 			{
 				if (!(Doors[1] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
 					TileInfo.PackedTileIndex = 32;
 					SetTile(X, Y, 0, TileInfo);
 				}
 			}
-			if (Y == Height - 1)
+			if (Y == Height - 1 && Walls[2])
 			{
 				if (!(Doors[2] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
 					TileInfo.PackedTileIndex = 32;
 					SetTile(X, Y, 0, TileInfo);
 				}
 			}
-			if (X == Width - 1)
+			if (X == Width - 1 && Walls[3])
 			{
 				if (!(Doors[3] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
 					TileInfo.PackedTileIndex = 32;

@@ -21,9 +21,7 @@ public:
 	uint8 RoomWidth;
 	uint8 RoomHeight;
 
-	void SetDoors(TArray<bool> DoorsInfo);
-
-	TArray<bool> GetDoors();
+	TArray<bool> Walls;
 	
 	void CreateRoom(const uint8 Width, const uint8 Height);
 	

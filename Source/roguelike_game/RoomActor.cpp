@@ -24,15 +24,22 @@ void ARoomActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ARoomActor::Init(TSet<int> Doors, int Width, int Height)
+void ARoomActor::Init(TSet<int> Doors, const int Width, const int Height, TSet<int> Walls)
 {
 	TArray<bool> BDoors;
+	TArray<bool> BWalls;
+	BWalls.Init(true, 4);
 	BDoors.Init(false, 4);
 	for (const int &x : Doors)
 	{
 		BDoors[x] = true;
 	}
-	RoomComponent->SetDoors(BDoors);
+	for (const int &x : Walls)
+	{
+		BWalls[x] = false;
+	}
+	RoomComponent->Doors = BDoors;
+	RoomComponent->Walls = BWalls;
 	RoomComponent->CreateRoom(Width, Height);
 	SetRootComponent(RoomComponent);
 }
