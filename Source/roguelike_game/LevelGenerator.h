@@ -19,6 +19,7 @@ enum ERoomType {
 
   struct FMapCell {
     TSet<int> Doors;
+    TSet<int> Walls;
     ERoomType CellRoomType = None;
     bool Main = false;
     bool Generated = false;
@@ -57,7 +58,7 @@ public:
   uint8 MaxLTypeRooms;
 
   uint8 RoomWidth = 20;
-  uint8 RoomHeight = 14;
+  uint8 RoomHeight = 20;
   uint8 CorridorWidth = 6;
   uint8 CorridorHeight = 7;
   uint8 TileWidth = 32;
@@ -98,9 +99,7 @@ public:
 
   void CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom);
 
-  //ARoomActor* CreateBigRoom(const TPair<int, int> StartRoom, const TPair<int, int> CurrentRoom);
-
-  //int AddDefaultRoom();
+  void CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
 
   int CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direction) const;
 
@@ -114,6 +113,6 @@ public:
 
   void Clear();
 
-  //void SetBigRoom(const TPair<int, int> StartRoom, int Dir, int Side);
+  void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
   
 };
