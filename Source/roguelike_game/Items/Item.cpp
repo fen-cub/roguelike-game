@@ -17,6 +17,7 @@ bool FItemData::IsEmpty() const
 AItem::AItem()
 {
 	SetReplicates(true);
+	SetReplicateMovement(true);
 	
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
@@ -27,6 +28,7 @@ AItem::AItem()
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
+	TriggerCapsule->SetIsReplicated(true);
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
@@ -39,6 +41,7 @@ AItem::AItem()
 	Tooltip->SetText(FText::FromString("Press E to take item"));
 	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
 	Tooltip->SetHiddenInGame(true);
+	Tooltip->SetIsReplicated(true);
 
 	GetRenderComponent()->SetMobility(EComponentMobility::Movable);
 	GetRenderComponent()->SetSimulatePhysics(true);
@@ -48,6 +51,7 @@ AItem::AItem()
 	GetRenderComponent()->GetBodyInstance()->bLockYRotation = true;
 	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
+	GetRenderComponent()->SetIsReplicated(true);
 }
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)

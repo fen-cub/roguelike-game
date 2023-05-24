@@ -90,6 +90,12 @@ protected:
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void Interact();
 
+	UFUNCTION(Server, Reliable)
+	void ServerInteract();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void OnRep_Interact();
+
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void UseItem(const float Axis);
@@ -158,3 +164,4 @@ public:
 	class UCharacterAttributesComponent* AttributesComponent;
 	
 };
+

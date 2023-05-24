@@ -236,6 +236,22 @@ void APlayerCharacter::Die()
 
 void APlayerCharacter::Interact()
 {
+	if (!HasAuthority())
+	{
+		ServerInteract();
+	} else
+	{
+		OnRep_Interact();
+	}
+}
+
+void APlayerCharacter::ServerInteract_Implementation()
+{
+	Interact();
+}
+
+void APlayerCharacter::OnRep_Interact_Implementation()
+{
 	TArray<AActor*> OverlappingActors;
 	TriggerCapsule->GetOverlappingActors(OverlappingActors);
 
@@ -313,12 +329,12 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		Die();
 	}
-
+	
 	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
 	{
 		StopSprint();
-	}
-
+	} 
+	
 	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 }
 

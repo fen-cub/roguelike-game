@@ -41,7 +41,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 	if (PlayerCharacter)
 	{
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
-		if (PlayerCharacter->IsLocallyControlled() && Fpc)
+		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
 		{
 			StorageWidget = CreateWidget<UInventory>(Fpc, StorageWidgetClass);
 			check(StorageWidget);
