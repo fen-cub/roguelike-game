@@ -27,6 +27,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room")
 	URoom* RoomComponent;
 
-	void Init(TSet<int> Doors, const int Width, const int Height, TSet<int> Walls);
+	void Init(TSet<int> Doors, const int Width, const int Height, TSet<int> Walls, const uint8 Side);
 	
 };

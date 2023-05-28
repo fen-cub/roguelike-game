@@ -25,6 +25,7 @@ enum ERoomType {
     bool Generated = false;
     int Direction = 0;
     int Side = 0;
+    int RoomType = 0;
   };
 
 
@@ -61,9 +62,9 @@ public:
   uint8 RoomHeight = 20;
   uint8 CorridorWidth = 6;
   uint8 CorridorHeight = 7;
-  uint8 TileWidth = 32;
-  uint8 TileHeight = 32;
-  float PixelsPerUnrealUnit = 2.f;
+  uint8 TileWidth = 16;
+  uint8 TileHeight = 16;
+  float PixelsPerUnrealUnit = 1.f;
   float RealTileWidth = TileWidth / PixelsPerUnrealUnit;
   float RealTileHeight = TileHeight / PixelsPerUnrealUnit;
   float RealRoomWidth = RoomWidth * RealTileWidth;
@@ -97,6 +98,19 @@ public:
     RoomWidth * RealTileWidth
   };
 
+  float SquareX[4] = {
+    - (RoomHeight - 1) * RealTileHeight,
+    - (RoomHeight - 1) * RealTileHeight,
+    0,
+    0
+  };
+  float SquareY[4] = {
+    0,
+    (RoomWidth - 1) * RealTileWidth,
+    (RoomWidth - 1) * RealTileWidth,
+    0
+  };
+
   void CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom);
 
   void CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
@@ -114,5 +128,11 @@ public:
   void Clear();
 
   void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
+
+  int CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
+
+  void SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type);
+
+  void CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
   
 };

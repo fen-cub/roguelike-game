@@ -23,6 +23,5 @@ public:
 
 	TArray<bool> Walls;
 	
-	void CreateRoom(const uint8 Width, const uint8 Height);
-	
+	void CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side);
 };
