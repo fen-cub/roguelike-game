@@ -154,13 +154,10 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 			SetTile(0,0, 0, TileInfo);
 			TileInfo.PackedTileIndex = (!Walls[0] && !Walls[1]) ? 59 : 4;
 			SetTile(1,1, 1, TileInfo);
-			if ((Walls[0] || Doors[0]) && (Walls[1] || Doors[1]))
-			{
-				TileInfo.PackedTileIndex = 29;
-				SetTile(0,1, 1, TileInfo);
-				TileInfo.PackedTileIndex = 5;
-				SetTile(1,0, 1, TileInfo);
-			}
+			TileInfo.PackedTileIndex = (!Walls[0] && !Walls[1]) ? 5 : 29;
+			SetTile(0,1, 1, TileInfo);
+			TileInfo.PackedTileIndex = (!Walls[0] && !Walls[1]) ? 29 : 5;
+			SetTile(1,0, 1, TileInfo);
 		}
 		if ((Walls[1] || Doors[1]) && (Walls[2] || Doors[2]) || (!Walls[1] && !Walls[2]))
 		{
@@ -168,13 +165,10 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 			SetTile(0 ,RoomHeight - 1, 0, TileInfo);
 			TileInfo.PackedTileIndex = (!Walls[1] && !Walls[2]) ? 9 : 54;
 			SetTile(1 ,RoomHeight - 2, 1, TileInfo);
-			if ((Walls[1] || Doors[1]) && (Walls[2] || Doors[2]))
-			{
-				TileInfo.PackedTileIndex = 29;
-				SetTile(0,RoomHeight - 2, 1, TileInfo);
-				TileInfo.PackedTileIndex = 55;
-				SetTile(1,RoomHeight - 1, 1, TileInfo);
-			}
+			TileInfo.PackedTileIndex = (!Walls[1] && !Walls[2]) ? 55 : 29;
+			SetTile(0,RoomHeight - 2, 1, TileInfo);
+			TileInfo.PackedTileIndex = (!Walls[1] && !Walls[2]) ? 29 : 55;
+			SetTile(1,RoomHeight - 1, 1, TileInfo);
 		}
 		if ((Walls[2] || Doors[2]) && (Walls[3] || Doors[3]) || (!Walls[2] && !Walls[3]))
 		{
@@ -182,13 +176,10 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 			SetTile(RoomHeight - 1,RoomWidth - 1, 0, TileInfo);
 			TileInfo.PackedTileIndex = (!Walls[2] && !Walls[3]) ? 7 : 56;
 			SetTile(RoomHeight - 2,RoomWidth - 2, 1, TileInfo);
-			if ((Walls[2] || Doors[2]) && (Walls[3] || Doors[3]))
-			{
-				TileInfo.PackedTileIndex = 55;
-				SetTile(RoomHeight - 2,RoomHeight - 1, 1, TileInfo);
-				TileInfo.PackedTileIndex = 31;
-				SetTile(RoomHeight - 1, RoomHeight - 2, 1, TileInfo);
-			}
+			TileInfo.PackedTileIndex = (!Walls[2] && !Walls[3]) ? 31 : 55;
+			SetTile(RoomHeight - 2,RoomHeight - 1, 1, TileInfo);
+			TileInfo.PackedTileIndex = (!Walls[2] && !Walls[3]) ? 55 : 31;
+			SetTile(RoomHeight - 1, RoomHeight - 2, 1, TileInfo);
 		}
 		if ((Walls[3] || Doors[3]) && (Walls[0] || Doors[0]) || (!Walls[3] && !Walls[0]))
 		{
@@ -196,13 +187,10 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 			SetTile(RoomWidth - 1, 0, 0, TileInfo);
 			TileInfo.PackedTileIndex = (!Walls[3] && !Walls[0]) ? 57 : 6;
 			SetTile(RoomWidth - 2, 1, 1, TileInfo);
-			if ((Walls[3] || Doors[3]) && (Walls[0] || Doors[0]))
-			{
-				TileInfo.PackedTileIndex = 31;
-				SetTile(RoomHeight - 1,1, 1, TileInfo);
-				TileInfo.PackedTileIndex = 5;
-				SetTile(RoomHeight - 2,0, 1, TileInfo);
-			}
+			TileInfo.PackedTileIndex = (!Walls[3] && !Walls[0]) ? 5 : 31;
+			SetTile(RoomHeight - 1,1, 1, TileInfo);
+			TileInfo.PackedTileIndex = (!Walls[3] && !Walls[0]) ? 31 : 5;
+			SetTile(RoomHeight - 2,0, 1, TileInfo);
 		}
 	}
 	
