@@ -6,24 +6,52 @@
 #include "PaperFlipbookComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/CharacterAnimationComponent.h"
+#include "Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Items/Item.h"
 #include "Components/InputComponent.h"
+#include "Components/ItemStorageComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/InputSettings.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
+// Set default player properties
 APlayerCharacter::APlayerCharacter()
 {
+	// Default game logic properties
+	bIsDead = false;
+	bIsMoving = false;
+	bIsSprinting = false;
 	PrimaryActorTick.bCanEverTick = true;
+	ComparisonErrorTolerance = 1e-7;
+	StaminaRegenerateRate = 0.25f;
+	RunningStaminaLossRate = -0.5f;
 
+	// HUD
+	PlayerHUDClass = nullptr;
+	PlayerHUD = nullptr;
+
+	// Default rotation properties
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
+	// Default movement properties
+	SprintSpeed = 200.0f;
+	WalkSpeed = 100.0f;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	// Default capsule component properties
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
+	// Default sprite properties
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
-	GetSprite()->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
+	// Default camera boom properties
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetRelativeRotation(FRotator(-90.0f, 180.0f, 180.0f));
@@ -32,132 +60,126 @@ APlayerCharacter::APlayerCharacter()
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
 
+	// Default camera properties
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>("Follow Camera");
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+	// Default animation properties
+	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
+	AnimationComponent->SetupAttachment(RootComponent);
+	AnimationComponent->SetupOwner(GetSprite());
 
-	bDead = false;
-	bIsMoving = false;
+	// Default attributes properties
+	AttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>("Attributes Component");
+	AnimationComponent->SetupAttachment(RootComponent);
+
+	// Default trigger capsule properties
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger Capsule");
+	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
+	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
+
+	// Default inventory properties
+	Inventory = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
+	Inventory->SetStorageSize(9);
 }
 
+// Called when spawned
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::Animate);
+	// Animate character on movement
+	OnCharacterMovementUpdated.AddDynamic(this, &APlayerCharacter::UpdateMovementProperties);
+
+	// Create and draw HUD
+	APlayerController* Fpc = GetController<APlayerController>();
+	if (IsLocallyControlled() && PlayerHUDClass && Fpc)
+	{
+		PlayerHUD = CreateWidget<UPlayerHUD>(Fpc, PlayerHUDClass);
+		check(PlayerHUD);
+		PlayerHUD->SetOwningPlayer(Fpc);
+		PlayerHUD->AddToPlayerScreen();
+		PlayerHUD->InventoryWidget->SetGridPanelSizes(1, Inventory->GetStorageSize());
+
+		// Set up HUD for character components
+		AttributesComponent->SetUpHUD(PlayerHUD);
+		Inventory->SetUpInventoryWidget(PlayerHUD->InventoryWidget);
+	}
 }
 
+// Called when dying or in the end
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
+// Replicate variables on the server
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlayerCharacter, bIsSprinting);
+	DOREPLIFETIME(APlayerCharacter, bIsMoving);
+	DOREPLIFETIME(APlayerCharacter, bIsDead);
+}
+
+// Called when moves
 void APlayerCharacter::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
 {
-	auto MovementComponent = GetMovementComponent();
-
-	if (MovementComponent)
-	{
-		MovementComponent->AddInputVector(WorldDirection * ScaleValue, bForce);
-	}
-	else
-	{
-		Internal_AddMovementInput(WorldDirection * ScaleValue, bForce);
-	}
+	GetMovementComponent()->AddInputVector(WorldDirection * ScaleValue, bForce);
 }
 
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
+// Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveUpOrDown", this, &APlayerCharacter::MoveForwardOrDown);
+	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &APlayerCharacter::MoveRightOrLeft);
+	PlayerInputComponent->BindAxis("UseItem", this, &APlayerCharacter::UseItem);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 }
 
-void APlayerCharacter::SetCurrentAnimationDirection(FVector const& Velocity)
+void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-	const float x = Velocity.GetSafeNormal().X;
-	const float y = Velocity.GetSafeNormal().Y;
+	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
-	bIsMoving = x != 0.0f || y != 0.0f;
+	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 
-	if (bIsMoving)
+	if (bIsMoving && !bIsDead)
 	{
-		if (y > 0.5f)
+		if (bIsSprinting)
 		{
-			CurrentAnimationDirection = EAnimationDirection::Right;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+			AnimationComponent->AnimateRunning();
+			AttributesComponent->UpdateStamina(RunningStaminaLossRate);
 		}
-		else if (y < -0.5f)
+		else
 		{
-			CurrentAnimationDirection = EAnimationDirection::Left;
-			GetSprite()->SetRelativeScale3D(FVector(-1.0f, 1.0f, 1.0f));
+			AnimationComponent->AnimateWalking();
 		}
-		else if (x < -0.5f)
-		{
-			CurrentAnimationDirection = EAnimationDirection::Down;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
-		}
-		else if (x > 0.5f)
-		{
-			CurrentAnimationDirection = EAnimationDirection::Up;
-			GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
-		}
+	}
+	else if (!bIsDead)
+	{
+		AnimationComponent->AnimateIdle();
 	}
 }
 
-void APlayerCharacter::Animate(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
+// Called when W or S keys are pressed
+void APlayerCharacter::MoveForwardOrDown(const float Axis)
 {
-	SetCurrentAnimationDirection(OldVelocity);
-
-	if (OldVelocity.Size() > 0.0f)
-	{
-		switch (CurrentAnimationDirection)
-		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.WalkUp);
-			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.WalkDown);
-			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
-			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.WalkRight);
-			break;
-		default:
-			break;
-		}
-	}
-	else
-	{
-		switch (CurrentAnimationDirection)
-		{
-		case EAnimationDirection::Up:
-			GetSprite()->SetFlipbook(Flipbooks.IdleUp);
-			break;
-		case EAnimationDirection::Down:
-			GetSprite()->SetFlipbook(Flipbooks.IdleDown);
-			break;
-		case EAnimationDirection::Left:
-			GetSprite()->SetFlipbook(Flipbooks.IdleRight);
-			break;
-		case EAnimationDirection::Right:
-			GetSprite()->SetFlipbook(Flipbooks.IdleRight);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-void APlayerCharacter::MoveForward(float Axis)
-{
-	if ((Controller != nullptr) && (Axis != 0) && !bDead)
+	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -167,14 +189,163 @@ void APlayerCharacter::MoveForward(float Axis)
 	}
 }
 
-void APlayerCharacter::MoveRight(float Axis)
+// Called when A or D keys are pressed
+void APlayerCharacter::MoveRightOrLeft(const float Axis)
 {
-	if ((Controller != nullptr) && (Axis != 0) && !bDead)
+	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Axis, true);
+	}
+}
+
+// Called when shift is pressed
+void APlayerCharacter::Sprint()
+{
+	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
+	{
+		SetSprinting(true);
+	}
+}
+
+// Called when shift is released
+void APlayerCharacter::StopSprint()
+{
+	if (!bIsDead)
+	{
+		SetSprinting(false);
+	}
+}
+
+// Called when dying 
+void APlayerCharacter::Die()
+{
+	if (!HasAuthority())
+	{
+		ServerSetDying();
+	}
+	else
+	{
+		bIsDead = true;
+		OnRep_IsDead();
+	}
+}
+
+void APlayerCharacter::Interact()
+{
+	if (!HasAuthority())
+	{
+		ServerInteract();
+	} else
+	{
+		OnRep_Interact();
+	}
+}
+
+void APlayerCharacter::ServerInteract_Implementation()
+{
+	Interact();
+}
+
+void APlayerCharacter::OnRep_Interact_Implementation()
+{
+	TArray<AActor*> OverlappingActors;
+	TriggerCapsule->GetOverlappingActors(OverlappingActors);
+
+
+	AActor* Actor = OverlappingActors.Last();
+	if (Actor && Actor != this)
+	{
+		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
+		if (Interface)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s"), *Actor->GetName());
+			Interface->Interact(this);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
+	}
+}
+
+void APlayerCharacter::UseItem(const float Axis)
+{
+	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Use Item: %d"), FMath::RoundToInt(Axis));
+		Inventory->UseItem(FMath::RoundToInt(Axis) - 1);
+	}
+}
+
+// Called when start sprinting
+void APlayerCharacter::SetSprinting(bool bNewSprinting)
+{
+	if (!HasAuthority())
+	{
+		ServerSetSprinting(bNewSprinting);
+	}
+	else
+	{
+		bIsSprinting = bNewSprinting;
+		OnRep_IsSprinting();
+	}
+}
+
+// Called when client start sprinting
+void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
+{
+	SetSprinting(bNewSprinting);
+}
+
+// Calls back from server when start sprinting
+void APlayerCharacter::OnRep_IsSprinting()
+{
+	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
+}
+
+// Called when client dying
+void APlayerCharacter::ServerSetDying_Implementation()
+{
+	Die();
+}
+
+// Calls back from server when dying
+void APlayerCharacter::OnRep_IsDead()
+{
+	AnimationComponent->AnimateDeath();
+	EndPlay(EEndPlayReason::Destroyed);
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+	{
+		Die();
+	}
+	
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
+	{
+		StopSprint();
+	} 
+	
+	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+}
+
+// Called when some actor in overlap
+void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+									const FHitResult& SweepResult)
+{
+	// check if Actors do not equal nullptr
+	if (OtherActor && OtherActor != this)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
 	}
 }
