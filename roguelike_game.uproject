@@ -1,13 +1,17 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.27",
+	"EngineAssociation": "{48533E50-1C41-9CF7-03A2-BBA51BA2CE32}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
 			"Name": "roguelike_game",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Paper2D",
+				"Engine"
+			]
 		}
 	]
 }
