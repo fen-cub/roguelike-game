@@ -112,6 +112,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
+	class UItemStorageComponent* InventoryComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UCharacterAttributesComponent* AttributesComponent;
+
 	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
@@ -147,21 +153,19 @@ protected:
 	UFUNCTION()
 	void OnRep_IsDead();
 
-public:
-	// Called every tick locally
-	virtual void Tick(float DeltaSeconds) override;
-
 	// Called when on Overlap
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
-	class UItemStorageComponent* Inventory;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
-	class UCharacterAttributesComponent* AttributesComponent;
+public:
+	// Called every tick locally
+	virtual void Tick(float DeltaSeconds) override;
+	
+	UItemStorageComponent* GetInventoryComponent() const;
+
+	UCharacterAttributesComponent* GetAttributesComponent() const;
 	
 };
 

@@ -13,6 +13,11 @@ int64 UInventory::GetColumn(int64 Position) const
 	return Position % Columns + 1;
 }
 
+UUniformGridPanel* UInventory::GetInventoryGridPanel() const
+{
+	return InventoryGridPanel;
+}
+
 void UInventory::SetGridPanelSizes(int64 RowCount, int64 ColumnCount)
 {
 	Rows = RowCount;

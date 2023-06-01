@@ -82,8 +82,8 @@ APlayerCharacter::APlayerCharacter()
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
 
 	// Default inventory properties
-	Inventory = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
-	Inventory->SetStorageSize(9);
+	InventoryComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
+	InventoryComponent->SetStorageSize(9);
 }
 
 // Called when spawned
@@ -102,11 +102,11 @@ void APlayerCharacter::BeginPlay()
 		check(PlayerHUD);
 		PlayerHUD->SetOwningPlayer(Fpc);
 		PlayerHUD->AddToPlayerScreen();
-		PlayerHUD->InventoryWidget->SetGridPanelSizes(1, Inventory->GetStorageSize());
+		PlayerHUD->GetInventoryWidget()->SetGridPanelSizes(1, InventoryComponent->GetStorageSize());
 
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
-		Inventory->SetUpInventoryWidget(PlayerHUD->InventoryWidget);
+		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
 	}
 }
 
@@ -277,8 +277,18 @@ void APlayerCharacter::UseItem(const float Axis)
 	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Use Item: %d"), FMath::RoundToInt(Axis));
-		Inventory->UseItem(FMath::RoundToInt(Axis) - 1);
+		InventoryComponent->UseItem(FMath::RoundToInt(Axis) - 1);
 	}
+}
+
+UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
+{
+	return InventoryComponent;
+}
+
+UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
+{
+	return AttributesComponent;
 }
 
 // Called when start sprinting

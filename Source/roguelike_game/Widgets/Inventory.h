@@ -27,11 +27,12 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	int64 GetColumn(int64 Position) const;
-	
-public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UUniformGridPanel* InventoryGridPanel;
+
+public:
+	UUniformGridPanel* GetInventoryGridPanel() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void InsertItem(int64 Position, FItemData Item);

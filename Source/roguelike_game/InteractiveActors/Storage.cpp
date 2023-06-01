@@ -3,6 +3,8 @@
 
 #include "Storage.h"
 
+#include "roguelike_game/Widgets/StorageDisplay.h"
+
 AStorage::AStorage()
 {
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
@@ -43,13 +45,13 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
 		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
 		{
-			StorageWidget = CreateWidget<UInventory>(Fpc, StorageWidgetClass);
+			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
 			check(StorageWidget);
 			StorageWidget->SetOwningPlayer(Fpc);
 			StorageWidget->AddToPlayerScreen();
-			StorageWidget->SetGridPanelSizes(4, 5);
+			StorageWidget->GetInventoryWidget()->SetGridPanelSizes(4, 5);
 			
-			StorageComponent->SetUpInventoryWidget(StorageWidget);
+			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
 		}
 	}
 }

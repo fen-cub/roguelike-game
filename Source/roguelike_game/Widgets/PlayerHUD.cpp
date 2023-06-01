@@ -3,13 +3,7 @@
 
 #include "PlayerHUD.h"
 
-#include "Components/PanelSlot.h"
-#include "InventorySlot.h"
 #include "Components/ProgressBar.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Components/UniformGridPanel.h"
-
-
 
 void UPlayerHUD::SetHealth(float CurrentHealth, float MaxHealth)
 {
@@ -25,5 +19,20 @@ void UPlayerHUD::SetStamina(float CurrentStamina, float MaxStamina)
 	{
 		StaminaBar->SetPercent(CurrentStamina / MaxStamina);
 	}
+}
+
+UProgressBar* UPlayerHUD::GetHealthBar() const
+{
+	return HealthBar;
+}
+
+UProgressBar* UPlayerHUD::GetStaminaBar() const
+{
+	return StaminaBar;
+}
+
+UInventory* UPlayerHUD::GetInventoryWidget() const
+{
+	return InventoryWidget;
 }
 

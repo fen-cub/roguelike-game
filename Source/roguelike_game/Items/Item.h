@@ -20,6 +20,9 @@ struct FItemData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UPaperSprite* Image{nullptr};
 
+	UPROPERTY()
+	class AActor* Owner{nullptr};
+	
 	bool IsEmpty() const;
 };
 

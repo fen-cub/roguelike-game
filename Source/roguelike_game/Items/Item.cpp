@@ -17,7 +17,7 @@ bool FItemData::IsEmpty() const
 AItem::AItem()
 {
 	SetReplicates(true);
-	SetReplicateMovement(true);
+	// SetReplicateMovement(true);
 	
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
@@ -58,7 +58,7 @@ void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->Inventory->AddItem(GetItemData());
+		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData());
 		Destroy();
 	}
 }

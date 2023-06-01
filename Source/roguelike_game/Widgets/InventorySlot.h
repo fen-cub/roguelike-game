@@ -15,13 +15,32 @@ class ROGUELIKE_GAME_API UInventorySlot : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void ItemButtonOnClicked();
+	
+	UFUNCTION()
+	void InteractButtonOnClicked();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	int64 PositionInInventory;
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	FItemData ItemData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UButton* ItemButton;
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UImage* ItemImage;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
+	class UButton* InteractButton;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
+	class UTextBlock* InteractButtonText;
+	
 };
