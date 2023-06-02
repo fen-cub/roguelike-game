@@ -59,10 +59,10 @@ public:
 
 	UUniformGridPanel* GetInventoryGridPanel() const;
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InsertItem(int64 Position, FItemData Item);
 	
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetItem(int64 Position, FItemData Item);
 	
 	UFUNCTION(BlueprintCallable)

@@ -38,7 +38,7 @@ AItem::AItem()
 	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
-	Tooltip->SetText(FText::FromString("Press E to take item"));
+	Tooltip->SetText(FText::FromString("Press E to take"));
 	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
 	Tooltip->SetHiddenInGame(true);
 	Tooltip->SetIsReplicated(true);

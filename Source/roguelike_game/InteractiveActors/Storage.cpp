@@ -28,7 +28,7 @@ AStorage::AStorage()
 	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
-	Tooltip->SetText(FText::FromString("Press E to take item"));
+	Tooltip->SetText(FText::FromString("Press E to open"));
 	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
 	Tooltip->SetHiddenInGame(true);
 }
@@ -53,13 +53,28 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			StorageWidget->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::StorageInventory);
 			StorageWidget->GetInventoryWidget()->SetOwnerStorage(StorageComponent);
 			StorageWidget->GetInventoryWidget()->SetPairingStorage(PlayerCharacter->GetInventoryComponent());
-			
+	
 			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
 
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(StorageComponent);
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 				EInventoryType::PlayerInventoryInStorage);
+			PlayerCharacter->SetInteractableStorage(this);
 		}
+	}
+}
+
+void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
+{
+	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
+	{
+		StorageWidget->RemoveFromParent();
+		StorageWidget->Destruct();
+
+		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
+		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
+			EInventoryType::PlayerHUDInventory);
+		PlayerCharacter->SetInteractableStorage(nullptr);
 	}
 }
 

@@ -16,6 +16,7 @@
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "roguelike_game/InteractiveActors/Storage.h"
 
 // Set default player properties
 APlayerCharacter::APlayerCharacter()
@@ -152,6 +153,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
+	PlayerInputComponent->BindAction("CloseWidget", IE_Pressed, this, &APlayerCharacter::CloseWidget);
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -247,6 +249,14 @@ void APlayerCharacter::Interact()
 	}
 }
 
+void APlayerCharacter::CloseWidget()
+{
+	if (InteractableStorage)
+	{
+		InteractableStorage->StopInteract(this);
+	}
+}
+
 void APlayerCharacter::ServerInteract_Implementation()
 {
 	Interact();
@@ -296,6 +306,16 @@ UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
 UPlayerHUD* APlayerCharacter::GetPlayerHUD() const
 {
 	return PlayerHUD;
+}
+
+AStorage* APlayerCharacter::GetInteractableStorage() const
+{
+	return InteractableStorage;
+}
+
+void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableStorage)
+{
+	InteractableStorage = NewInteractableStorage;
 }
 
 // Called when start sprinting

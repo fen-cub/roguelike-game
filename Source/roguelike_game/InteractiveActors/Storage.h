@@ -49,4 +49,6 @@ public:
 	UItemStorageComponent* GetStorageComponent() const;
 	
 	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
+
+	void StopInteract(class APlayerCharacter* PlayerCharacter);
 };

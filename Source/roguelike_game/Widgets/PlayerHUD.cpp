@@ -35,4 +35,3 @@ UInventory* UPlayerHUD::GetInventoryWidget() const
 {
 	return InventoryWidget;
 }
-

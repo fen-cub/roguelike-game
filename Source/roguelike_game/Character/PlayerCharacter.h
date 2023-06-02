@@ -90,6 +90,10 @@ protected:
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void Interact();
 
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void CloseWidget();
+
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
 
@@ -121,11 +125,10 @@ protected:
 	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
-
-public:
-	UPlayerHUD* GetPlayerHUD() const;
-
-protected:
+	
+	UPROPERTY()
+	class AStorage* InteractableStorage;
+	
 	// How much Stamina regenerates for a Tick
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;
@@ -170,6 +173,12 @@ public:
 	UItemStorageComponent* GetInventoryComponent() const;
 
 	UCharacterAttributesComponent* GetAttributesComponent() const;
+
+	UPlayerHUD* GetPlayerHUD() const;
+	
+	AStorage* GetInteractableStorage() const;
+	
+	void SetInteractableStorage(AStorage* const NewInteractableStorage);
 	
 };
 

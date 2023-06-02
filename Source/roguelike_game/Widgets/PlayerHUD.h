@@ -26,7 +26,7 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class  UInventory* InventoryWidget;
-
+	
 public:
 
 	void SetHealth(float CurrentHealth, float MaxHealth);
