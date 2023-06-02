@@ -10,6 +10,16 @@
 /**
  * 
  */
+UENUM(BlueprintType)
+enum class EInventoryType : uint8
+{
+	PlayerHUDInventory,
+	PlayerInventoryInStorage,
+	StorageInventory
+};
+
+class UItemStorageComponent;
+
 UCLASS()
 class ROGUELIKE_GAME_API UInventory : public UUserWidget
 {
@@ -31,7 +41,22 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UUniformGridPanel* InventoryGridPanel;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	EInventoryType CurrentInventoryType;
+
+	UPROPERTY()
+	UItemStorageComponent* OwnerStorage;
+	
+	UPROPERTY()
+	UItemStorageComponent* PairingStorage;
+	
 public:
+	UFUNCTION()
+	EInventoryType GetCurrentInventoryType() const;
+
+	UFUNCTION()
+	void SetCurrentInventoryType(const EInventoryType NewInventoryType);
+
 	UUniformGridPanel* GetInventoryGridPanel() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -42,4 +67,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetGridPanelSizes(int64 RowCount, int64 ColumnCount);
+	
+	void SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage);
+
+	void SetPairingStorage(UItemStorageComponent* const NewPairingStorage);
+	
+	UItemStorageComponent* GetOwnerStorage() const;
+	
+	UItemStorageComponent* GetPairingStorage() const;
 };

@@ -5,14 +5,16 @@
 
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/InteractiveActors/Storage.h"
 
 
 void UInventorySlot::NativeConstruct()
 {
 	PositionInInventory = -1;
-	
+
 	if (ItemButton)
 	{
 		ItemButton->OnClicked.AddDynamic(this, &UInventorySlot::ItemButtonOnClicked);
@@ -27,10 +29,32 @@ void UInventorySlot::NativeConstruct()
 
 void UInventorySlot::ItemButtonOnClicked()
 {
-	if (InteractButton->GetVisibility() == ESlateVisibility::Hidden)
+	const UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
+
+	if (!InventoryWidget)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("No Outer"));
+	}
+
+	if (InventoryWidget && InteractButton->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		switch (InventoryWidget->GetCurrentInventoryType())
+		{
+		case EInventoryType::PlayerHUDInventory:
+			InteractButtonText->SetText(FText::FromString("Use"));
+			break;
+		case EInventoryType::PlayerInventoryInStorage:
+			InteractButtonText->SetText(FText::FromString("Put"));
+			break;
+		case EInventoryType::StorageInventory:
+			InteractButtonText->SetText(FText::FromString("Take"));
+			break;
+		default:
+			break;
+		}
 		InteractButton->SetVisibility(ESlateVisibility::Visible);
-	} else
+	}
+	else
 	{
 		InteractButton->SetVisibility(ESlateVisibility::Hidden);
 	}
@@ -38,16 +62,24 @@ void UInventorySlot::ItemButtonOnClicked()
 
 void UInventorySlot::InteractButtonOnClicked()
 {
-	if (ItemData.Owner)
-	{
-		APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(ItemData.Owner);
+	const UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
 
-		if (OwnerPlayer)
+	if (!InventoryWidget)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Outer"));
+	}
+
+	if (InventoryWidget)
+	{
+		if (InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerHUDInventory)
 		{
-			OwnerPlayer->GetInventoryComponent()->UseItem(PositionInInventory);
-			InteractButton->SetVisibility(ESlateVisibility::Hidden);
+			InventoryWidget->GetOwnerStorage()->UseItem(PositionInInventory);
+		} else
+		{
+			InventoryWidget->GetPairingStorage()->AddItem(ItemData);
+			InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
 		}
 	}
+
+	InteractButton->SetVisibility(ESlateVisibility::Hidden);
 }
-
-

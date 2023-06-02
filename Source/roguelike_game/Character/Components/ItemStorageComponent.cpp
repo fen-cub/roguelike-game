@@ -38,7 +38,6 @@ void UItemStorageComponent::AddItem(FItemData Item)
 		UE_LOG(LogTemp, Warning, TEXT("Insert item on slot: %d"), static_cast<int>(FirstEmptySlotPosition));
 		if (InventoryWidget)
 		{
-			Item.Owner = GetOwner();
 			InventoryWidget->SetItem(FirstEmptySlotPosition, Item);
 		}
 

@@ -122,6 +122,10 @@ protected:
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
 
+public:
+	UPlayerHUD* GetPlayerHUD() const;
+
+protected:
 	// How much Stamina regenerates for a Tick
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;

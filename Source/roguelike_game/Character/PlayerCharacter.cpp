@@ -103,6 +103,8 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD->SetOwningPlayer(Fpc);
 		PlayerHUD->AddToPlayerScreen();
 		PlayerHUD->GetInventoryWidget()->SetGridPanelSizes(1, InventoryComponent->GetStorageSize());
+		PlayerHUD->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::PlayerHUDInventory);
+		PlayerHUD->GetInventoryWidget()->SetOwnerStorage(InventoryComponent);
 
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
@@ -289,6 +291,11 @@ UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
 UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
 {
 	return AttributesComponent;
+}
+
+UPlayerHUD* APlayerCharacter::GetPlayerHUD() const
+{
+	return PlayerHUD;
 }
 
 // Called when start sprinting

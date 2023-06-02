@@ -9,14 +9,14 @@ AStorage::AStorage()
 {
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
-	
+
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
 	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AStorage::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AStorage::OnOverlapEnd);
-	
+
 	StorageComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
 	StorageComponent->SetStorageSize(20);
 
@@ -50,8 +50,15 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			StorageWidget->SetOwningPlayer(Fpc);
 			StorageWidget->AddToPlayerScreen();
 			StorageWidget->GetInventoryWidget()->SetGridPanelSizes(4, 5);
+			StorageWidget->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::StorageInventory);
+			StorageWidget->GetInventoryWidget()->SetOwnerStorage(StorageComponent);
+			StorageWidget->GetInventoryWidget()->SetPairingStorage(PlayerCharacter->GetInventoryComponent());
 			
 			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
+
+			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(StorageComponent);
+			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
+				EInventoryType::PlayerInventoryInStorage);
 		}
 	}
 }
@@ -67,7 +74,7 @@ void AStorage::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class A
 }
 
 void AStorage::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
 	{

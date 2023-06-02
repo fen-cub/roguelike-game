@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Inventory.h"
 #include "Blueprint/UserWidget.h"
 #include "roguelike_game/Items/Item.h"
 #include "InventorySlot.generated.h"
@@ -26,7 +27,7 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int64 PositionInInventory;
-
+	
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	FItemData ItemData;
