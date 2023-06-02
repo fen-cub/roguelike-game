@@ -154,6 +154,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	PlayerInputComponent->BindAction("CloseWidget", IE_Pressed, this, &APlayerCharacter::CloseWidget);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::ShowMouseCursor);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Released, this, &APlayerCharacter::HideMouseCursor);
+
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -385,4 +388,27 @@ void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp,
 	{
 		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
 	}
+}
+
+void APlayerCharacter::ShowMouseCursor()
+{
+	APlayerController* Fpc = GetController<APlayerController>();
+
+	if (Fpc)
+	{
+		Fpc->bShowMouseCursor = true;
+		Fpc->SetInputMode(FInputModeGameAndUI());
+	} 
+}
+
+void APlayerCharacter::HideMouseCursor()
+{
+	APlayerController* Fpc = GetController<APlayerController>();
+
+	if (Fpc)
+	{
+		Fpc->bShowMouseCursor = false;
+		// Fpc->SetInputMode(FInputModeGameOnly());
+	}
+	
 }

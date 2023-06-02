@@ -166,6 +166,12 @@ protected:
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void ShowMouseCursor();
+
+	UFUNCTION()
+	void HideMouseCursor();
+	
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
@@ -181,4 +187,5 @@ public:
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
 	
 };
+
 
