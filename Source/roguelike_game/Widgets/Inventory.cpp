@@ -3,6 +3,9 @@
 
 #include "Inventory.h"
 
+#include "InventorySlot.h"
+#include "Components/UniformGridPanel.h"
+
 void UInventory::SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage)
 {
 	OwnerStorage = NewOwnerStorage;
@@ -11,6 +14,28 @@ void UInventory::SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage)
 void UInventory::SetPairingStorage(UItemStorageComponent* const NewPairingStorage)
 {
 	PairingStorage = NewPairingStorage;
+}
+
+void UInventory::SetNewClickedSlot(int64 Position)
+{
+	if (LastClickedSlotPosition != -1)
+	{
+		UInventorySlot* LastClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(LastClickedSlotPosition));
+
+		if (LastClickedSlot)
+		{
+			LastClickedSlot->SetInteractButtonVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	UInventorySlot* NewClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(Position));
+
+	if (NewClickedSlot)
+	{
+		NewClickedSlot->SetInteractButtonVisibility(ESlateVisibility::Visible);
+	}
+
+	LastClickedSlotPosition = Position;
 }
 
 int64 UInventory::GetRow(int64 Position) const

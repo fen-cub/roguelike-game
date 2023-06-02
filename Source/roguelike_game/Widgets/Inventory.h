@@ -49,6 +49,8 @@ protected:
 	
 	UPROPERTY()
 	UItemStorageComponent* PairingStorage;
+
+	int64 LastClickedSlotPosition = -1;
 	
 public:
 	UFUNCTION()
@@ -71,6 +73,8 @@ public:
 	void SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage);
 
 	void SetPairingStorage(UItemStorageComponent* const NewPairingStorage);
+
+	void SetNewClickedSlot(int64 Position);
 	
 	UItemStorageComponent* GetOwnerStorage() const;
 	

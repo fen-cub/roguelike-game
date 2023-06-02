@@ -27,7 +27,7 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int64 PositionInInventory;
-	
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	FItemData ItemData;
@@ -43,5 +43,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UTextBlock* InteractButtonText;
+
+	UFUNCTION(BlueprintCallable)
+	void SetInteractButtonVisibility(ESlateVisibility NewVisibility);
 	
 };

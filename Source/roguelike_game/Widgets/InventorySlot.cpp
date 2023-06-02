@@ -29,14 +29,14 @@ void UInventorySlot::NativeConstruct()
 
 void UInventorySlot::ItemButtonOnClicked()
 {
-	const UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
+	UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
 
 	if (!InventoryWidget)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No Outer"));
 	}
 
-	if (InventoryWidget && InteractButton->GetVisibility() == ESlateVisibility::Hidden)
+	if (InventoryWidget && !ItemData.IsEmpty())
 	{
 		switch (InventoryWidget->GetCurrentInventoryType())
 		{
@@ -52,11 +52,8 @@ void UInventorySlot::ItemButtonOnClicked()
 		default:
 			break;
 		}
-		InteractButton->SetVisibility(ESlateVisibility::Visible);
-	}
-	else
-	{
-		InteractButton->SetVisibility(ESlateVisibility::Hidden);
+		UE_LOG(LogTemp, Warning, TEXT("Set new clicked slot"));
+		InventoryWidget->SetNewClickedSlot(PositionInInventory);
 	}
 }
 
@@ -74,7 +71,8 @@ void UInventorySlot::InteractButtonOnClicked()
 		if (InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerHUDInventory)
 		{
 			InventoryWidget->GetOwnerStorage()->UseItem(PositionInInventory);
-		} else
+		}
+		else
 		{
 			InventoryWidget->GetPairingStorage()->AddItem(ItemData);
 			InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
@@ -82,4 +80,9 @@ void UInventorySlot::InteractButtonOnClicked()
 	}
 
 	InteractButton->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UInventorySlot::SetInteractButtonVisibility(ESlateVisibility NewVisibility)
+{
+	InteractButton->SetVisibility(NewVisibility);
 }
