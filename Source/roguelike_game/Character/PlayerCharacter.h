@@ -30,15 +30,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
 
-	// True if character is sprinting
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting,
-		Category = "MovementCharacter | Config")
-	bool bIsSprinting;
-
 	// Max sprint speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float SprintSpeed;
 
+protected:
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
@@ -140,17 +136,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
-	// Set sprint state
-	UFUNCTION()
-	void SetSprinting(bool bNewSprinting);
-
-	// Calls server to set sprinting
-	UFUNCTION(Server, Reliable)
-	void ServerSetSprinting(bool bNewSprinting);
-
 	// Called back from server to set sprint
-	UFUNCTION()
-	void OnRep_IsSprinting();
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)
@@ -184,6 +172,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	float GetSprintSpeed() const;
+
+	void SetSprintSpeed(const float NewSprintSpeed);
+
+	float GetWalkSpeed() const;
+
+	void SetWalkSpeed(const float NewWalkSpeed);
 	
 };
 

@@ -24,7 +24,6 @@ APlayerCharacter::APlayerCharacter()
 	// Default game logic properties
 	bIsDead = false;
 	bIsMoving = false;
-	bIsSprinting = false;
 	PrimaryActorTick.bCanEverTick = true;
 	ComparisonErrorTolerance = 1e-7;
 	StaminaRegenerateRate = 0.25f;
@@ -129,7 +128,6 @@ void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(APlayerCharacter, bIsSprinting);
 	DOREPLIFETIME(APlayerCharacter, bIsMoving);
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
 }
@@ -160,13 +158,18 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
+	{
+		StopSprint();
+	} 
+	
 	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 
 	if (bIsMoving && !bIsDead)
 	{
-		if (bIsSprinting)
+		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
 		{
 			AnimationComponent->AnimateRunning();
 			AttributesComponent->UpdateStamina(RunningStaminaLossRate);
@@ -213,7 +216,7 @@ void APlayerCharacter::Sprint()
 {
 	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
 	{
-		SetSprinting(true);
+		ServerSetMaxWalkSpeed(SprintSpeed);
 	}
 }
 
@@ -222,7 +225,7 @@ void APlayerCharacter::StopSprint()
 {
 	if (!bIsDead)
 	{
-		SetSprinting(false);
+		ServerSetMaxWalkSpeed(WalkSpeed);
 	}
 }
 
@@ -320,36 +323,20 @@ void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableSto
 	InteractableStorage = NewInteractableStorage;
 }
 
-// Called when start sprinting
-void APlayerCharacter::SetSprinting(bool bNewSprinting)
-{
-	if (!HasAuthority())
-	{
-		ServerSetSprinting(bNewSprinting);
-	}
-	else
-	{
-		bIsSprinting = bNewSprinting;
-		OnRep_IsSprinting();
-	}
-}
-
-// Called when client start sprinting
-void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
-{
-	SetSprinting(bNewSprinting);
-}
-
-// Calls back from server when start sprinting
-void APlayerCharacter::OnRep_IsSprinting()
-{
-	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
-}
-
 // Called when client dying
 void APlayerCharacter::ServerSetDying_Implementation()
 {
 	Die();
+}
+
+void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
+}
+
+void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
 }
 
 // Calls back from server when dying
@@ -368,11 +355,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		Die();
 	}
-	
-	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
-	{
-		StopSprint();
-	} 
 	
 	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 }
@@ -413,4 +395,24 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 			GetPlayerHUD()->SetCursor(EMouseCursor::None);
 		}
 	} 
+}
+
+float APlayerCharacter::GetSprintSpeed() const
+{
+	return SprintSpeed;
+}
+
+void APlayerCharacter::SetSprintSpeed(const float NewSprintSpeed)
+{
+	SprintSpeed = NewSprintSpeed;
+}
+
+float APlayerCharacter::GetWalkSpeed() const
+{
+	return WalkSpeed;
+}
+
+void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
+{
+	WalkSpeed = NewWalkSpeed;
 }
