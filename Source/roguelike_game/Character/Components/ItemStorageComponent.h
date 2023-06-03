@@ -44,14 +44,23 @@ protected:
 	UPROPERTY()
 	class UInventory* InventoryWidget;
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_AddItem(FItemData Item, int64 Position);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_RemoveItem(int64 Position);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_UseItem(int64 Position);
+	
 public:
-	UFUNCTION(BlueprintCallable, Category = Storage)
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void AddItem(FItemData Item, int64 Position);
 	
-	UFUNCTION(BlueprintCallable, Category = Storage)
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void RemoveItem(int64 Position);
 
-	UFUNCTION(BlueprintCallable, Category = Storage)
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
     void UseItem(int64 Position);
 
 	// Called when HUD created
@@ -64,4 +73,5 @@ public:
 	int64 GetFirstEmptySlotPosition() const;
 
 };
+
 

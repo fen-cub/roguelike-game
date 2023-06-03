@@ -11,6 +11,7 @@
 UItemStorageComponent::UItemStorageComponent()
 {
 	SetIsReplicated(true);
+	StorageSize = 9;
 	FirstEmptySlotPosition = 0;
 }
 
@@ -33,7 +34,7 @@ int64 UItemStorageComponent::GetFirstEmptySlotPosition() const
 	return FirstEmptySlotPosition;
 }
 
-void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
+void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 Position)
 {
 	check (Position >= 0 && Position <= StorageSize);
 	
@@ -57,7 +58,8 @@ void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
 	}
 }
 
-void UItemStorageComponent::RemoveItem(int64 Position)
+
+void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
 {
 	check (Position >= 0 && Position < StorageSize);
 	
@@ -77,7 +79,7 @@ void UItemStorageComponent::RemoveItem(int64 Position)
 	}
 }
 
-void UItemStorageComponent::UseItem(int64 Position)
+void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 {
 	TSubclassOf<AItem> Item = ItemStorage[Position].Class;
 
@@ -91,6 +93,21 @@ void UItemStorageComponent::UseItem(int64 Position)
 		}
 		RemoveItem(Position);
 	} 
+}
+
+void UItemStorageComponent::AddItem_Implementation(FItemData Item, int64 Position)
+{
+	OnRep_AddItem(Item, Position);
+}
+
+void UItemStorageComponent::RemoveItem_Implementation(int64 Position)
+{
+	OnRep_RemoveItem(Position);
+}
+
+void UItemStorageComponent::UseItem_Implementation(int64 Position)
+{
+	OnRep_UseItem(Position);
 }
 
 void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
@@ -108,8 +125,7 @@ void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
 void UItemStorageComponent::SetStorageSize(int64 Size)
 {
 	StorageSize = Size;
-
-	UE_LOG(LogTemp, Warning, TEXT("Chest slot count: %d"), static_cast<int>(StorageSize));
+	
 	ItemStorage.Init(EmptySlot, StorageSize);
 }
 
