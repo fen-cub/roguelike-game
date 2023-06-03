@@ -11,7 +11,6 @@
 UItemStorageComponent::UItemStorageComponent()
 {
 	SetIsReplicated(true);
-	SetStorageSize(9);
 	FirstEmptySlotPosition = 0;
 }
 
@@ -29,16 +28,23 @@ void UItemStorageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-void UItemStorageComponent::AddItem(FItemData Item)
+int64 UItemStorageComponent::GetFirstEmptySlotPosition() const
 {
+	return FirstEmptySlotPosition;
+}
+
+void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
+{
+	check (Position >= 0 && Position <= StorageSize);
+	
 	UE_LOG(LogTemp, Warning, TEXT("Calls add item on client: %p"), this);
-	if (StorageSize > 0 && FirstEmptySlotPosition != StorageSize)
+	if (StorageSize > 0 && Position != StorageSize && ItemStorage[Position].IsEmpty())
 	{
-		ItemStorage[FirstEmptySlotPosition] = Item;
-		UE_LOG(LogTemp, Warning, TEXT("Insert item on slot: %d"), static_cast<int>(FirstEmptySlotPosition));
+		ItemStorage[Position] = Item;
+		UE_LOG(LogTemp, Warning, TEXT("Insert item on slot: %d"), static_cast<int>(Position));
 		if (InventoryWidget)
 		{
-			InventoryWidget->SetItem(FirstEmptySlotPosition, Item);
+			InventoryWidget->SetItem(Position, Item);
 		}
 
 		while (FirstEmptySlotPosition < StorageSize && !ItemStorage[FirstEmptySlotPosition].IsEmpty())
@@ -47,7 +53,7 @@ void UItemStorageComponent::AddItem(FItemData Item)
 		}
 	} else if (InventoryWidget)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("There are no empty slots in Storage"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Slot is not empty or there are no available slots"));
 	}
 }
 
@@ -91,6 +97,7 @@ void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
 {
 	InventoryWidget = Widget;
 
+	UE_LOG(LogTemp, Warning, TEXT("Chest slot count: %d"), static_cast<int>(StorageSize));
 	for (int64 Position = 0; Position < StorageSize; ++Position)
 	{
 		InventoryWidget->InsertItem(Position, ItemStorage[Position]);
@@ -102,6 +109,7 @@ void UItemStorageComponent::SetStorageSize(int64 Size)
 {
 	StorageSize = Size;
 
+	UE_LOG(LogTemp, Warning, TEXT("Chest slot count: %d"), static_cast<int>(StorageSize));
 	ItemStorage.Init(EmptySlot, StorageSize);
 }
 

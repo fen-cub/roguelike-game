@@ -46,7 +46,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = Storage)
-	void AddItem(FItemData Item);
+	void AddItem(FItemData Item, int64 Position);
 	
 	UFUNCTION(BlueprintCallable, Category = Storage)
 	void RemoveItem(int64 Position);
@@ -60,5 +60,8 @@ public:
 	void SetStorageSize(int64 Size);
 
 	int64 GetStorageSize() const;
+
+	int64 GetFirstEmptySlotPosition() const;
+
 };
 

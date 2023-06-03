@@ -19,6 +19,7 @@ AStorage::AStorage()
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AStorage::OnOverlapEnd);
 
 	StorageComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
+	UE_LOG(LogTemp, Warning, TEXT("Chest slot count to set: %d"), static_cast<int>(20));
 	StorageComponent->SetStorageSize(20);
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
@@ -47,15 +48,17 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
 		{
 			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
-			PlayerCharacter->GetPlayerHUD()->SetInteractableStorageWidget(StorageWidget);
 			check(StorageWidget);
+			check(PlayerCharacter->GetPlayerHUD());
+			PlayerCharacter->GetPlayerHUD()->SetInteractableStorageWidget(StorageWidget);
 			StorageWidget->SetOwningPlayer(Fpc);
 			StorageWidget->AddToPlayerScreen();
 			StorageWidget->GetInventoryWidget()->SetGridPanelSizes(4, 5);
 			StorageWidget->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::StorageInventory);
 			StorageWidget->GetInventoryWidget()->SetOwnerStorage(StorageComponent);
 			StorageWidget->GetInventoryWidget()->SetPairingStorage(PlayerCharacter->GetInventoryComponent());
-	
+
+			
 			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
 			StorageWidget->SetFocus();
 				

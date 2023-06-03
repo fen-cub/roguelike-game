@@ -18,7 +18,7 @@ AItem::AItem()
 {
 	SetReplicates(true);
 	// SetReplicateMovement(true);
-	
+
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
 
@@ -58,7 +58,10 @@ void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData());
+		int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+
+		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
+														Position);
 		Destroy();
 	}
 }

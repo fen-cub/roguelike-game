@@ -76,7 +76,8 @@ void UInventorySlot::InteractButtonOnClicked()
 		}
 		else
 		{
-			InventoryWidget->GetPairingStorage()->AddItem(ItemData);
+			InventoryWidget->GetPairingStorage()->AddItem(
+				ItemData, InventoryWidget->GetPairingStorage()->GetFirstEmptySlotPosition());
 			InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
 		}
 	}
