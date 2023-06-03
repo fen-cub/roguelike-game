@@ -66,7 +66,7 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		SearchForPlayer();
 	}
 
-	if (FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 200.0f) // TODO: player in radius
+	if (FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 200.0f)
 	{
 		bSearchForPlayer = false;
 		MoveToLocation(PlayerPawn->GetActorLocation());
