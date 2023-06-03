@@ -26,8 +26,13 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class  UInventory* InventoryWidget;
-	
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	class  UStorageDisplay* InteractableStorageWidget;
+
 public:
+	UStorageDisplay* GetInteractableStorageWidget() const;
+	void SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget);
 
 	void SetHealth(float CurrentHealth, float MaxHealth);
 

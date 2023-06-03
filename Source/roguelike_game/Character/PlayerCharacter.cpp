@@ -154,8 +154,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	PlayerInputComponent->BindAction("CloseWidget", IE_Pressed, this, &APlayerCharacter::CloseWidget);
-	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::ShowMouseCursor);
-	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Released, this, &APlayerCharacter::HideMouseCursor);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
 
 }
 
@@ -390,25 +389,28 @@ void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp,
 	}
 }
 
-void APlayerCharacter::ShowMouseCursor()
+void APlayerCharacter::SwitchMouseCursorVisibility()
 {
 	APlayerController* Fpc = GetController<APlayerController>();
 
 	if (Fpc)
 	{
-		Fpc->bShowMouseCursor = true;
-		Fpc->SetInputMode(FInputModeGameAndUI());
+		if (!Fpc->bShowMouseCursor)
+		{
+			Fpc->bShowMouseCursor = true;
+			Fpc->bEnableClickEvents = true;
+			Fpc->bEnableMouseOverEvents = true;
+			Fpc->SetInputMode(FInputModeGameAndUI());
+			PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+			GetPlayerHUD()->SetCursor(EMouseCursor::Default);
+		} else
+		{
+			Fpc->bShowMouseCursor = false;
+			Fpc->bEnableClickEvents = false;
+			Fpc->bEnableMouseOverEvents = false;
+			Fpc->SetInputMode(FInputModeGameOnly());
+			PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+			GetPlayerHUD()->SetCursor(EMouseCursor::None);
+		}
 	} 
-}
-
-void APlayerCharacter::HideMouseCursor()
-{
-	APlayerController* Fpc = GetController<APlayerController>();
-
-	if (Fpc)
-	{
-		Fpc->bShowMouseCursor = false;
-		// Fpc->SetInputMode(FInputModeGameOnly());
-	}
-	
 }

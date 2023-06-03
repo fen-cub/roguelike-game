@@ -3,7 +3,18 @@
 
 #include "PlayerHUD.h"
 
+#include "StorageDisplay.h"
 #include "Components/ProgressBar.h"
+
+UStorageDisplay* UPlayerHUD::GetInteractableStorageWidget() const
+{
+	return InteractableStorageWidget;
+}
+
+void UPlayerHUD::SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget)
+{
+	InteractableStorageWidget = NewInteractableStorageWidget;
+}
 
 void UPlayerHUD::SetHealth(float CurrentHealth, float MaxHealth)
 {

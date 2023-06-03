@@ -3,6 +3,7 @@
 
 #include "Storage.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "roguelike_game/Widgets/StorageDisplay.h"
 
 AStorage::AStorage()
@@ -46,6 +47,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
 		{
 			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
+			PlayerCharacter->GetPlayerHUD()->SetInteractableStorageWidget(StorageWidget);
 			check(StorageWidget);
 			StorageWidget->SetOwningPlayer(Fpc);
 			StorageWidget->AddToPlayerScreen();
@@ -55,11 +57,20 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			StorageWidget->GetInventoryWidget()->SetPairingStorage(PlayerCharacter->GetInventoryComponent());
 	
 			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
-
+			StorageWidget->SetFocus();
+				
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(StorageComponent);
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 				EInventoryType::PlayerInventoryInStorage);
 			PlayerCharacter->SetInteractableStorage(this);
+			
+			Fpc->SetInputMode(FInputModeUIOnly());
+
+			Fpc->SetShowMouseCursor(true);
+			StorageWidget->SetCursor(EMouseCursor::Type::Default);
+			PlayerCharacter->GetPlayerHUD()->SetCursor(EMouseCursor::Type::Default);
+
+			PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 }
@@ -75,6 +86,14 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 			EInventoryType::PlayerHUDInventory);
 		PlayerCharacter->SetInteractableStorage(nullptr);
+		
+		StorageWidget->GetOwningPlayer()->SetInputMode(FInputModeGameOnly());
+		
+		StorageWidget->GetOwningPlayer()->SetShowMouseCursor(false);
+		StorageWidget->SetCursor(EMouseCursor::Type::None);
+		PlayerCharacter->GetPlayerHUD()->SetCursor(EMouseCursor::Type::None);
+
+		PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 }
 

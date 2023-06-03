@@ -167,10 +167,7 @@ protected:
 						const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void ShowMouseCursor();
-
-	UFUNCTION()
-	void HideMouseCursor();
+	void SwitchMouseCursorVisibility();
 	
 public:
 	// Called every tick locally
@@ -181,9 +178,11 @@ public:
 	UCharacterAttributesComponent* GetAttributesComponent() const;
 
 	UPlayerHUD* GetPlayerHUD() const;
-	
+
+	UFUNCTION(BlueprintCallable)
 	AStorage* GetInteractableStorage() const;
-	
+
+	UFUNCTION(BlueprintCallable)
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
 	
 };

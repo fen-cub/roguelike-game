@@ -27,14 +27,6 @@ void UInventory::SetNewClickedSlot(int64 Position)
 			LastClickedSlot->SetInteractButtonVisibility(ESlateVisibility::Hidden);
 		}
 	}
-
-	UInventorySlot* NewClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(Position));
-
-	if (NewClickedSlot)
-	{
-		NewClickedSlot->SetInteractButtonVisibility(ESlateVisibility::Visible);
-	}
-
 	LastClickedSlotPosition = Position;
 }
 

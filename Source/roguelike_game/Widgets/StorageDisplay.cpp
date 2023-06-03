@@ -8,7 +8,6 @@
 
 UStorageDisplay::UStorageDisplay(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	
 }
 
 UInventory* UStorageDisplay::GetInventoryWidget() const

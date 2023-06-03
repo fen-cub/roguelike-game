@@ -50,5 +50,6 @@ public:
 	
 	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
 
+	UFUNCTION(BlueprintCallable)
 	void StopInteract(class APlayerCharacter* PlayerCharacter);
 };

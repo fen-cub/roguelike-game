@@ -52,9 +52,11 @@ void UInventorySlot::ItemButtonOnClicked()
 		default:
 			break;
 		}
+		SetInteractButtonVisibility(ESlateVisibility::Visible);
 		UE_LOG(LogTemp, Warning, TEXT("Set new clicked slot"));
-		InventoryWidget->SetNewClickedSlot(PositionInInventory);
 	}
+
+	InventoryWidget->SetNewClickedSlot(PositionInInventory);
 }
 
 void UInventorySlot::InteractButtonOnClicked()
