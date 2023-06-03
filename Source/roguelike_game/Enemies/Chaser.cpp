@@ -5,11 +5,13 @@
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "Components/BoxComponent.h"
+#include "../Character/Components/CharacterAnimationComponent.h"
+#include "../Character/Components/CharacterAttributesComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/InputComponent.h"
-#include "Components/SphereComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 
 AChaser::AChaser()
@@ -32,10 +34,13 @@ AChaser::AChaser()
 
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	
+	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
+	AnimationComponent->SetupAttachment(RootComponent);
+	AnimationComponent->SetupOwner(GetSprite());
 
-	// AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
-	// AnimationComponent->SetupAttachment(RootComponent);
-	// AnimationComponent->SetupOwner(GetSprite());
+	AnimationComponent->SetupAttachment(RootComponent);
+
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -85,7 +90,7 @@ void AChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AChaser::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-	// AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
+	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 

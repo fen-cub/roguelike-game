@@ -32,7 +32,7 @@ void ARandomWalkerAIController::Tick(float DeltaSeconds)
 
 void ARandomWalkerAIController::GenerateRandomSearchLocation()
 {
-	RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 50.0f);
+	RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 100.0f);
 }
 
 void ARandomWalkerAIController::SearchForPlayer()
