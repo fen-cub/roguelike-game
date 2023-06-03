@@ -43,11 +43,11 @@ void AEnemyAIController::MoveToPlayer()
 	{
 		bMoveToPlayer = true;
 		bSearchForPlayer = false;
-		
+
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalActor(PlayerPawn);
 		MoveRequest.SetAcceptanceRadius(100.0f);
-		
+
 		MoveTo(MoveRequest);
 	}
 }
@@ -66,7 +66,7 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		SearchForPlayer();
 	}
 
-	if (true) // TODO: player in radius
+	if (FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 200.0f) // TODO: player in radius
 	{
 		bSearchForPlayer = false;
 		MoveToLocation(PlayerPawn->GetActorLocation());
