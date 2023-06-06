@@ -4,7 +4,11 @@
 #include "EnemyAIController.h"
 
 #include "NavigationSystem.h"
+#include "Components/PrimitiveComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
+#include "roguelike_game/Character/Components/CharacterAttributesComponent.h"
 
 void AEnemyAIController::BeginPlay()
 {
@@ -15,6 +19,7 @@ void AEnemyAIController::BeginPlay()
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 
 	bSearchForPlayer = true;
+	bCanAttackPlayer = true;
 	bCanAttackPlayer = true;
 	bMoveToPlayer = false;
 
@@ -34,7 +39,15 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 
 void AEnemyAIController::SearchForPlayer()
 {
-	MoveToLocation(RandomLocation);
+	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f)
+	{
+		bSearchForPlayer = false;
+		MoveToLocation(PlayerPawn->GetActorLocation());
+	}
+	else
+	{
+		MoveToLocation(RandomLocation);
+	};
 }
 
 void AEnemyAIController::MoveToPlayer()
@@ -54,6 +67,27 @@ void AEnemyAIController::MoveToPlayer()
 
 void AEnemyAIController::AttackPlayer()
 {
+	if (PlayerPawn && bCanAttackPlayer)
+	{
+		bMoveToPlayer = true;
+		bSearchForPlayer = false;
+
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalActor(PlayerPawn);
+		MoveRequest.SetAcceptanceRadius(100.0f);
+
+		MoveTo(MoveRequest);
+		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"));
+
+		// Deal damage to the player character
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
+		if (PlayerCharacter != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh"));
+			float DamageAmount = 20.0f;
+			PlayerCharacter->AttributesComponent->Health -= 10.0f;
+		}
+	}
 }
 
 void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
@@ -65,10 +99,8 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		GenerateRandomSearchLocation();
 		SearchForPlayer();
 	}
-
-	if (FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 200.0f)
+	else
 	{
-		bSearchForPlayer = false;
 		MoveToLocation(PlayerPawn->GetActorLocation());
 	}
 }
@@ -77,9 +109,24 @@ void AEnemyAIController::OnDetectPlayerBeginOverlap(UPrimitiveComponent* Overlap
                                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
                                                     bool bFromSweep, const FHitResult& SweepResult)
 {
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (PlayerCharacter != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
+
+		// Handle the overlap with the player character
+		// For example, start attacking the player or trigger other behavior
+		AttackPlayer();
+	}
 }
 
 void AEnemyAIController::OnDetectPlayerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (PlayerCharacter != nullptr)
+	{
+		// Handle the end of overlap with the player character
+		// For example, stop attacking the player or perform other actions
+	}
 }

@@ -19,8 +19,10 @@ class ROGUELIKE_GAME_API APlayerCharacter : public APaperCharacter
 public:
 	// Set default player properties
 	APlayerCharacter();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UCharacterAttributesComponent* AttributesComponent;
 
-protected:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
@@ -94,8 +96,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 	class UCharacterAnimationComponent* AnimationComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
-	class UCharacterAttributesComponent* AttributesComponent;
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;

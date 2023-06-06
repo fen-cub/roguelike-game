@@ -2,6 +2,7 @@
 
 
 #include "RandomWalker.h"
+#include "../Character/Components/CharacterAttributesComponent.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -9,6 +10,8 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "Kismet/GameplayStatics.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
 
 ARandomWalker::ARandomWalker()
 {
@@ -155,4 +158,19 @@ void ARandomWalker::OnRep_IsDead()
 void ARandomWalker::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
+	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
+	if (PlayerCharacter != nullptr && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+		15.0f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
+		constexpr float DamageAmount = 0.5f;
+		PlayerCharacter->AttributesComponent->Health -= DamageAmount;
+		PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
+		if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+		{
+			Destroy();
+			PlayerCharacter->Destroy();
+		}
+
+	}}

@@ -42,7 +42,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	// Default capsule component properties
-	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
+	GetCapsuleComponent()->InitCapsuleSize(7.0f, 10.0f);
 
 	// Default sprite properties
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
