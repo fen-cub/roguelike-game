@@ -18,7 +18,7 @@ void UInventory::SetPairingStorage(UItemStorageComponent* const NewPairingStorag
 
 void UInventory::SetNewClickedSlot(int64 Position)
 {
-	if (LastClickedSlotPosition != -1)
+	if (LastClickedSlotPosition != -1 && LastClickedSlotPosition != Position)
 	{
 		UInventorySlot* LastClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(LastClickedSlotPosition));
 

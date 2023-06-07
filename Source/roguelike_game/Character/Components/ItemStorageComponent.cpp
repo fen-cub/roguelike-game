@@ -54,9 +54,6 @@ void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 P
 		}
 	} else if (InventoryWidget)
 	{
-		UE_LOG(LogTemp, Warning, 	TEXT("%d size, %d position, %d emptiness"), static_cast<int>(StorageSize),
-			static_cast<int>(Position),
-			static_cast<int>(ItemStorage[Position].IsEmpty()));
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Slot is not empty or there are no available slots"));
 	}
 }

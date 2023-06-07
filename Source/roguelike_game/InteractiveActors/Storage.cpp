@@ -4,6 +4,7 @@
 #include "Storage.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "roguelike_game/Widgets/StorageDisplay.h"
 
 AStorage::AStorage()
@@ -82,8 +83,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 {
 	PlayerCharacter->SetInteractableStorage(nullptr);
-	SetOwner(nullptr);
-		
+	
 	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
 	{
 		StorageWidget->RemoveFromParent();

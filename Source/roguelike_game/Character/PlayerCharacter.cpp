@@ -172,7 +172,10 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
 		{
 			AnimationComponent->AnimateRunning();
-			AttributesComponent->UpdateStamina(RunningStaminaLossRate);
+			if (IsLocallyControlled())
+			{
+				AttributesComponent->UpdateStamina(RunningStaminaLossRate);
+			}
 		}
 		else
 		{
