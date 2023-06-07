@@ -45,6 +45,8 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 	if (PlayerCharacter)
 	{
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
+		SetOwner(Fpc);
+		
 		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
 		{
 			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
@@ -57,16 +59,12 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			StorageWidget->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::StorageInventory);
 			StorageWidget->GetInventoryWidget()->SetOwnerStorage(StorageComponent);
 			StorageWidget->GetInventoryWidget()->SetPairingStorage(PlayerCharacter->GetInventoryComponent());
-
-			
 			StorageComponent->SetUpInventoryWidget(StorageWidget->GetInventoryWidget());
 			StorageWidget->SetFocus();
-				
+
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(StorageComponent);
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 				EInventoryType::PlayerInventoryInStorage);
-			PlayerCharacter->SetInteractableStorage(this);
-
 			PlayerCharacter->ServerSetMaxWalkSpeed(0);
 			Fpc->SetInputMode(FInputModeUIOnly());
 
@@ -76,23 +74,26 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 
 			PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::Visible);
 		}
+		
+		PlayerCharacter->SetInteractableStorage(this);
 	}
 }
 
 void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 {
+	PlayerCharacter->SetInteractableStorage(nullptr);
+	SetOwner(nullptr);
+		
 	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
 	{
 		StorageWidget->RemoveFromParent();
 		StorageWidget->Destruct();
-
-		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
-		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
-			EInventoryType::PlayerHUDInventory);
-		PlayerCharacter->SetInteractableStorage(nullptr);
 		
 		StorageWidget->GetOwningPlayer()->SetInputMode(FInputModeGameOnly());
 		PlayerCharacter->ServerSetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
+		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
+		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
+			EInventoryType::PlayerHUDInventory);
 		
 		StorageWidget->GetOwningPlayer()->SetShowMouseCursor(false);
 		StorageWidget->SetCursor(EMouseCursor::Type::None);

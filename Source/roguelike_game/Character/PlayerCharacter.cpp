@@ -279,7 +279,7 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
 		if (Interface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s"), *Actor->GetName());
+			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
 			Interface->Interact(this);
 		}
 	}
@@ -351,12 +351,15 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+	if (IsLocallyControlled())
 	{
-		Die();
-	}
+		if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+		{
+			Die();
+		}
 	
-	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+	}
 }
 
 // Called when some actor in overlap

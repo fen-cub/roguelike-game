@@ -52,15 +52,25 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_UseItem(int64 Position);
-	
-public:
-	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
-	void AddItem(FItemData Item, int64 Position);
-	
-	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
-	void RemoveItem(int64 Position);
 
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
+	void ServerAddItem(FItemData Item, int64 Position);
+	
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
+	void ServerRemoveItem(int64 Position);
+
+	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
+	void ServerUseItem(int64 Position);
+
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = Storage)
+	void AddItem(FItemData Item, int64 Position);
+	
+	UFUNCTION(BlueprintCallable, Category = Storage)
+	void RemoveItem(int64 Position);
+
+	UFUNCTION(BlueprintCallable, Category = Storage)
     void UseItem(int64 Position);
 
 	// Called when HUD created

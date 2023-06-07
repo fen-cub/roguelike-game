@@ -54,6 +54,9 @@ void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 P
 		}
 	} else if (InventoryWidget)
 	{
+		UE_LOG(LogTemp, Warning, 	TEXT("%d size, %d position, %d emptiness"), static_cast<int>(StorageSize),
+			static_cast<int>(Position),
+			static_cast<int>(ItemStorage[Position].IsEmpty()));
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Slot is not empty or there are no available slots"));
 	}
 }
@@ -91,23 +94,58 @@ void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 		{
 			CDOItem->Use(PlayerCharacter);
 		}
-		RemoveItem(Position);
+		ServerRemoveItem(Position);
 	} 
 }
 
-void UItemStorageComponent::AddItem_Implementation(FItemData Item, int64 Position)
+void UItemStorageComponent::ServerAddItem_Implementation(FItemData Item, int64 Position)
 {
-	OnRep_AddItem(Item, Position);
+	AddItem(Item, Position);
 }
 
-void UItemStorageComponent::RemoveItem_Implementation(int64 Position)
+void UItemStorageComponent::ServerRemoveItem_Implementation(int64 Position)
 {
-	OnRep_RemoveItem(Position);
+	RemoveItem(Position);
 }
 
-void UItemStorageComponent::UseItem_Implementation(int64 Position)
+void UItemStorageComponent::ServerUseItem_Implementation(int64 Position)
 {
-	OnRep_UseItem(Position);
+	UseItem(Position);
+}
+
+void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Calls server add item on client: %p"), this);
+		ServerAddItem(Item, Position);
+	} else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Calls onReap add item on server: %p"), this);
+		OnRep_AddItem(Item, Position);
+	}
+}
+
+void UItemStorageComponent::RemoveItem(int64 Position)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerRemoveItem(Position);
+	}  else
+	{
+		OnRep_RemoveItem(Position);
+	}
+}
+
+void UItemStorageComponent::UseItem(int64 Position)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerUseItem(Position);
+	} else
+	{
+		OnRep_UseItem(Position);
+	}
 }
 
 void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)

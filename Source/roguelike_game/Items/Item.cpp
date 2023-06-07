@@ -56,14 +56,13 @@ AItem::AItem()
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
-	if (PlayerCharacter)
+	if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
 	{
 		int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
-
 		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
-														Position);
-		Destroy();
+													Position);
 	}
+	Destroy();
 }
 
 FItemData AItem::GetItemData() const
