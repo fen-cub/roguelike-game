@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Character/Components/CharacterAttributesComponent.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "Runtime/NavigationSystem/Public/NavigationSystem.h"
 
 void AEnemyAIController::BeginPlay()
 {
@@ -39,7 +41,11 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 
 void AEnemyAIController::SearchForPlayer()
 {
-	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f)
+	FNavLocation NavLocation;
+
+	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f && NavArea->
+		ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector)
+	)
 	{
 		bSearchForPlayer = false;
 		MoveToLocation(PlayerPawn->GetActorLocation());
@@ -93,15 +99,24 @@ void AEnemyAIController::AttackPlayer()
 void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
-
 	if (bSearchForPlayer)
 	{
 		GenerateRandomSearchLocation();
 		SearchForPlayer();
 	}
-	else
+	else if (PlayerPawn)
 	{
-		MoveToLocation(PlayerPawn->GetActorLocation());
+		FNavLocation NavLocation;
+		if (NavArea->ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector))
+		{
+			MoveToLocation(PlayerPawn->GetActorLocation());
+		}
+		else
+		{
+			bSearchForPlayer = true;
+			GenerateRandomSearchLocation();
+			SearchForPlayer();
+		}
 	}
 }
 

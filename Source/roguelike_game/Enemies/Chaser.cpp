@@ -31,18 +31,17 @@ AChaser::AChaser()
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
-	
+
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
-	
+
 	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
 
 	AnimationComponent->SetupAttachment(RootComponent);
-
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -165,19 +164,21 @@ void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
-	if (PlayerCharacter != nullptr && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
-		15.0f)
+	if (PlayerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
-		constexpr float DamageAmount = 0.5f;
-		PlayerCharacter->AttributesComponent->Health -= DamageAmount;
-		PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
-		if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
+		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			15.0f)
 		{
-			Destroy();
-			PlayerCharacter->Destroy();
+			UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
+			constexpr float DamageAmount = 0.5f;
+			PlayerCharacter->AttributesComponent->Health -= DamageAmount;
+			PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
+			if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+			{
+				Destroy();
+				PlayerCharacter->Destroy();
+			}
 		}
-
 	}
 }
