@@ -21,11 +21,15 @@ public:
 	// Set default player properties
 	APlayerCharacter();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
+	bool bIsAttacking;
+
+	
 protected:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
-
+	
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
@@ -156,6 +160,9 @@ protected:
 
 	UFUNCTION()
 	void SwitchMouseCursorVisibility();
+
+	UFUNCTION()
+	void Attack();
 	
 public:
 	// Called every tick locally

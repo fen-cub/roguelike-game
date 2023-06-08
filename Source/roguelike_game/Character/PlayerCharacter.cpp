@@ -153,7 +153,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	PlayerInputComponent->BindAction("CloseWidget", IE_Pressed, this, &APlayerCharacter::CloseWidget);
 	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
-
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
+	
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -167,7 +168,7 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 
-	if (bIsMoving && !bIsDead)
+	if (bIsMoving && !bIsDead && !bIsAttacking)
 	{
 		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
 		{
@@ -182,7 +183,7 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 			AnimationComponent->AnimateWalking();
 		}
 	}
-	else if (!bIsDead)
+	else if (!bIsDead && !bIsAttacking)
 	{
 		AnimationComponent->AnimateIdle();
 	}
@@ -401,6 +402,12 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 			GetPlayerHUD()->SetCursor(EMouseCursor::None);
 		}
 	} 
+}
+
+void APlayerCharacter::Attack()
+{
+	AnimationComponent->AnimateAttack();
+	bIsAttacking = true;
 }
 
 float APlayerCharacter::GetSprintSpeed() const

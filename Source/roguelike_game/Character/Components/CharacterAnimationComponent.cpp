@@ -3,13 +3,13 @@
 
 #include "CharacterAnimationComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
 
 UCharacterAnimationComponent::UCharacterAnimationComponent()
 {
 	CurrentCharacterDirection = ECharacterDirection::Down;
 	ComparisonErrorTolerance = 1e-7;
 }
-
 void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookComponent)
 {
 	OwnerFlipbookComponent = FlipbookComponent;
@@ -82,6 +82,29 @@ void UCharacterAnimationComponent::AnimateIdle()
 	}
 }
 
+void UCharacterAnimationComponent::AnimateAttack()
+{
+	OwnerFlipbookComponent->SetLooping(false);
+	switch (CurrentCharacterDirection)
+	{
+	case ECharacterDirection::Up:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackUp);
+		break;
+	case ECharacterDirection::Down:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackDown);
+		break;
+	case ECharacterDirection::Left:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackLeft);
+		break;
+	case ECharacterDirection::Right:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackRight);
+		break;
+	default:
+		break;
+	}
+	OwnerFlipbookComponent->OnFinishedPlaying.AddDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
+}
+
 // Called when dying
 void UCharacterAnimationComponent::AnimateDeath()
 {
@@ -103,6 +126,26 @@ void UCharacterAnimationComponent::AnimateDeath()
 	default:
 		break;
 	}
+}
+
+void UCharacterAnimationComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void UCharacterAnimationComponent::SetLoopingOnFinishedPlaying()
+{
+	UE_LOG(LogTemp, Warning, TEXT("On set looping"));
+	OwnerFlipbookComponent->SetLooping(true);
+	UE_LOG(LogTemp, Warning, TEXT("%d"), OwnerFlipbookComponent->IsLooping());
+	
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->bIsAttacking = false;	
+	}
+
+	OwnerFlipbookComponent->OnFinishedPlaying.RemoveDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
 }
 
 

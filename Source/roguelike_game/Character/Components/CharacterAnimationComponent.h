@@ -75,6 +75,25 @@ struct FRunningAnimationFlipbooks
 	class UPaperFlipbook* RunDown{nullptr};
 };
 
+// Attack character animations flipbooks
+USTRUCT(BlueprintType, Category = "Animation")
+struct FAttackAnimationFlipbooks
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* AttackUp{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* AttackRight{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* AttackLeft{nullptr};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UPaperFlipbook* AttackDown{nullptr};
+};
+
 // Death character animations flipbooks
 USTRUCT(BlueprintType, Category = "Animation")
 struct FDeathAnimationFlipbooks
@@ -119,6 +138,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
 	void AnimateIdle();
 
+	// Sets attack animation 
+	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
+	void AnimateAttack();
+	
 	// Sets death animation 
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
 	void AnimateDeath();
@@ -126,6 +149,9 @@ public:
 protected:
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
+	
+	// Called when the game starts
+	virtual void BeginPlay() override;
 
 	// Current direction, default - Down
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
@@ -147,7 +173,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FRunningAnimationFlipbooks RunningFlipbooks;
 
+	// Attack flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FAttackAnimationFlipbooks AttackFlipbooks;
+	
 	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
+
+	UFUNCTION()
+	void SetLoopingOnFinishedPlaying();
+	
 };
