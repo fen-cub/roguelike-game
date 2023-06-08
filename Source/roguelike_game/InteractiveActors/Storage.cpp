@@ -66,7 +66,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(StorageComponent);
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 				EInventoryType::PlayerInventoryInStorage);
-			PlayerCharacter->ServerSetMaxWalkSpeed(0);
+			PlayerCharacter->SetMaxWalkSpeed(0);
 			Fpc->SetInputMode(FInputModeUIOnly());
 
 			Fpc->SetShowMouseCursor(true);
@@ -90,7 +90,7 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		StorageWidget->Destruct();
 		
 		StorageWidget->GetOwningPlayer()->SetInputMode(FInputModeGameOnly());
-		PlayerCharacter->ServerSetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
+		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 			EInventoryType::PlayerHUDInventory);

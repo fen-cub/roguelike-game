@@ -25,7 +25,7 @@ APlayerCharacter::APlayerCharacter()
 	bIsDead = false;
 	bIsMoving = false;
 	PrimaryActorTick.bCanEverTick = true;
-	ComparisonErrorTolerance = 1e-7;
+	ComparisonErrorTolerance = 1e-4f;
 	StaminaRegenerateRate = 0.25f;
 	RunningStaminaLossRate = -0.5f;
 
@@ -151,7 +151,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
-	PlayerInputComponent->BindAction("CloseWidget", IE_Pressed, this, &APlayerCharacter::CloseWidget);
 	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
 	
@@ -159,7 +158,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
-	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
 	{
 		StopSprint();
 	} 
@@ -227,9 +226,9 @@ void APlayerCharacter::Sprint()
 // Called when shift is released
 void APlayerCharacter::StopSprint()
 {
-	if (!bIsDead)
+	if (!bIsDead && !bIsAttacking)
 	{
-		ServerSetMaxWalkSpeed(WalkSpeed);
+		SetMaxWalkSpeed(WalkSpeed);
 	}
 }
 
@@ -255,14 +254,6 @@ void APlayerCharacter::Interact()
 	} else
 	{
 		OnRep_Interact();
-	}
-}
-
-void APlayerCharacter::CloseWidget()
-{
-	if (InteractableStorage)
-	{
-		InteractableStorage->StopInteract(this);
 	}
 }
 
@@ -361,7 +352,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		{
 			Die();
 		}
-	
+		
 		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 	}
 }
@@ -404,10 +395,41 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 	} 
 }
 
+void APlayerCharacter::ServerAttack_Implementation()
+{
+	Attack();
+}
+
+void APlayerCharacter::OnRep_Attack_Implementation()
+{
+	if (!bIsAttacking && !bIsDead)
+	{
+		AnimationComponent->AnimateAttack();
+		bIsAttacking = true;
+		OnRep_SetMaxWalkSpeed(0);
+	}
+}
+
 void APlayerCharacter::Attack()
 {
-	AnimationComponent->AnimateAttack();
-	bIsAttacking = true;
+	if (!HasAuthority())
+	{
+		ServerAttack();
+	} else
+	{
+		OnRep_Attack();
+	}
+}
+
+void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
+{
+	if (!HasAuthority())
+	{
+		ServerSetMaxWalkSpeed(NewMaxWalkSpeed);
+	} else
+	{
+		OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
+	}
 }
 
 float APlayerCharacter::GetSprintSpeed() const

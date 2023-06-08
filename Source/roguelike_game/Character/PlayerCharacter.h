@@ -21,7 +21,7 @@ public:
 	// Set default player properties
 	APlayerCharacter();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	bool bIsAttacking;
 
 	
@@ -89,11 +89,7 @@ protected:
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void Interact();
-
-	// Interact with Interactable Interface
-	UFUNCTION(BlueprintCallable, Category= Trigger)
-	void CloseWidget();
-
+	
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
 
@@ -161,8 +157,14 @@ protected:
 	UFUNCTION()
 	void SwitchMouseCursorVisibility();
 
+	UFUNCTION(Server, UnReliable)
+	void ServerAttack();
+
 	UFUNCTION()
 	void Attack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_Attack();
 	
 public:
 	// Called every tick locally
@@ -182,6 +184,9 @@ public:
 	
 	UFUNCTION(Server, Unreliable)
 	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION()
+	void SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	float GetSprintSpeed() const;
 

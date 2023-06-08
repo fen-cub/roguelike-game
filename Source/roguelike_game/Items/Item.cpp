@@ -16,8 +16,8 @@ bool FItemData::IsEmpty() const
 
 AItem::AItem()
 {
-	SetReplicates(true);
-	// SetReplicateMovement(true);
+	bReplicates = true;
+	SetReplicateMovement(true);
 
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));

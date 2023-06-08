@@ -19,6 +19,8 @@ void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookC
 // Called while walking
 void UCharacterAnimationComponent::AnimateWalking()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -41,6 +43,8 @@ void UCharacterAnimationComponent::AnimateWalking()
 // Called while running
 void UCharacterAnimationComponent::AnimateRunning()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -63,6 +67,8 @@ void UCharacterAnimationComponent::AnimateRunning()
 // Called while idle
 void UCharacterAnimationComponent::AnimateIdle()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -85,6 +91,7 @@ void UCharacterAnimationComponent::AnimateIdle()
 void UCharacterAnimationComponent::AnimateAttack()
 {
 	OwnerFlipbookComponent->SetLooping(false);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -102,12 +109,14 @@ void UCharacterAnimationComponent::AnimateAttack()
 	default:
 		break;
 	}
-	OwnerFlipbookComponent->OnFinishedPlaying.AddDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
+
+	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
 }
 
 // Called when dying
 void UCharacterAnimationComponent::AnimateDeath()
 {
+	
 	OwnerFlipbookComponent->SetLooping(false);
 	switch (CurrentCharacterDirection)
 	{
@@ -135,17 +144,15 @@ void UCharacterAnimationComponent::BeginPlay()
 
 void UCharacterAnimationComponent::SetLoopingOnFinishedPlaying()
 {
-	UE_LOG(LogTemp, Warning, TEXT("On set looping"));
-	OwnerFlipbookComponent->SetLooping(true);
-	UE_LOG(LogTemp, Warning, TEXT("%d"), OwnerFlipbookComponent->IsLooping());
-	
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->bIsAttacking = false;	
+		PlayerCharacter->bIsAttacking = false;
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
+		}
 	}
-
-	OwnerFlipbookComponent->OnFinishedPlaying.RemoveDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
 }
 
 
