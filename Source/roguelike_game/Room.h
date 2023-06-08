@@ -23,5 +23,5 @@ public:
 
 	TArray<bool> Walls;
 	
-	void CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side);
+	void CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, int TemplateNum = -1);
 };

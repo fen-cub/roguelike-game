@@ -79,6 +79,12 @@ public:
   int8 DirX[4] = {0, 1, 0, -1};
   int8 DirY[4] = {-1, 0, 1, 0};
 
+  TArray<int> UnusedDefaultTemplates;
+  TArray<int> UnusedHorizontalAdditionsTemplates;
+  TArray<int> UnusedVerticalAdditionsTemplates;
+  TArray<int> UnusedHorizontalCorridorsTemplates;
+  TArray<int> UnusedVerticalCorridorsTemplates;
+
   float CorrDirX[4] = {RealTileHeight * CorridorHeight,
                       -(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight,
                       -(RoomHeight *RealTileHeight),

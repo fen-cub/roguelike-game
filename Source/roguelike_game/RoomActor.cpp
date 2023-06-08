@@ -24,7 +24,7 @@ void ARoomActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ARoomActor::Init(TSet<int> Doors, const int Width, const int Height, TSet<int> Walls, const uint8 Side)
+void ARoomActor::Init(TSet<int> Doors, const int Width, const int Height, TSet<int> Walls, const uint8 Side, const int TemplateNum)
 {
 	TArray<bool> BDoors;
 	TArray<bool> BWalls;
@@ -40,7 +40,7 @@ void ARoomActor::Init(TSet<int> Doors, const int Width, const int Height, TSet<i
 	}
 	RoomComponent->Doors = BDoors;
 	RoomComponent->Walls = BWalls;
-	RoomComponent->CreateRoom(Width, Height, Side);
+	RoomComponent->CreateRoom(Width, Height, Side, TemplateNum);
 	SetRootComponent(RoomComponent);
 }
 

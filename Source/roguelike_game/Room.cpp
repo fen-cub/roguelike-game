@@ -4,19 +4,15 @@
 #include "PaperTileMap.h"
 #include "PaperTileSet.h"
 
-// Rotation -90 180 180
 
-void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
+
+void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, int TemplateNum)
 {
+	UE_LOG(LogTemp, Warning, TEXT("TemplNum %d"), TemplateNum)
 	RoomWidth = Width;
 	RoomHeight = Height;
 	CreateNewTileMap(Width, Height, 16, 16, 1.0f);
 	AddNewLayer();
-
-	/*
-	UPaperTileSet *TileSet = LoadObject<UPaperTileSet>(
-	nullptr, TEXT("/Game/Textures/TX_Tileset_Grass_TileSet"));
-	*/
 	
 	
 	UPaperTileSet *TileSet = LoadObject<UPaperTileSet>(
@@ -25,54 +21,28 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 	
 
 	UPaperTileMap *BaseMap = nullptr;
+	FString FileName;
 
-	if (Width == 1 && Height == 1)
+	if (Width == 6 && Height == 7)
 	{
-		switch (Side)
-		{
-		case 0:
-			BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/Square0"));
-			break;
-		case 1:
-			BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/Square1"));
-			break;
-		case 2:
-			BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/Square2"));
-			break;
-		default:
-			BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/Square3"));
-			break;
-		}
-	} else if (Width == 6 && Height == 7)
-	{
-		BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/MapCprridor"));
+		FileName = FString::Printf(TEXT("/Game/RoomTemplates/VerticalCorridors/Template%d"), TemplateNum);
 	} else if (Width == 7 && Height == 6)
 	{
-		BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/MapCorridorGorizontal"));
+		FileName = FString::Printf(TEXT("/Game/RoomTemplates/HorizontalCorridors/Template%d"), TemplateNum);
 	} else if (Width == 20 && Height == 7)
 	{
-		BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/AddedRoomGorizontal"));
+		FileName = FString::Printf(TEXT("/Game/RoomTemplates/HorizontalAdditions/Template%d"), TemplateNum);
 	} else if (Width == 7 && Height == 20)
 	{
-		BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/AddedRoomVertical"));
+		FileName = FString::Printf(TEXT("/Game/RoomTemplates/VerticalAdditions/Template%d"), TemplateNum);
 	} else
 	{
-		BaseMap = LoadObject<UPaperTileMap>(nullptr, TEXT("/Game/Textures/MyMap"));
+		FileName = FString::Printf(TEXT("/Game/RoomTemplates/DefaultRooms/Template%d"), TemplateNum);
 	}
 
-	if (BaseMap)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("BaseMap ok"))
-		//UPaperTileLayer* NewLayer = BaseMap->AddNewLayer();
-	}
+	BaseMap = LoadObject<UPaperTileMap>(nullptr, *FileName);
+	
 	SetTileMap(BaseMap);
-	/*
-	for (auto CurLayer : BaseMap->TileLayers)
-	{
-		const UPaperTileLayer* NewLayer = this->AddNewLayer();
-		//NewLayer = CurLayer;
-	}
-	*/
 
 	MakeTileMapEditable();
 	AddNewLayer();
@@ -91,7 +61,7 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("In for loop"))
+			
 			//FPaperTileInfo TileInfo;
 			TileInfo.TileSet = TileSet;
 			if (Walls[i])
@@ -102,7 +72,6 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 					{
 						if (!(Doors[i] && (j == RoomWidth / 2 - 2 || j == RoomWidth / 2 - 1 || j == RoomWidth / 2  || j == RoomWidth / 2 + 1)))
 						{
-							UE_LOG(LogTemp, Warning, TEXT("X = %d, Y = %d"), j, (i == 0 ? 0 : RoomHeight - 1))
 							TileInfo.PackedTileIndex = (i == 0 ? 101 : 76);
 							//NewLayer->SetCell(j, (i == 0 ? 0 : RoomHeight - 1), TileInfo);
 							SetTile(j,  (i == 0 ? 0 : RoomHeight - 1) , 0, TileInfo);
@@ -117,7 +86,6 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side)
 					{
 						if (!(Doors[i] && (j == RoomHeight / 2 - 2 || j == RoomHeight / 2 - 1 || j == RoomHeight / 2  || j == RoomHeight / 2 + 1)))
 						{
-							UE_LOG(LogTemp, Warning, TEXT("X = %d, Y = %d"), (i == 1 ? RoomWidth - 1 : 0),  j)
 							TileInfo.PackedTileIndex = (i == 1 ? 128 : 129);
 							//NewLayer->SetCell((i == 1 ? RoomHeight - 1: 0), j, TileInfo);
 							SetTile((i == 1 ? 0 : RoomHeight - 1),  j , 0, TileInfo);
