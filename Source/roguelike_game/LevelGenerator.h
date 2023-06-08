@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "RoomActor.h"
+#include "Items/AttributesRecoveryItem.h"
 #include "Character/PlayerCharacter.h"
 #include "GameFramework/Actor.h"
 #include "LevelGenerator.generated.h"
@@ -140,5 +141,10 @@ public:
   void SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type);
 
   void CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelGenerator, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> AttributesRecoveryItemClass;
+
+  void SpawnItem(UClass* ItemToSpawn, FVector Location);
   
 };
