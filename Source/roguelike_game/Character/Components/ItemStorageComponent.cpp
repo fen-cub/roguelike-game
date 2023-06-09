@@ -61,6 +61,7 @@ void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 P
 
 void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Calls remove item on client: %p"), this);
 	check (Position >= 0 && Position < StorageSize);
 	
 	if (!ItemStorage[Position].IsEmpty())
@@ -81,68 +82,65 @@ void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
 
 void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 {
-	TSubclassOf<AItem> Item = ItemStorage[Position].Class;
-
-	if (Item)
+	if (!ItemStorage[Position].IsEmpty())
 	{
-		AItem* CDOItem = Item.GetDefaultObject();
-		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-		if (CDOItem && PlayerCharacter)
+		TSubclassOf<AItem> Item = ItemStorage[Position].Class;
+
+		if (Item)
 		{
-			CDOItem->Use(PlayerCharacter);
-		}
-		ServerRemoveItem(Position);
-	} 
+			AItem* CDOItem = Item.GetDefaultObject();
+			APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+			if (CDOItem && PlayerCharacter)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Use item on client: %p"), this);
+				CDOItem->Use(PlayerCharacter);
+			}
+			RemoveItem(Position);
+		} 
+	}
 }
 
 void UItemStorageComponent::ServerAddItem_Implementation(FItemData Item, int64 Position)
 {
-	AddItem(Item, Position);
+	UE_LOG(LogTemp, Warning, TEXT("Calls onReap add item on server: %p"), this);
+	OnRep_AddItem(Item, Position);
 }
 
 void UItemStorageComponent::ServerRemoveItem_Implementation(int64 Position)
 {
-	RemoveItem(Position);
+	OnRep_RemoveItem(Position);
 }
 
 void UItemStorageComponent::ServerUseItem_Implementation(int64 Position)
 {
-	UseItem(Position);
+	UE_LOG(LogTemp, Warning, TEXT("Calls on rep use item on client: %p"), this);
+	OnRep_UseItem(Position);
 }
 
 void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
 {
-	if (!GetOwner()->HasAuthority())
+	if (GetOwner()->HasLocalNetOwner())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Calls server add item on client: %p"), this);
 		ServerAddItem(Item, Position);
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Calls onReap add item on server: %p"), this);
-		OnRep_AddItem(Item, Position);
 	}
 }
 
 void UItemStorageComponent::RemoveItem(int64 Position)
 {
-	if (!GetOwner()->HasAuthority())
+	if (GetOwner()->HasLocalNetOwner())
 	{
 		ServerRemoveItem(Position);
-	}  else
-	{
-		OnRep_RemoveItem(Position);
-	}
+	}  
 }
 
 void UItemStorageComponent::UseItem(int64 Position)
 {
-	if (!GetOwner()->HasAuthority())
+	if (GetOwner()->HasLocalNetOwner())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Calls server use item on client: %p"), this);
 		ServerUseItem(Position);
-	} else
-	{
-		OnRep_UseItem(Position);
-	}
+	} 
 }
 
 void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)

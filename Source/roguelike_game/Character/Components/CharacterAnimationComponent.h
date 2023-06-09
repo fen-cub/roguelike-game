@@ -182,6 +182,6 @@ protected:
 	FDeathAnimationFlipbooks DeathFlipbooks;
 
 	UFUNCTION()
-	void SetLoopingOnFinishedPlaying();
+	void OnFinishedAttack();
 	
 };

@@ -156,6 +156,32 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	
 }
 
+void APlayerCharacter::SwitchMouseCursorVisibility()
+{
+	APlayerController* Fpc = GetController<APlayerController>();
+
+	if (Fpc)
+	{
+		if (!Fpc->bShowMouseCursor)
+		{
+			Fpc->bShowMouseCursor = true;
+			Fpc->bEnableClickEvents = true;
+			Fpc->bEnableMouseOverEvents = true;
+			Fpc->SetInputMode(FInputModeGameAndUI());
+			PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+			GetPlayerHUD()->SetCursor(EMouseCursor::Default);
+		} else
+		{
+			Fpc->bShowMouseCursor = false;
+			Fpc->bEnableClickEvents = false;
+			Fpc->bEnableMouseOverEvents = false;
+			Fpc->SetInputMode(FInputModeGameOnly());
+			PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+			GetPlayerHUD()->SetCursor(EMouseCursor::None);
+		}
+	} 
+}
+
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
 	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
@@ -219,7 +245,7 @@ void APlayerCharacter::Sprint()
 {
 	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
 	{
-		ServerSetMaxWalkSpeed(SprintSpeed);
+		SetMaxWalkSpeed(SprintSpeed);
 	}
 }
 
@@ -235,31 +261,30 @@ void APlayerCharacter::StopSprint()
 // Called when dying 
 void APlayerCharacter::Die()
 {
-	if (!HasAuthority())
+	if (HasLocalNetOwner())
 	{
 		ServerSetDying();
 	}
-	else
-	{
-		bIsDead = true;
-		OnRep_IsDead();
-	}
+}
+
+// Called when client dying
+void APlayerCharacter::ServerSetDying_Implementation()
+{
+	bIsDead = true;
+	OnRep_IsDead();
 }
 
 void APlayerCharacter::Interact()
 {
-	if (!HasAuthority())
+	if (HasLocalNetOwner())
 	{
 		ServerInteract();
-	} else
-	{
-		OnRep_Interact();
-	}
+	} 
 }
 
 void APlayerCharacter::ServerInteract_Implementation()
 {
-	Interact();
+	OnRep_Interact();
 }
 
 void APlayerCharacter::OnRep_Interact_Implementation()
@@ -286,7 +311,7 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 
 void APlayerCharacter::UseItem(const float Axis)
 {
-	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
+	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance) && HasLocalNetOwner())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Use Item: %d"), FMath::RoundToInt(Axis));
 		InventoryComponent->UseItem(FMath::RoundToInt(Axis) - 1);
@@ -316,12 +341,6 @@ AStorage* APlayerCharacter::GetInteractableStorage() const
 void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableStorage)
 {
 	InteractableStorage = NewInteractableStorage;
-}
-
-// Called when client dying
-void APlayerCharacter::ServerSetDying_Implementation()
-{
-	Die();
 }
 
 void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
@@ -369,35 +388,9 @@ void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp,
 	}
 }
 
-void APlayerCharacter::SwitchMouseCursorVisibility()
-{
-	APlayerController* Fpc = GetController<APlayerController>();
-
-	if (Fpc)
-	{
-		if (!Fpc->bShowMouseCursor)
-		{
-			Fpc->bShowMouseCursor = true;
-			Fpc->bEnableClickEvents = true;
-			Fpc->bEnableMouseOverEvents = true;
-			Fpc->SetInputMode(FInputModeGameAndUI());
-			PlayerHUD->SetVisibility(ESlateVisibility::Visible);
-			GetPlayerHUD()->SetCursor(EMouseCursor::Default);
-		} else
-		{
-			Fpc->bShowMouseCursor = false;
-			Fpc->bEnableClickEvents = false;
-			Fpc->bEnableMouseOverEvents = false;
-			Fpc->SetInputMode(FInputModeGameOnly());
-			PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
-			GetPlayerHUD()->SetCursor(EMouseCursor::None);
-		}
-	} 
-}
-
 void APlayerCharacter::ServerAttack_Implementation()
 {
-	Attack();
+	OnRep_Attack();
 }
 
 void APlayerCharacter::OnRep_Attack_Implementation()
@@ -412,24 +405,18 @@ void APlayerCharacter::OnRep_Attack_Implementation()
 
 void APlayerCharacter::Attack()
 {
-	if (!HasAuthority())
+	if (HasLocalNetOwner())
 	{
 		ServerAttack();
-	} else
-	{
-		OnRep_Attack();
-	}
+	} 
 }
 
 void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
 {
-	if (!HasAuthority())
+	if (HasLocalNetOwner())
 	{
 		ServerSetMaxWalkSpeed(NewMaxWalkSpeed);
-	} else
-	{
-		OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
-	}
+	} 
 }
 
 float APlayerCharacter::GetSprintSpeed() const

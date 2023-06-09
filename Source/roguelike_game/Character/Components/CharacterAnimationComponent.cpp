@@ -10,6 +10,7 @@ UCharacterAnimationComponent::UCharacterAnimationComponent()
 	CurrentCharacterDirection = ECharacterDirection::Down;
 	ComparisonErrorTolerance = 1e-7;
 }
+
 void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookComponent)
 {
 	OwnerFlipbookComponent = FlipbookComponent;
@@ -110,7 +111,7 @@ void UCharacterAnimationComponent::AnimateAttack()
 		break;
 	}
 
-	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::SetLoopingOnFinishedPlaying);
+	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::OnFinishedAttack);
 }
 
 // Called when dying
@@ -142,16 +143,13 @@ void UCharacterAnimationComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UCharacterAnimationComponent::SetLoopingOnFinishedPlaying()
+void UCharacterAnimationComponent::OnFinishedAttack()
 {
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->bIsAttacking = false;
-		if (PlayerCharacter->IsLocallyControlled())
-		{
-			PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
-		}
+		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
 	}
 }
 
