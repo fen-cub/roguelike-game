@@ -14,6 +14,6 @@ AAttributesRecoveryItem::AAttributesRecoveryItem()
 
 void AAttributesRecoveryItem::Use(APlayerCharacter* PlayerCharacter)
 {
-	PlayerCharacter->AttributesComponent->UpdateHealth(HealthRecoveryValue);
-	PlayerCharacter->AttributesComponent->UpdateStamina(StaminaRecoveryValue);
+	PlayerCharacter->GetAttributesComponent()->UpdateHealth(HealthRecoveryValue);
+	PlayerCharacter->GetAttributesComponent()->UpdateStamina(StaminaRecoveryValue);
 }

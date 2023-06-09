@@ -25,13 +25,13 @@ protected:
 	class UItemStorageComponent* StorageComponent;
 	
 	UPROPERTY()
-	class UInventory* StorageWidget;
+	class UStorageDisplay* StorageWidget;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Tooltip)
 	class UTextRenderComponent* Tooltip;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UInventory> StorageWidgetClass;
+	TSubclassOf<class UStorageDisplay> StorageWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
@@ -49,4 +49,7 @@ public:
 	UItemStorageComponent* GetStorageComponent() const;
 	
 	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
+
+	UFUNCTION(BlueprintCallable)
+	void StopInteract(class APlayerCharacter* PlayerCharacter);
 };

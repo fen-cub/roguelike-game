@@ -16,11 +16,11 @@ bool FItemData::IsEmpty() const
 
 AItem::AItem()
 {
-	SetReplicates(true);
+	bReplicates = true;
 	SetReplicateMovement(true);
-	
+
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
-	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
+	SetActorRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
 	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
@@ -33,13 +33,13 @@ AItem::AItem()
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
 	Tooltip->SetAbsolute(false, true, false);
-	Tooltip->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));
+	Tooltip->SetRelativeLocation(FVector(0.0f, 200.0f, 10.0f));
 	Tooltip->SetRelativeRotation(FRotator(90.0f, 180.0f, 0.0f));
 	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
-	Tooltip->SetText(FText::FromString("Press E to take item"));
-	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
+	Tooltip->SetText(FText::FromString("Press E to take"));
+	Tooltip->SetTextRenderColor(FColor(255, 122, 0, 255));
 	Tooltip->SetHiddenInGame(true);
 	Tooltip->SetIsReplicated(true);
 
@@ -56,11 +56,13 @@ AItem::AItem()
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
-	if (PlayerCharacter)
+	if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
 	{
-		PlayerCharacter->Inventory->AddItem(GetItemData());
-		Destroy();
+		int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
+													Position);
 	}
+	Destroy();
 }
 
 FItemData AItem::GetItemData() const

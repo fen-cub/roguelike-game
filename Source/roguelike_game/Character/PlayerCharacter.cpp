@@ -16,6 +16,7 @@
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "roguelike_game/InteractiveActors/Storage.h"
 
 // Set default player properties
 APlayerCharacter::APlayerCharacter()
@@ -23,9 +24,8 @@ APlayerCharacter::APlayerCharacter()
 	// Default game logic properties
 	bIsDead = false;
 	bIsMoving = false;
-	bIsSprinting = false;
 	PrimaryActorTick.bCanEverTick = true;
-	ComparisonErrorTolerance = 1e-7;
+	ComparisonErrorTolerance = 1e-4f;
 	StaminaRegenerateRate = 0.25f;
 	RunningStaminaLossRate = -0.5f;
 
@@ -82,8 +82,8 @@ APlayerCharacter::APlayerCharacter()
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
 
 	// Default inventory properties
-	Inventory = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
-	Inventory->SetStorageSize(9);
+	InventoryComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
+	InventoryComponent->SetStorageSize(9);
 }
 
 // Called when spawned
@@ -102,11 +102,13 @@ void APlayerCharacter::BeginPlay()
 		check(PlayerHUD);
 		PlayerHUD->SetOwningPlayer(Fpc);
 		PlayerHUD->AddToPlayerScreen();
-		PlayerHUD->InventoryWidget->SetGridPanelSizes(1, Inventory->GetStorageSize());
+		PlayerHUD->GetInventoryWidget()->SetGridPanelSizes(1, InventoryComponent->GetStorageSize());
+		PlayerHUD->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::PlayerHUDInventory);
+		PlayerHUD->GetInventoryWidget()->SetOwnerStorage(InventoryComponent);
 
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
-		Inventory->SetUpInventoryWidget(PlayerHUD->InventoryWidget);
+		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
 	}
 }
 
@@ -126,7 +128,6 @@ void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(APlayerCharacter, bIsSprinting);
 	DOREPLIFETIME(APlayerCharacter, bIsMoving);
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
 }
@@ -144,33 +145,85 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAxis("MoveUpOrDown", this, &APlayerCharacter::MoveForwardOrDown);
 	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &APlayerCharacter::MoveRightOrLeft);
-	PlayerInputComponent->BindAxis("UseItem", this, &APlayerCharacter::UseItem);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
+
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem1", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(1));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem2", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(2));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem3", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(3));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem4", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(4));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem5", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(5));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem6", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(6));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem7", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(7));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(8));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(9));
+}
+
+void APlayerCharacter::SwitchMouseCursorVisibility()
+{
+	APlayerController* Fpc = GetController<APlayerController>();
+
+	if (Fpc)
+	{
+		if (!Fpc->bShowMouseCursor)
+		{
+			Fpc->bShowMouseCursor = true;
+			Fpc->bEnableClickEvents = true;
+			Fpc->bEnableMouseOverEvents = true;
+			Fpc->SetInputMode(FInputModeGameAndUI());
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+				PlayerHUD->SetCursor(EMouseCursor::Default);
+			}
+		} else
+		{
+			Fpc->bShowMouseCursor = false;
+			Fpc->bEnableClickEvents = false;
+			Fpc->bEnableMouseOverEvents = false;
+			Fpc->SetInputMode(FInputModeGameOnly());
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+				PlayerHUD->SetCursor(EMouseCursor::None);
+				PlayerHUD->GetInventoryWidget()->HideLastClickedSlot();
+			}
+		}
+	} 
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
 {
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
+	{
+		StopSprint();
+	} 
+	
 	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
 
-	if (bIsMoving && !bIsDead)
+	if (bIsMoving && !bIsDead && !bIsAttacking)
 	{
-		if (bIsSprinting)
+		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
 		{
 			AnimationComponent->AnimateRunning();
-			AttributesComponent->UpdateStamina(RunningStaminaLossRate);
+			if (IsLocallyControlled())
+			{
+				AttributesComponent->UpdateStamina(RunningStaminaLossRate);
+			}
 		}
 		else
 		{
 			AnimationComponent->AnimateWalking();
 		}
 	}
-	else if (!bIsDead)
+	else if (!bIsDead && !bIsAttacking)
 	{
 		AnimationComponent->AnimateIdle();
 	}
@@ -207,47 +260,46 @@ void APlayerCharacter::Sprint()
 {
 	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
 	{
-		SetSprinting(true);
+		SetMaxWalkSpeed(SprintSpeed);
 	}
 }
 
 // Called when shift is released
 void APlayerCharacter::StopSprint()
 {
-	if (!bIsDead)
+	if (!bIsDead && !bIsAttacking)
 	{
-		SetSprinting(false);
+		SetMaxWalkSpeed(WalkSpeed);
 	}
 }
 
 // Called when dying 
 void APlayerCharacter::Die()
 {
-	if (!HasAuthority())
+	if (HasLocalNetOwner())
 	{
 		ServerSetDying();
 	}
-	else
-	{
-		bIsDead = true;
-		OnRep_IsDead();
-	}
+}
+
+// Called when client dying
+void APlayerCharacter::ServerSetDying_Implementation()
+{
+	bIsDead = true;
+	OnRep_IsDead();
 }
 
 void APlayerCharacter::Interact()
 {
-	if (!HasAuthority())
+	if (!bIsDead && HasLocalNetOwner())
 	{
 		ServerInteract();
-	} else
-	{
-		OnRep_Interact();
-	}
+	} 
 }
 
 void APlayerCharacter::ServerInteract_Implementation()
 {
-	Interact();
+	OnRep_Interact();
 }
 
 void APlayerCharacter::OnRep_Interact_Implementation()
@@ -262,7 +314,7 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
 		if (Interface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s"), *Actor->GetName());
+			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
 			Interface->Interact(this);
 		}
 	}
@@ -272,70 +324,60 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 	}
 }
 
-void APlayerCharacter::UseItem(const float Axis)
+void APlayerCharacter::UseItem(const int64 Position)
 {
-	if (!FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Use Item: %d"), FMath::RoundToInt(Axis));
-		Inventory->UseItem(FMath::RoundToInt(Axis) - 1);
+	if (!bIsDead && HasLocalNetOwner()){
+		InventoryComponent->UseItem(Position - 1);
 	}
 }
 
-// Called when start sprinting
-void APlayerCharacter::SetSprinting(bool bNewSprinting)
+UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
 {
-	if (!HasAuthority())
-	{
-		ServerSetSprinting(bNewSprinting);
-	}
-	else
-	{
-		bIsSprinting = bNewSprinting;
-		OnRep_IsSprinting();
-	}
+	return InventoryComponent;
 }
 
-// Called when client start sprinting
-void APlayerCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
+UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
 {
-	SetSprinting(bNewSprinting);
+	return AttributesComponent;
 }
 
-// Calls back from server when start sprinting
-void APlayerCharacter::OnRep_IsSprinting()
+UPlayerHUD* APlayerCharacter::GetPlayerHUD() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
+	return PlayerHUD;
 }
 
-// Called when client dying
-void APlayerCharacter::ServerSetDying_Implementation()
+AStorage* APlayerCharacter::GetInteractableStorage() const
 {
-	Die();
+	return InteractableStorage;
+}
+
+void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableStorage)
+{
+	InteractableStorage = NewInteractableStorage;
+}
+
+void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
+}
+
+void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
 }
 
 // Calls back from server when dying
 void APlayerCharacter::OnRep_IsDead()
 {
 	AnimationComponent->AnimateDeath();
-	EndPlay(EEndPlayReason::Destroyed);
-}
 
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+	if (PlayerHUD)
 	{
-		Die();
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
 	}
 	
-	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance))
-	{
-		StopSprint();
-	} 
-	
-	AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+	// EndPlay(EEndPlayReason::Destroyed);
 }
 
 // Called when some actor in overlap
@@ -347,5 +389,72 @@ void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp,
 	if (OtherActor && OtherActor != this)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
+	}
+}
+
+void APlayerCharacter::ServerAttack_Implementation()
+{
+	OnRep_Attack();
+}
+
+void APlayerCharacter::OnRep_Attack_Implementation()
+{
+	if (!bIsAttacking && !bIsDead)
+	{
+		AnimationComponent->AnimateAttack();
+		bIsAttacking = true;
+		OnRep_SetMaxWalkSpeed(0);
+	}
+}
+
+void APlayerCharacter::Attack()
+{
+	if (HasLocalNetOwner())
+	{
+		ServerAttack();
+	} 
+}
+
+void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
+{
+	if (HasLocalNetOwner())
+	{
+		ServerSetMaxWalkSpeed(NewMaxWalkSpeed);
+	} 
+}
+
+float APlayerCharacter::GetSprintSpeed() const
+{
+	return SprintSpeed;
+}
+
+void APlayerCharacter::SetSprintSpeed(const float NewSprintSpeed)
+{
+	SprintSpeed = NewSprintSpeed;
+}
+
+float APlayerCharacter::GetWalkSpeed() const
+{
+	return WalkSpeed;
+}
+
+void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
+{
+	WalkSpeed = NewWalkSpeed;
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsLocallyControlled())
+	{
+		if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+		{
+			Die();
+		}
+		
+		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 	}
 }
