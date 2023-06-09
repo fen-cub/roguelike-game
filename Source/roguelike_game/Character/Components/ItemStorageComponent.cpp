@@ -58,7 +58,6 @@ void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 P
 	}
 }
 
-
 void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Calls remove item on client: %p"), this);
@@ -95,7 +94,22 @@ void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 				UE_LOG(LogTemp, Warning, TEXT("Use item on client: %p"), this);
 				CDOItem->Use(PlayerCharacter);
 			}
-			RemoveItem(Position);
+
+			if (!ItemStorage[Position].IsEmpty())
+			{
+				ItemStorage[Position] = EmptySlot;
+				UE_LOG(LogTemp, Warning, TEXT("Remove item on slot: %d"), static_cast<int>(Position));
+				if (InventoryWidget)
+				{
+					InventoryWidget->SetItem(Position, EmptySlot);
+				}
+
+				FirstEmptySlotPosition = FMath::Min(Position, FirstEmptySlotPosition);
+			} else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("This is an empty slot"));
+			}
+			//RemoveItem(Position);
 		} 
 	}
 }

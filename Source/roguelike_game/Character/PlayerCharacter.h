@@ -98,7 +98,9 @@ protected:
 
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
-	void UseItem(const float Axis);
+	void UseItem(const int64 Position);
+
+	DECLARE_DELEGATE_OneParam(FNumberKeyActionDelegate, const int64);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
