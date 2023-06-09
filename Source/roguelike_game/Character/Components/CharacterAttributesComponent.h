@@ -16,10 +16,12 @@ class ROGUELIKE_GAME_API UCharacterAttributesComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UCharacterAttributesComponent();
+	UPROPERTY(ReplicatedUsing = OnRepHealth)
+	float Health;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -29,9 +31,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float MaxHealth;
-	
-	UPROPERTY(ReplicatedUsing = OnRepHealth)
-	float Health;
+
 
 	// Called to update Health on the server
 	UFUNCTION(Server, Reliable)
@@ -40,7 +40,7 @@ protected:
 	// Called back from server when health updated
 	UFUNCTION()
 	void OnRepHealth();
-	
+
 	UPROPERTY(EditAnywhere)
 	float MaxStamina;
 
