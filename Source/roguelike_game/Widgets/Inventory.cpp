@@ -20,6 +20,14 @@ void UInventory::SetNewClickedSlot(int64 Position)
 {
 	if (LastClickedSlotPosition != -1 && LastClickedSlotPosition != Position)
 	{
+		HideLastClickedSlot();
+	}
+	LastClickedSlotPosition = Position;
+}
+
+void UInventory::HideLastClickedSlot()
+{
+	if (LastClickedSlotPosition != -1) {
 		UInventorySlot* LastClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(LastClickedSlotPosition));
 
 		if (LastClickedSlot)
@@ -27,7 +35,8 @@ void UInventory::SetNewClickedSlot(int64 Position)
 			LastClickedSlot->SetInteractButtonVisibility(ESlateVisibility::Hidden);
 		}
 	}
-	LastClickedSlotPosition = Position;
+
+	LastClickedSlotPosition = -1;
 }
 
 int64 UInventory::GetRow(int64 Position) const

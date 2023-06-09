@@ -75,6 +75,8 @@ public:
 	void SetPairingStorage(UItemStorageComponent* const NewPairingStorage);
 
 	void SetNewClickedSlot(int64 Position);
+
+	void HideLastClickedSlot();
 	
 	UItemStorageComponent* GetOwnerStorage() const;
 	

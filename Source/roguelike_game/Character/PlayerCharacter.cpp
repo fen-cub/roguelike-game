@@ -191,6 +191,7 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 			{
 				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 				PlayerHUD->SetCursor(EMouseCursor::None);
+				PlayerHUD->GetInventoryWidget()->HideLastClickedSlot();
 			}
 		}
 	} 
