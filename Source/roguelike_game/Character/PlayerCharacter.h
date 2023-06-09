@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
 #include "Components/CharacterAnimationComponent.h"
-#include "../HUD/PlayerHUD.h"
+#include "roguelike_game/Widgets/PlayerHUD.h"
+#include "EnvironmentQuery/EnvQueryDebugHelpers.h"
 #include "PlayerCharacter.generated.h"
 
 /*
@@ -19,27 +20,25 @@ class ROGUELIKE_GAME_API APlayerCharacter : public APaperCharacter
 public:
 	// Set default player properties
 	APlayerCharacter();
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
-	class UCharacterAttributesComponent* AttributesComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
+	bool bIsAttacking;
+
+	
+protected:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
-
+	
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
-
-	// True if character is sprinting
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_IsSprinting,
-		Category = "MovementCharacter | Config")
-	bool bIsSprinting;
 
 	// Max sprint speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float SprintSpeed;
 
+protected:
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
@@ -87,6 +86,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void Die();
 
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void Interact();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerInteract();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void OnRep_Interact();
+
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void UseItem(const int64 Position);
+
+	DECLARE_DELEGATE_OneParam(FNumberKeyActionDelegate, const int64);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
@@ -96,31 +111,36 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 	class UCharacterAnimationComponent* AnimationComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
+	class UCapsuleComponent* TriggerCapsule;
 
-	UPROPERTY(EditAnywhere, Category = Attributes)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
+	class UItemStorageComponent* InventoryComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UCharacterAttributesComponent* AttributesComponent;
+
+	// Sets up on the BeginPlay()
+	UPROPERTY()
+	class UPlayerHUD* PlayerHUD;
+	
+	UPROPERTY()
+	class AStorage* InteractableStorage;
+	
+	// How much Stamina regenerates for a Tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;
 
-	UPROPERTY(EditAnywhere, Category = Attributes)
+	// How much Stamina losses for a Tick while running
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float RunningStaminaLossRate;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
-	// Sets up on the BeginPlay()
-	UPROPERTY()
-	class UPlayerHUD* PlayerHUD;
-
-	// Set sprint state
-	UFUNCTION()
-	void SetSprinting(bool bNewSprinting);
-
-	// Calls server to set sprinting
-	UFUNCTION(Server, Reliable)
-	void ServerSetSprinting(bool bNewSprinting);
-
 	// Called back from server to set sprint
-	UFUNCTION()
-	void OnRep_IsSprinting();
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)
@@ -130,7 +150,54 @@ public:
 	UFUNCTION()
 	void OnRep_IsDead();
 
+	// Called when on Overlap
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void SwitchMouseCursorVisibility();
+
+	UFUNCTION(Server, UnReliable)
+	void ServerAttack();
+
+	UFUNCTION()
+	void Attack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_Attack();
+	
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
+	
+	UItemStorageComponent* GetInventoryComponent() const;
+
+	UCharacterAttributesComponent* GetAttributesComponent() const;
+
+	UPlayerHUD* GetPlayerHUD() const;
+
+	UFUNCTION(BlueprintCallable)
+	AStorage* GetInteractableStorage() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetInteractableStorage(AStorage* const NewInteractableStorage);
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION()
+	void SetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	float GetSprintSpeed() const;
+
+	void SetSprintSpeed(const float NewSprintSpeed);
+
+	float GetWalkSpeed() const;
+
+	void SetWalkSpeed(const float NewWalkSpeed);
+	
 };
+
+

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "../../HUD/PlayerHUD.h"
+#include "roguelike_game/Widgets/PlayerHUD.h"
 #include "CharacterAttributesComponent.generated.h"
 
 
@@ -44,8 +44,16 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float MaxStamina;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRepStamina)
 	float Stamina;
+
+	// Called to update Stamina on the server
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateStamina(float StaminaDelta);
+
+	// Called back from server when stamina updated
+	UFUNCTION()
+	void OnRepStamina();
 
 public:
 	// Called when HUD created

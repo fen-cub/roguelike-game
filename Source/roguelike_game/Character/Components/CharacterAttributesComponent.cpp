@@ -8,6 +8,8 @@
 // Sets default values for this component's properties
 UCharacterAttributesComponent::UCharacterAttributesComponent()
 {
+	SetIsReplicated(true);
+	
 	// Health
 	MaxHealth = 50.0f;
 	Health = MaxHealth;
@@ -35,7 +37,8 @@ void UCharacterAttributesComponent::BeginPlay()
 // Updates health on the server
 void UCharacterAttributesComponent::ServerUpdateHealth_Implementation(float HealthDelta)
 {
-	UpdateHealth(HealthDelta);
+	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
+	OnRepHealth();
 }
 
 // Changes HUD after server health replication
@@ -44,6 +47,20 @@ void UCharacterAttributesComponent::OnRepHealth()
 	if (PlayerHUD)
 	{
 		PlayerHUD->SetHealth(Health, MaxHealth);
+	}
+}
+
+void UCharacterAttributesComponent::ServerUpdateStamina_Implementation(float StaminaDelta)
+{
+	Stamina = FMath::Clamp(Stamina + StaminaDelta, 0.f, MaxStamina);
+	OnRepStamina();
+}
+
+void UCharacterAttributesComponent::OnRepStamina()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetStamina(Stamina, MaxStamina);
 	}
 }
 
@@ -58,26 +75,19 @@ void UCharacterAttributesComponent::SetUpHUD(UPlayerHUD* HUD)
 // Calls server to update health or updates health locally on the server
 void UCharacterAttributesComponent::UpdateHealth(float HealthDelta)
 {
-	if (!GetOwner()->HasAuthority())
+	if (GetOwner()->HasLocalNetOwner())
 	{
 		ServerUpdateHealth(HealthDelta);
-	}
-	else
-	{
-		Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
-		OnRepHealth();
 	}
 }
 
 // Calls server to update stamina or updates stamina locally on the server
 void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 {
-	Stamina = FMath::Clamp(Stamina + StaminaDelta, 0.f, MaxStamina);
-
-	if (PlayerHUD)
+	if (GetOwner()->HasLocalNetOwner())
 	{
-		PlayerHUD->SetStamina(Stamina, MaxStamina);
-	}
+		ServerUpdateStamina(StaminaDelta);
+	} 
 }
 
 // Returns current health
