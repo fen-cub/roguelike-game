@@ -291,7 +291,7 @@ void APlayerCharacter::ServerSetDying_Implementation()
 
 void APlayerCharacter::Interact()
 {
-	if (HasLocalNetOwner())
+	if (!bIsDead && HasLocalNetOwner())
 	{
 		ServerInteract();
 	} 
@@ -326,7 +326,7 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 
 void APlayerCharacter::UseItem(const int64 Position)
 {
-	if (HasLocalNetOwner()){
+	if (!bIsDead && HasLocalNetOwner()){
 		InventoryComponent->UseItem(Position - 1);
 	}
 }
