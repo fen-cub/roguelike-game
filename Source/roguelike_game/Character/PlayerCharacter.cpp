@@ -168,16 +168,22 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 			Fpc->bEnableClickEvents = true;
 			Fpc->bEnableMouseOverEvents = true;
 			Fpc->SetInputMode(FInputModeGameAndUI());
-			PlayerHUD->SetVisibility(ESlateVisibility::Visible);
-			GetPlayerHUD()->SetCursor(EMouseCursor::Default);
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+				PlayerHUD->SetCursor(EMouseCursor::Default);
+			}
 		} else
 		{
 			Fpc->bShowMouseCursor = false;
 			Fpc->bEnableClickEvents = false;
 			Fpc->bEnableMouseOverEvents = false;
 			Fpc->SetInputMode(FInputModeGameOnly());
-			PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
-			GetPlayerHUD()->SetCursor(EMouseCursor::None);
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+				PlayerHUD->SetCursor(EMouseCursor::None);
+			}
 		}
 	} 
 }
@@ -357,7 +363,14 @@ void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpee
 void APlayerCharacter::OnRep_IsDead()
 {
 	AnimationComponent->AnimateDeath();
-	EndPlay(EEndPlayReason::Destroyed);
+
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
+	}
+	
+	// EndPlay(EEndPlayReason::Destroyed);
 }
 
 // Called every frame

@@ -48,11 +48,10 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
 		SetOwner(Fpc);
 		
-		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass)
+		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass && PlayerCharacter->GetPlayerHUD())
 		{
 			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
 			check(StorageWidget);
-			check(PlayerCharacter->GetPlayerHUD());
 			PlayerCharacter->GetPlayerHUD()->SetInteractableStorageWidget(StorageWidget);
 			StorageWidget->SetOwningPlayer(Fpc);
 			StorageWidget->AddToPlayerScreen();
