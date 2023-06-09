@@ -24,11 +24,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
 	USphereComponent* OverlapComponent;
-	
+
 protected:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
+
 
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
@@ -72,12 +73,15 @@ protected:
 	// Stops movements and calls death animation
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void Die();
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 	class UCharacterAnimationComponent* AnimationComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
+
+	UPROPERTY(EditAnywhere, Category = Attributes)
+	float Health;
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;

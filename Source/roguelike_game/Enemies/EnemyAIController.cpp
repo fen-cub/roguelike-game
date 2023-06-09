@@ -83,13 +83,11 @@ void AEnemyAIController::AttackPlayer()
 		MoveRequest.SetAcceptanceRadius(100.0f);
 
 		MoveTo(MoveRequest);
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"));
 
 		// Deal damage to the player character
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 		if (PlayerCharacter != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh"));
 			float DamageAmount = 20.0f;
 			PlayerCharacter->AttributesComponent->Health -= 10.0f;
 		}

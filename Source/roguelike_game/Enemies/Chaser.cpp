@@ -25,7 +25,8 @@ AChaser::AChaser()
 	StaminaRegenerateRate = 0.25f;
 	RunningStaminaLossRate = -0.5f;
 
-
+	Health = 50;
+	
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
@@ -170,7 +171,6 @@ void AChaser::Tick(float DeltaTime)
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			15.0f)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
 			constexpr float DamageAmount = 0.5f;
 			PlayerCharacter->AttributesComponent->Health -= DamageAmount;
 			PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
