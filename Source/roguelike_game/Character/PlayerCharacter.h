@@ -131,6 +131,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;
 
+	// How much Health regenerates for a Tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
+	float HealthRegenerateRate;
+
 	// How much Stamina losses for a Tick while running
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float RunningStaminaLossRate;

@@ -26,8 +26,9 @@ APlayerCharacter::APlayerCharacter()
 	bIsMoving = false;
 	PrimaryActorTick.bCanEverTick = true;
 	ComparisonErrorTolerance = 1e-4f;
-	StaminaRegenerateRate = 0.25f;
+	StaminaRegenerateRate = 0.15f;
 	RunningStaminaLossRate = -0.5f;
+	HealthRegenerateRate = 0.01f;
 
 	// HUD
 	PlayerHUDClass = nullptr;
@@ -456,5 +457,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 		
 		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+		AttributesComponent->UpdateHealth(HealthRegenerateRate);
 	}
 }
