@@ -49,14 +49,20 @@ void UInventorySlot::ItemButtonOnClicked()
 		case EInventoryType::StorageInventory:
 			InteractButtonText->SetText(FText::FromString("Take"));
 			break;
+		case EInventoryType::EquipmentInventory:
+			InteractButtonText->SetText(FText::FromString("Remove"));
+			break;
 		default:
 			break;
 		}
 		SetInteractButtonVisibility(ESlateVisibility::Visible);
 		UE_LOG(LogTemp, Warning, TEXT("Set new clicked slot"));
 	}
-	
-	InventoryWidget->SetNewClickedSlot(PositionInInventory);
+
+	if (InventoryWidget)
+	{
+		InventoryWidget->SetNewClickedSlot(PositionInInventory);
+	}
 }
 
 void UInventorySlot::InteractButtonOnClicked()
@@ -70,11 +76,11 @@ void UInventorySlot::InteractButtonOnClicked()
 
 	if (InventoryWidget)
 	{
-		if (InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerHUDInventory)
+		if (InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerHUDInventory
+			|| InventoryWidget->GetCurrentInventoryType() == EInventoryType::EquipmentInventory )
 		{
 			InventoryWidget->GetOwnerStorage()->UseItem(PositionInInventory);
-		}
-		else
+		} else  
 		{
 			InventoryWidget->GetPairingStorage()->AddItem(
 				ItemData, InventoryWidget->GetPairingStorage()->GetFirstEmptySlotPosition());

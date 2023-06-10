@@ -17,6 +17,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
+#include "roguelike_game/Widgets/EquipmentWidget.h"
 
 // Set default player properties
 APlayerCharacter::APlayerCharacter()
@@ -85,6 +86,10 @@ APlayerCharacter::APlayerCharacter()
 	// Default inventory properties
 	InventoryComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
 	InventoryComponent->SetStorageSize(9);
+
+	// Default inventory properties
+	EquipmentComponent = CreateDefaultSubobject<UItemStorageComponent>("Equipment Component");
+	EquipmentComponent->SetStorageSize(3);
 }
 
 // Called when spawned
@@ -107,9 +112,14 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::PlayerHUDInventory);
 		PlayerHUD->GetInventoryWidget()->SetOwnerStorage(InventoryComponent);
 
+		PlayerHUD->GetEquipmentWidget()->SetGridPanelSizes(3, 1);
+		PlayerHUD->GetEquipmentWidget()->SetCurrentInventoryType(EInventoryType::EquipmentInventory);
+		PlayerHUD->GetEquipmentWidget()->SetOwnerStorage(EquipmentComponent);
+		
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
 		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
+		EquipmentComponent->SetUpInventoryWidget(PlayerHUD->GetEquipmentWidget());
 	}
 }
 
@@ -330,6 +340,11 @@ void APlayerCharacter::UseItem(const int64 Position)
 	if (!bIsDead && HasLocalNetOwner()){
 		InventoryComponent->UseItem(Position - 1);
 	}
+}
+
+UItemStorageComponent* APlayerCharacter::GetEquipmentComponent() const
+{
+	return EquipmentComponent;
 }
 
 UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const

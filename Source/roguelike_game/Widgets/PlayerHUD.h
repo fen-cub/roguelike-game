@@ -27,6 +27,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class  UInventory* InventoryWidget;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
+	class  UEquipmentWidget* EquipmentWidget;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	class  UStorageDisplay* InteractableStorageWidget;
 
@@ -43,5 +46,7 @@ public:
 	UProgressBar* GetStaminaBar() const;
 
 	UInventory* GetInventoryWidget() const;
+
+	UEquipmentWidget* GetEquipmentWidget() const;
 	
 };

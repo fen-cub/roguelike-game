@@ -37,8 +37,7 @@ protected:
 	// Max sprint speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float SprintSpeed;
-
-protected:
+	
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
@@ -116,7 +115,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* InventoryComponent;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
+	class UItemStorageComponent* EquipmentComponent;
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
 
@@ -177,6 +180,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	
 	UItemStorageComponent* GetInventoryComponent() const;
+
+	UItemStorageComponent* GetEquipmentComponent() const;
 
 	UCharacterAttributesComponent* GetAttributesComponent() const;
 

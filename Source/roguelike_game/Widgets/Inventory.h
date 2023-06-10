@@ -15,7 +15,8 @@ enum class EInventoryType : uint8
 {
 	PlayerHUDInventory,
 	PlayerInventoryInStorage,
-	StorageInventory
+	StorageInventory,
+	EquipmentInventory
 };
 
 class UItemStorageComponent;
