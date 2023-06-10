@@ -21,6 +21,10 @@ public:
 	AStorage();
 
 protected:
+	// Sets spawn properties
+	UFUNCTION()
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* StorageComponent;
 	

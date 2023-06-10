@@ -19,7 +19,7 @@ AStorage::AStorage()
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AStorage::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AStorage::OnOverlapEnd);
-	
+
 	StorageComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
 	UE_LOG(LogTemp, Warning, TEXT("Chest slot count to set: %d"), static_cast<int>(20));
 	StorageComponent->SetStorageSize(20);
@@ -37,6 +37,18 @@ AStorage::AStorage()
 	Tooltip->SetHiddenInGame(true);
 }
 
+void AStorage::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+
+		SetOwner(PlayerController);
+	}
+}
+
 UItemStorageComponent* AStorage::GetStorageComponent() const
 {
 	return StorageComponent;
@@ -46,9 +58,15 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 {
 	if (PlayerCharacter)
 	{
+		if (HasLocalNetOwner() && !StorageComponent->bIsGenerated)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Stating generate"));
+			StorageComponent->GenerateRandomContents();
+		}
+
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
 		SetOwner(Fpc);
-		
+
 		if (PlayerCharacter->IsLocallyControlled() && Fpc && StorageWidgetClass && PlayerCharacter->GetPlayerHUD())
 		{
 			StorageWidget = CreateWidget<UStorageDisplay>(Fpc, StorageWidgetClass);
@@ -75,7 +93,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 			PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::Visible);
 			PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->HideLastClickedSlot();
 		}
-		
+
 		PlayerCharacter->SetInteractableStorage(this);
 	}
 }
@@ -83,7 +101,7 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 {
 	PlayerCharacter->SetInteractableStorage(nullptr);
-	
+
 	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
 	{
 		StorageWidget->RemoveFromParent();
@@ -94,7 +112,7 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetCurrentInventoryType(
 			EInventoryType::PlayerHUDInventory);
-		
+
 		StorageWidget->GetOwningPlayer()->SetShowMouseCursor(false);
 		StorageWidget->SetCursor(EMouseCursor::Type::None);
 		PlayerCharacter->GetPlayerHUD()->SetCursor(EMouseCursor::Type::None);

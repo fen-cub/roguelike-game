@@ -17,6 +17,9 @@ class ROGUELIKE_GAME_API UItemStorageComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UItemStorageComponent();
+	
+	UPROPERTY(Replicated)
+	bool bIsGenerated;
 
 protected:
 	// Called when the game starts
@@ -28,6 +31,9 @@ protected:
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	TArray<FItemData> ItemStorage;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TArray<FItemData> ItemRandomStorage;
 
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
@@ -75,6 +81,9 @@ public:
 	
 	UFUNCTION()
 	FItemData GetItem(int64 Position);
+
+	UFUNCTION(Server, Unreliable)
+	void GenerateRandomContents();
 	
 	// Called when HUD created
 	void SetUpInventoryWidget(class UInventory* Widget);
