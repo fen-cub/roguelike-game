@@ -35,7 +35,7 @@ AItem::AItem()
 	Tooltip->SetAbsolute(false, true, false);
 	Tooltip->SetRelativeLocation(FVector(0.0f, 200.0f, 10.0f));
 	Tooltip->SetRelativeRotation(FRotator(90.0f, 180.0f, 0.0f));
-	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
+	Tooltip->SetWorldScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
 	Tooltip->SetText(FText::FromString("Press E to take"));
@@ -52,17 +52,23 @@ AItem::AItem()
 	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
 	GetRenderComponent()->SetIsReplicated(true);
+
+	Data.Name = GetName();
 }
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
-	if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
+	if (PlayerCharacter)
 	{
-		int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
 		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
-													Position);
+														Position);
+		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize() && GetItemData().Name == PlayerCharacter->GetInventoryComponent()->GetItem(Position).Name)
+		{
+			Destroy();
+		}
 	}
-	Destroy();
+	
 }
 
 FItemData AItem::GetItemData() const
@@ -72,6 +78,7 @@ FItemData AItem::GetItemData() const
 
 void AItem::Use(APlayerCharacter* PlayerCharacter)
 {
+	
 }
 
 void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

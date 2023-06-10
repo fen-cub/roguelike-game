@@ -19,6 +19,9 @@ struct FItemData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UPaperSprite* Image{nullptr};
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Name;
 	
 	bool IsEmpty() const;
 };

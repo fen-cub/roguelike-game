@@ -157,6 +157,16 @@ void UItemStorageComponent::UseItem(int64 Position)
 	} 
 }
 
+FItemData UItemStorageComponent::GetItem(int64 Position)
+{
+	if (0 <= Position && Position < GetStorageSize())
+	{
+		return ItemStorage[Position];
+	}
+
+	return EmptySlot;
+}
+
 void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
 {
 	InventoryWidget = Widget;

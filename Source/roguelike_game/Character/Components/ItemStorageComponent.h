@@ -72,7 +72,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Storage)
     void UseItem(int64 Position);
-
+	
+	UFUNCTION()
+	FItemData GetItem(int64 Position);
+	
 	// Called when HUD created
 	void SetUpInventoryWidget(class UInventory* Widget);
 	
