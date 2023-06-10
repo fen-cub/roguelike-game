@@ -27,5 +27,5 @@ protected:
 
 public:
 
-	virtual void Use(class APlayerCharacter* PlayerCharacter) override;
+	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
 };

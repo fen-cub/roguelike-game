@@ -5,6 +5,7 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "roguelike_game/Widgets/EquipmentWidget.h"
 #include "roguelike_game/Widgets/StorageDisplay.h"
 
 AStorage::AStorage()
@@ -25,10 +26,10 @@ AStorage::AStorage()
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
-	Tooltip->SetAbsolute(false, true, false);
+	Tooltip->SetAbsolute(false, true, true);
 	Tooltip->SetRelativeLocation(FVector(0.0f, 200.0f, 10.0f));
 	Tooltip->SetRelativeRotation(FRotator(90.0f, 180.0f, 0.0f));
-	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
+	Tooltip->SetWorldScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
 	Tooltip->SetText(FText::FromString("Press E to open"));
@@ -87,7 +88,7 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 	{
 		StorageWidget->RemoveFromParent();
 		StorageWidget->Destruct();
-		
+
 		StorageWidget->GetOwningPlayer()->SetInputMode(FInputModeGameOnly());
 		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->SetPairingStorage(nullptr);
@@ -99,6 +100,8 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->SetCursor(EMouseCursor::Type::None);
 
 		PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::HitTestInvisible);
+		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->HideLastClickedSlot();
+		PlayerCharacter->GetPlayerHUD()->GetEquipmentWidget()->HideLastClickedSlot();
 	}
 }
 

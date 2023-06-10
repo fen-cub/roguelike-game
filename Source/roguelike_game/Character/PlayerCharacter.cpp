@@ -141,6 +141,8 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerCharacter, bIsMoving);
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
+	DOREPLIFETIME(APlayerCharacter, WalkSpeed);
+	DOREPLIFETIME(APlayerCharacter, SprintSpeed);
 }
 
 // Called when moves
@@ -203,9 +205,20 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
 				PlayerHUD->SetCursor(EMouseCursor::None);
 				PlayerHUD->GetInventoryWidget()->HideLastClickedSlot();
+				PlayerHUD->GetEquipmentWidget()->HideLastClickedSlot();
 			}
 		}
 	} 
+}
+
+void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
+{
+	WalkSpeed = NewWalkSpeed;
+}
+
+void APlayerCharacter::ServerSetSprintSpeed_Implementation(float NewSprintSpeed)
+{
+	SprintSpeed = NewSprintSpeed;
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -419,7 +432,7 @@ void APlayerCharacter::OnRep_Attack_Implementation()
 	{
 		AnimationComponent->AnimateAttack();
 		bIsAttacking = true;
-		OnRep_SetMaxWalkSpeed(0);
+		SetMaxWalkSpeed(0);
 	}
 }
 
@@ -446,7 +459,10 @@ float APlayerCharacter::GetSprintSpeed() const
 
 void APlayerCharacter::SetSprintSpeed(const float NewSprintSpeed)
 {
-	SprintSpeed = NewSprintSpeed;
+	if (HasLocalNetOwner())
+	{
+		ServerSetSprintSpeed(NewSprintSpeed);
+	} 
 }
 
 float APlayerCharacter::GetWalkSpeed() const
@@ -456,7 +472,10 @@ float APlayerCharacter::GetWalkSpeed() const
 
 void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
 {
-	WalkSpeed = NewWalkSpeed;
+	if (HasLocalNetOwner())
+	{
+		ServerSetWalkSpeed(NewWalkSpeed);
+	} 
 }
 
 // Called every frame

@@ -77,14 +77,20 @@ void UInventorySlot::InteractButtonOnClicked()
 	if (InventoryWidget)
 	{
 		if (InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerHUDInventory
-			|| InventoryWidget->GetCurrentInventoryType() == EInventoryType::EquipmentInventory )
+			|| InventoryWidget->GetCurrentInventoryType() == EInventoryType::EquipmentInventory)
 		{
 			InventoryWidget->GetOwnerStorage()->UseItem(PositionInInventory);
-		} else  
+		}
+		else
 		{
-			InventoryWidget->GetPairingStorage()->AddItem(
-				ItemData, InventoryWidget->GetPairingStorage()->GetFirstEmptySlotPosition());
-			InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
+			int64 NewPosition = InventoryWidget->GetPairingStorage()->GetFirstEmptySlotPosition();
+
+			if (NewPosition < InventoryWidget->GetPairingStorage()->GetStorageSize())
+			{
+				InventoryWidget->GetPairingStorage()->AddItem(
+					ItemData, NewPosition);
+				InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
+			}
 		}
 	}
 

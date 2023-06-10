@@ -88,28 +88,14 @@ void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 		if (Item)
 		{
 			AItem* CDOItem = Item.GetDefaultObject();
+			CDOItem->SetItemData(ItemStorage[Position]);
+			
 			APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 			if (CDOItem && PlayerCharacter)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Use item on client: %p"), this);
-				CDOItem->Use(PlayerCharacter);
+				CDOItem->Use(PlayerCharacter, Position);
 			}
-
-			if (!ItemStorage[Position].IsEmpty())
-			{
-				ItemStorage[Position] = EmptySlot;
-				UE_LOG(LogTemp, Warning, TEXT("Remove item on slot: %d"), static_cast<int>(Position));
-				if (InventoryWidget)
-				{
-					InventoryWidget->SetItem(Position, EmptySlot);
-				}
-
-				FirstEmptySlotPosition = FMath::Min(Position, FirstEmptySlotPosition);
-			} else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("This is an empty slot"));
-			}
-			//RemoveItem(Position);
 		} 
 	}
 }

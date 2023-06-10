@@ -5,15 +5,25 @@
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Character/Components/ItemStorageComponent.h"
 
-void AArmorItem::Use(APlayerCharacter* PlayerCharacter)
+void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
-	if (!bIsEquipped)
+	if (!Data.bIsEquipped)
 	{
-		PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 1);
-		bIsEquipped = true;
+		if (PlayerCharacter->GetEquipmentComponent()->GetItem(1).IsEmpty())
+		{
+			Data.bIsEquipped = true;
+			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 1);
+			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
+		}
 	} else
 	{
-		PlayerCharacter->GetInventoryComponent()->AddItem(Data, PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition());
-		bIsEquipped = false;
+		int64 NewPosition = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+
+		if (PlayerCharacter->GetInventoryComponent()->GetItem(NewPosition).IsEmpty())
+		{
+			Data.bIsEquipped = false;
+			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
+			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+		}
 	}
 }

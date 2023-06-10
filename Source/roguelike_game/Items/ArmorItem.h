@@ -14,12 +14,8 @@ class ROGUELIKE_GAME_API AArmorItem : public AItem
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
-	bool bIsEquipped = false;
-	
 public:
 	
-	virtual void Use(class APlayerCharacter* PlayerCharacter) override;
+	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
 	
 };

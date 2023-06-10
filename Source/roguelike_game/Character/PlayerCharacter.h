@@ -35,11 +35,11 @@ protected:
 	bool bIsMoving;
 
 	// Max sprint speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float SprintSpeed;
 	
 	// Max walking speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
 	// Epsilon for float types comparison
@@ -118,8 +118,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
 	class UItemStorageComponent* EquipmentComponent;
-
-protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
 
@@ -163,9 +162,6 @@ protected:
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void SwitchMouseCursorVisibility();
-
 	UFUNCTION(Server, UnReliable)
 	void ServerAttack();
 
@@ -174,7 +170,19 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_Attack();
-	
+
+	UFUNCTION()
+	void SwitchMouseCursorVisibility();
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetWalkSpeed(float NewWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetSprintSpeed(float NewSprintSpeed);
+
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
@@ -192,19 +200,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
-	
-	UFUNCTION(Server, Unreliable)
-	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	float GetSprintSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetSprintSpeed(const float NewSprintSpeed);
 
 	float GetWalkSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
 	
 };
