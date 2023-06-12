@@ -4,25 +4,28 @@
 #include "PaperTileMap.h"
 #include "PaperTileSet.h"
 
+URoom::URoom()
+{
+	SetIsReplicated(true);
+}
 
 
 void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, int TemplateNum)
 {
-	UE_LOG(LogTemp, Warning, TEXT("TemplNum %d"), TemplateNum)
+	UE_LOG(LogTemp, Warning, TEXT("In Create Room %d"), TemplateNum)
+	//UE_LOG(LogTemp, Warning, TEXT("TemplNum %d"), TemplateNum)
 	RoomWidth = Width;
 	RoomHeight = Height;
 	CreateNewTileMap(Width, Height, 16, 16, 1.0f);
 	AddNewLayer();
 	
-	
 	UPaperTileSet *TileSet = LoadObject<UPaperTileSet>(
 	nullptr, TEXT("/Game/Textures/Tiles_TileSet"));
-	
-	
 
-	UPaperTileMap *BaseMap = nullptr;
 	FString FileName;
-
+	
+	UPaperTileMap *BaseMap = nullptr;
+	
 	if (Width == 6 && Height == 7)
 	{
 		FileName = FString::Printf(TEXT("/Game/RoomTemplates/VerticalCorridors/Template%d"), TemplateNum);
@@ -43,7 +46,7 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, 
 	BaseMap = LoadObject<UPaperTileMap>(nullptr, *FileName);
 	
 	SetTileMap(BaseMap);
-
+	
 	MakeTileMapEditable();
 	AddNewLayer();
 	AddNewLayer();
@@ -162,61 +165,12 @@ void URoom::CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, 
 		}
 	}
 	
-
-	/*
-	if ((Walls [i] || Doors[i]) && (Walls[(i - 1 + 4) % 4] || Doors[(i - 1 + 4) % 4]))
-	{
-		TileInfo.PackedTileIndex = (i == 0 ? 103 : (i == 1 ? 153 : (i == 2 ? 154 : 104)));
-		SetTile(((i == 0  || i == 2) ? 0 : RoomHeight - 1),  (i == 0  || i == 3) ? 0 : RoomWidth - 1 , 0, TileInfo);
-	}
-	*/
-	
 	SetLayerCollision(0, true, true, 100);
-
-	/*
 	
-	FPaperTileInfo TileInfo;
-	TileInfo.TileSet = TileSet;
+}
 
-	for (int32 X = 0; X < Width; ++X) {
-		for (int32 Y = 0; Y < Height; ++Y) {
-			if (Y == 0 && Walls[0])
-			{
-				if (!(Doors[0] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
-					TileInfo.PackedTileIndex = 32;
-					SetTile(X, Y, 0, TileInfo);
-				}
-			}
-			if (X == 0 && Walls[1])
-			{
-				if (!(Doors[1] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
-					TileInfo.PackedTileIndex = 32;
-					SetTile(X, Y, 0, TileInfo);
-				}
-			}
-			if (Y == Height - 1 && Walls[2])
-			{
-				if (!(Doors[2] && (X == RoomWidth / 2 - 2 || X == RoomWidth / 2 - 1 || X == RoomWidth / 2  || X == RoomWidth / 2 + 1))) {
-					TileInfo.PackedTileIndex = 32;
-					SetTile(X, Y, 0, TileInfo);
-				}
-			}
-			if (X == Width - 1 && Walls[3])
-			{
-				if (!(Doors[3] && (Y == RoomHeight / 2 - 2 || Y == RoomHeight / 2 - 1 || Y == RoomHeight / 2  || Y == RoomHeight / 2 + 1))) {
-					TileInfo.PackedTileIndex = 32;
-					SetTile(X, Y, 0, TileInfo);
-				}
-			}
-			TileInfo.PackedTileIndex = FMath::RandRange(0, 31);
-			SetTile(X, Y, 1, TileInfo);
-		}
-	}
-
-	
-	SetLayerCollision(0, true, true, 100);
-	SetLayerCollision(1, true, true, 1);
-	*/
-	
+void URoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
