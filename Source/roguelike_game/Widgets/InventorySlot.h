@@ -21,7 +21,7 @@ protected:
 
 	UFUNCTION()
 	void ItemButtonOnClicked();
-	
+
 	UFUNCTION()
 	void InteractButtonOnClicked();
 
@@ -34,7 +34,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UButton* ItemButton;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UImage* ItemImage;
 
@@ -46,5 +46,4 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractButtonVisibility(ESlateVisibility NewVisibility);
-	
 };

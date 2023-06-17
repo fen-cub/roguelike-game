@@ -2,4 +2,3 @@
 
 
 #include "EquipmentWidget.h"
-

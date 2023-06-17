@@ -61,11 +61,11 @@ void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 	if (PlayerCharacter)
 	{
 		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
-		
+
 		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize())
 		{
 			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
-														Position);
+															Position);
 			Destroy();
 		}
 	}
@@ -78,7 +78,6 @@ FItemData AItem::GetItemData() const
 
 void AItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
-	
 }
 
 void AItem::SetItemData(const FItemData& NewData)

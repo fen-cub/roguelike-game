@@ -13,5 +13,4 @@ UCLASS()
 class ROGUELIKE_GAME_API UEquipmentWidget : public UInventory
 {
 	GENERATED_BODY()
-	
 };

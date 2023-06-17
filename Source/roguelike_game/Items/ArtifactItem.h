@@ -14,14 +14,12 @@ class ROGUELIKE_GAME_API AArtifactItem : public AItem
 {
 	GENERATED_BODY()
 
-		
 public:
-	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void ApplyArtifactProperties(class APlayerCharacter* PlayerCharacter);
-	
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void RemoveArtifactProperties(class APlayerCharacter* PlayerCharacter);
-	
+
 	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
 };

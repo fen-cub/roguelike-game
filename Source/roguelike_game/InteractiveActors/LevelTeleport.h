@@ -22,27 +22,25 @@ protected:
 	// Sets spawn properties
 	UFUNCTION()
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Tooltip)
 	class UTextRenderComponent* Tooltip;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
-	
+
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-					class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-					const FHitResult& SweepResult);
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 					class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:
-	
 	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
 
 	UFUNCTION(BlueprintCallable)
 	void StopInteract(class APlayerCharacter* PlayerCharacter);
-	
 };

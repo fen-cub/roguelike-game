@@ -61,12 +61,11 @@ void ALevelTeleport::Interact(APlayerCharacter* PlayerCharacter)
 
 void ALevelTeleport::StopInteract(APlayerCharacter* PlayerCharacter)
 {
-	
 }
 
 void ALevelTeleport::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-							const FHitResult& SweepResult)
+									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+									const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
 	{
@@ -75,7 +74,7 @@ void ALevelTeleport::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, c
 }
 
 void ALevelTeleport::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+								class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
 	{

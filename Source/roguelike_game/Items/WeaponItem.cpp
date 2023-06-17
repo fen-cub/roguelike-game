@@ -16,7 +16,8 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 0);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
 		}
-	} else
+	}
+	else
 	{
 		int64 NewPosition = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
 

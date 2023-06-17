@@ -16,7 +16,8 @@ void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPositi
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
 			ApplyArtifactProperties(PlayerCharacter);
 		}
-	} else
+	}
+	else
 	{
 		int64 NewPosition = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
 

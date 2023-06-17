@@ -35,7 +35,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	int64 GetRow(int64 Position) const;
-	
+
 	UFUNCTION(BlueprintCallable)
 	int64 GetColumn(int64 Position) const;
 
@@ -47,12 +47,12 @@ protected:
 
 	UPROPERTY()
 	UItemStorageComponent* OwnerStorage;
-	
+
 	UPROPERTY()
 	UItemStorageComponent* PairingStorage;
 
 	int64 LastClickedSlotPosition = -1;
-	
+
 public:
 	UFUNCTION()
 	EInventoryType GetCurrentInventoryType() const;
@@ -64,13 +64,13 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InsertItem(int64 Position, FItemData Item);
-	
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetItem(int64 Position, FItemData Item);
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetGridPanelSizes(int64 RowCount, int64 ColumnCount);
-	
+
 	void SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage);
 
 	void SetPairingStorage(UItemStorageComponent* const NewPairingStorage);
@@ -78,8 +78,8 @@ public:
 	void SetNewClickedSlot(int64 Position);
 
 	void HideLastClickedSlot();
-	
+
 	UItemStorageComponent* GetOwnerStorage() const;
-	
+
 	UItemStorageComponent* GetPairingStorage() const;
 };

@@ -115,7 +115,7 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD->GetEquipmentWidget()->SetGridPanelSizes(3, 1);
 		PlayerHUD->GetEquipmentWidget()->SetCurrentInventoryType(EInventoryType::EquipmentInventory);
 		PlayerHUD->GetEquipmentWidget()->SetOwnerStorage(EquipmentComponent);
-		
+
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
 		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
@@ -163,18 +163,28 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
-	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this,
+									&APlayerCharacter::SwitchMouseCursorVisibility);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
 
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem1", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(1));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem2", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(2));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem3", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(3));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem4", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(4));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem5", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(5));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem6", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(6));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem7", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(7));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(8));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(9));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem1", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(1));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem2", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(2));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem3", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(3));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem4", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(4));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem5", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(5));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem6", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(6));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem7", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(7));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(8));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(9));
 }
 
 void APlayerCharacter::SwitchMouseCursorVisibility()
@@ -194,7 +204,8 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 				PlayerHUD->SetVisibility(ESlateVisibility::Visible);
 				PlayerHUD->SetCursor(EMouseCursor::Default);
 			}
-		} else
+		}
+		else
 		{
 			Fpc->bShowMouseCursor = false;
 			Fpc->bEnableClickEvents = false;
@@ -208,7 +219,7 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 				PlayerHUD->GetEquipmentWidget()->HideLastClickedSlot();
 			}
 		}
-	} 
+	}
 }
 
 void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
@@ -226,8 +237,8 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
 	{
 		StopSprint();
-	} 
-	
+	}
+
 	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
@@ -318,7 +329,7 @@ void APlayerCharacter::Interact()
 	if (!bIsDead && HasLocalNetOwner())
 	{
 		ServerInteract();
-	} 
+	}
 }
 
 void APlayerCharacter::ServerInteract_Implementation()
@@ -345,7 +356,7 @@ void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 				UE_LOG(LogTemp, Warning, TEXT("Random hash: %d"), static_cast<int>(RandomHash));
 				Storage->GetStorageComponent()->GenerateRandomContents(RandomHash);
 			}
-			
+
 			Interface->Interact(this);
 		}
 	}
@@ -357,7 +368,8 @@ void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 
 void APlayerCharacter::UseItem(const int64 Position)
 {
-	if (!bIsDead && HasLocalNetOwner()){
+	if (!bIsDead && HasLocalNetOwner())
+	{
 		InventoryComponent->UseItem(Position - 1);
 	}
 }
@@ -412,7 +424,7 @@ void APlayerCharacter::OnRep_IsDead()
 		PlayerHUD->RemoveFromParent();
 		PlayerHUD = nullptr;
 	}
-	
+
 	// EndPlay(EEndPlayReason::Destroyed);
 }
 
@@ -448,7 +460,7 @@ void APlayerCharacter::Attack()
 	if (HasLocalNetOwner())
 	{
 		ServerAttack();
-	} 
+	}
 }
 
 void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
@@ -456,7 +468,7 @@ void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
 	if (HasLocalNetOwner())
 	{
 		ServerSetMaxWalkSpeed(NewMaxWalkSpeed);
-	} 
+	}
 }
 
 float APlayerCharacter::GetSprintSpeed() const
@@ -469,7 +481,7 @@ void APlayerCharacter::SetSprintSpeed(const float NewSprintSpeed)
 	if (HasLocalNetOwner())
 	{
 		ServerSetSprintSpeed(NewSprintSpeed);
-	} 
+	}
 }
 
 float APlayerCharacter::GetWalkSpeed() const
@@ -482,7 +494,7 @@ void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
 	if (HasLocalNetOwner())
 	{
 		ServerSetWalkSpeed(NewWalkSpeed);
-	} 
+	}
 }
 
 // Called every frame
@@ -496,7 +508,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		{
 			Die();
 		}
-		
+
 		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
 		AttributesComponent->UpdateHealth(HealthRegenerateRate);
 	}

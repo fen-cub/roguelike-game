@@ -13,9 +13,7 @@ UCLASS()
 class ROGUELIKE_GAME_API AWeaponItem : public AItem
 {
 	GENERATED_BODY()
-	
+
 public:
-	
 	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
-	
 };

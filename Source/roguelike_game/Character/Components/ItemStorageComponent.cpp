@@ -183,7 +183,7 @@ void UItemStorageComponent::GenerateRandomContents(int64 RandomHash)
 		if (Chance <= 20 && ItemRandomStorage.Num() > 0)
 		{
 			RandomHash = GetNextRandomInteger(RandomHash);
-			const int64 RandomItemPosition =  GetRandomInRange(0, ItemRandomStorage.Num() - 1, RandomHash);
+			const int64 RandomItemPosition = GetRandomInRange(0, ItemRandomStorage.Num() - 1, RandomHash);
 			UE_LOG(LogTemp, Warning, TEXT("Random position %d"), static_cast<int>(RandomItemPosition));
 			ItemStorage[Position] = ItemRandomStorage[RandomItemPosition];
 		}

@@ -18,12 +18,9 @@ public:
 	UStorageDisplay(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
-	class  UInventory* InventoryWidget;
+	class UInventory* InventoryWidget;
 
 public:
-	
 	UInventory* GetInventoryWidget() const;
-	
 };

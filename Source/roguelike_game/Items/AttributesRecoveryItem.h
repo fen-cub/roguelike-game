@@ -16,9 +16,8 @@ class ROGUELIKE_GAME_API AAttributesRecoveryItem : public AItem
 
 public:
 	AAttributesRecoveryItem();
-	
-protected:
 
+protected:
 	UPROPERTY(EditAnywhere, Category = Config)
 	float HealthRecoveryValue;
 
@@ -26,6 +25,5 @@ protected:
 	float StaminaRecoveryValue;
 
 public:
-
 	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
 };

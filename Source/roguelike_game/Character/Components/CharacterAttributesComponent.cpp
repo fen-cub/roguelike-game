@@ -9,7 +9,7 @@
 UCharacterAttributesComponent::UCharacterAttributesComponent()
 {
 	SetIsReplicated(true);
-	
+
 	// Health
 	MaxHealth = 50.0f;
 	Health = MaxHealth;
@@ -87,7 +87,7 @@ void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 	if (GetOwner()->HasLocalNetOwner())
 	{
 		ServerUpdateStamina(StaminaDelta);
-	} 
+	}
 }
 
 // Returns current health
