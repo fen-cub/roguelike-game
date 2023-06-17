@@ -68,6 +68,9 @@ protected:
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerUseItem(int64 Position);
 
+	int64 GetNextRandomInteger(uint64 LastRandom) const;
+
+	int64 GetRandomInRange(int64 Left, int64 Right, int64 RandomNumber) const;
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = Storage)
@@ -81,9 +84,8 @@ public:
 	
 	UFUNCTION()
 	FItemData GetItem(int64 Position);
-
-	UFUNCTION(Server, Unreliable)
-	void GenerateRandomContents();
+	
+	void GenerateRandomContents(int64 RandomHash);
 	
 	// Called when HUD created
 	void SetUpInventoryWidget(class UInventory* Widget);

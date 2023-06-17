@@ -126,6 +126,16 @@ void UItemStorageComponent::ServerUseItem_Implementation(int64 Position)
 	OnRep_UseItem(Position);
 }
 
+int64 UItemStorageComponent::GetNextRandomInteger(uint64 LastRandom) const
+{
+	return (LastRandom * 1103515245ULL + 12345ULL) % (1ULL << 30ULL);
+}
+
+int64 UItemStorageComponent::GetRandomInRange(int64 Left, int64 Right, int64 RandomNumber) const
+{
+	return Left + (RandomNumber) % (Right - Left + 1);
+}
+
 void UItemStorageComponent::AddItem(FItemData Item, int64 Position)
 {
 	if (GetOwner()->HasLocalNetOwner())
@@ -162,21 +172,27 @@ FItemData UItemStorageComponent::GetItem(int64 Position)
 	return EmptySlot;
 }
 
-void UItemStorageComponent::GenerateRandomContents_Implementation()
+void UItemStorageComponent::GenerateRandomContents(int64 RandomHash)
 {
 	for (int64 Position = 0; Position < StorageSize; ++Position)
 	{
-		int64 Chance = FMath::RandRange(0, 10);
+		RandomHash = GetNextRandomInteger(RandomHash);
+		int64 Chance = GetRandomInRange(1, 100, RandomHash);
 		UE_LOG(LogTemp, Warning, TEXT("Random chance %d"), static_cast<int>(Chance));
 
-		if (Chance <= 5 && ItemRandomStorage.Num() > 0)
+		if (Chance <= 20 && ItemRandomStorage.Num() > 0)
 		{
-			const int64 RandomItemPosition = FMath::RandRange(0, ItemRandomStorage.Num() - 1);
+			RandomHash = GetNextRandomInteger(RandomHash);
+			const int64 RandomItemPosition =  GetRandomInRange(0, ItemRandomStorage.Num() - 1, RandomHash);
 			UE_LOG(LogTemp, Warning, TEXT("Random position %d"), static_cast<int>(RandomItemPosition));
-			AddItem(ItemRandomStorage[RandomItemPosition], Position);
+			ItemStorage[Position] = ItemRandomStorage[RandomItemPosition];
 		}
 	}
 
+	while (FirstEmptySlotPosition < StorageSize && !ItemStorage[FirstEmptySlotPosition].IsEmpty())
+	{
+		FirstEmptySlotPosition++;
+	}
 	bIsGenerated = true;
 }
 

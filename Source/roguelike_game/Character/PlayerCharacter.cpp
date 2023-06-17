@@ -323,10 +323,10 @@ void APlayerCharacter::Interact()
 
 void APlayerCharacter::ServerInteract_Implementation()
 {
-	OnRep_Interact();
+	OnRep_Interact(FMath::RandRange(0LL, (1LL << 32LL)));
 }
 
-void APlayerCharacter::OnRep_Interact_Implementation()
+void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 {
 	TArray<AActor*> OverlappingActors;
 	TriggerCapsule->GetOverlappingActors(OverlappingActors);
@@ -339,6 +339,13 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 		if (Interface)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
+			AStorage* Storage = Cast<AStorage>(Actor);
+			if (Storage && !Storage->GetStorageComponent()->bIsGenerated)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Random hash: %d"), static_cast<int>(RandomHash));
+				Storage->GetStorageComponent()->GenerateRandomContents(RandomHash);
+			}
+			
 			Interface->Interact(this);
 		}
 	}

@@ -58,12 +58,6 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 {
 	if (PlayerCharacter)
 	{
-		if (HasLocalNetOwner() && !StorageComponent->bIsGenerated)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Stating generate"));
-			StorageComponent->GenerateRandomContents();
-		}
-
 		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
 		SetOwner(Fpc);
 

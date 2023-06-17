@@ -93,7 +93,7 @@ protected:
 	void ServerInteract();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void OnRep_Interact();
+	void OnRep_Interact(int64 RandomHash);
 
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
