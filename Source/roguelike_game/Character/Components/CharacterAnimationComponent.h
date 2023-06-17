@@ -141,7 +141,7 @@ public:
 	// Sets attack animation 
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
 	void AnimateAttack();
-	
+
 	// Sets death animation 
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
 	void AnimateDeath();
@@ -149,7 +149,7 @@ public:
 protected:
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
-	
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -176,12 +176,11 @@ protected:
 	// Attack flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FAttackAnimationFlipbooks AttackFlipbooks;
-	
+
 	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
 
 	UFUNCTION()
 	void OnFinishedAttack();
-	
 };

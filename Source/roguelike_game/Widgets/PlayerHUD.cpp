@@ -6,6 +6,11 @@
 #include "StorageDisplay.h"
 #include "Components/ProgressBar.h"
 
+UEquipmentWidget* UPlayerHUD::GetEquipmentWidget() const
+{
+	return EquipmentWidget;
+}
+
 UStorageDisplay* UPlayerHUD::GetInteractableStorageWidget() const
 {
 	return InteractableStorageWidget;

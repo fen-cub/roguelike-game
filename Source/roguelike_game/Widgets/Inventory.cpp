@@ -27,7 +27,8 @@ void UInventory::SetNewClickedSlot(int64 Position)
 
 void UInventory::HideLastClickedSlot()
 {
-	if (LastClickedSlotPosition != -1) {
+	if (LastClickedSlotPosition != -1)
+	{
 		UInventorySlot* LastClickedSlot = Cast<UInventorySlot>(InventoryGridPanel->GetChildAt(LastClickedSlotPosition));
 
 		if (LastClickedSlot)

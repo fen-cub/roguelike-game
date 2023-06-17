@@ -117,7 +117,6 @@ void UCharacterAnimationComponent::AnimateAttack()
 // Called when dying
 void UCharacterAnimationComponent::AnimateDeath()
 {
-	
 	OwnerFlipbookComponent->SetLooping(false);
 	switch (CurrentCharacterDirection)
 	{

@@ -21,12 +21,16 @@ public:
 	AStorage();
 
 protected:
+	// Sets spawn properties
+	UFUNCTION()
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* StorageComponent;
-	
+
 	UPROPERTY()
 	class UStorageDisplay* StorageWidget;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Tooltip)
 	class UTextRenderComponent* Tooltip;
 
@@ -35,11 +39,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
-	
+
 	UFUNCTION()
-    void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-					class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-					const FHitResult& SweepResult);
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
@@ -47,7 +51,7 @@ protected:
 
 public:
 	UItemStorageComponent* GetStorageComponent() const;
-	
+
 	virtual void Interact(class APlayerCharacter* PlayerCharacter) override;
 
 	UFUNCTION(BlueprintCallable)

@@ -24,23 +24,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	bool bIsAttacking;
 
-	
 protected:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
-	
+
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
 
 	// Max sprint speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float SprintSpeed;
 
-protected:
 	// Max walking speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
 	// Epsilon for float types comparison
@@ -89,12 +87,12 @@ protected:
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void Interact();
-	
+
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void OnRep_Interact();
+	void OnRep_Interact(int64 RandomHash);
 
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
@@ -116,20 +114,27 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* InventoryComponent;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
+	class UItemStorageComponent* EquipmentComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
 
 	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
-	
+
 	UPROPERTY()
 	class AStorage* InteractableStorage;
-	
+
 	// How much Stamina regenerates for a Tick
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
 	float StaminaRegenerateRate;
+
+	// How much Health regenerates for a Tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
+	float HealthRegenerateRate;
 
 	// How much Stamina losses for a Tick while running
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
@@ -156,9 +161,6 @@ protected:
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void SwitchMouseCursorVisibility();
-
 	UFUNCTION(Server, UnReliable)
 	void ServerAttack();
 
@@ -167,12 +169,26 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_Attack();
-	
+
+	UFUNCTION()
+	void SwitchMouseCursorVisibility();
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetWalkSpeed(float NewWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetSprintSpeed(float NewSprintSpeed);
+
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
-	
+
 	UItemStorageComponent* GetInventoryComponent() const;
+
+	UItemStorageComponent* GetEquipmentComponent() const;
 
 	UCharacterAttributesComponent* GetAttributesComponent() const;
 
@@ -183,21 +199,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
-	
-	UFUNCTION(Server, Unreliable)
-	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	float GetSprintSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetSprintSpeed(const float NewSprintSpeed);
 
 	float GetWalkSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
-	
 };
-
-

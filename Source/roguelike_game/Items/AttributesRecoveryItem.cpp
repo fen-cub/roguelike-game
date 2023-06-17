@@ -5,6 +5,7 @@
 
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Character/Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Character/Components/ItemStorageComponent.h"
 
 AAttributesRecoveryItem::AAttributesRecoveryItem()
 {
@@ -12,8 +13,9 @@ AAttributesRecoveryItem::AAttributesRecoveryItem()
 	StaminaRecoveryValue = 10.0f;
 }
 
-void AAttributesRecoveryItem::Use(APlayerCharacter* PlayerCharacter)
+void AAttributesRecoveryItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
 	PlayerCharacter->GetAttributesComponent()->UpdateHealth(HealthRecoveryValue);
 	PlayerCharacter->GetAttributesComponent()->UpdateStamina(StaminaRecoveryValue);
+	PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
 }
