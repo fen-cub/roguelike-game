@@ -2,6 +2,8 @@
 
 
 #include "Chaser.h"
+
+#include "EnemyAIController.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -14,6 +16,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
+#include "../Widgets/EnemyHealthBar.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 AChaser::AChaser()
@@ -26,7 +29,6 @@ AChaser::AChaser()
 	RunningStaminaLossRate = -0.5f;
 
 	Health = 50;
-	
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
@@ -41,8 +43,12 @@ AChaser::AChaser()
 	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
-
 	AnimationComponent->SetupAttachment(RootComponent);
+	EnemyHealthBar = CreateWidget<UEnemyHealthBar>(GetController<APlayerController>(), UEnemyHealthBarClass);
+	if (EnemyHealthBar)
+	{
+		EnemyHealthBar->SetHealth(50, 50);
+	}
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -171,13 +177,16 @@ void AChaser::Tick(float DeltaTime)
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			15.0f)
 		{
-			constexpr float DamageAmount = 0.5f;
-			PlayerCharacter->AttributesComponent->Health -= DamageAmount;
-			PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
-			if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+			constexpr float DamageAmount = 0.25f;
+			PlayerCharacter->AttributesComponent->UpdateHealth(-DamageAmount);
+		}
+		if (PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			30.0f)
+		{
+			Health -= 1.0;
+			if (Health <= 0)
 			{
 				Destroy();
-				PlayerCharacter->Destroy();
 			}
 		}
 	}

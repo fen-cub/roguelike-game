@@ -29,10 +29,13 @@ protected:
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
-	
+
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
+	
+	UPROPERTY(EditAnywhere, Category = Attributes)
+	float Health;
 
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;

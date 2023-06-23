@@ -22,13 +22,14 @@ ARandomWalker::ARandomWalker()
 	StaminaRegenerateRate = 0.25f;
 	RunningStaminaLossRate = -0.5f;
 
+	Health = 50;
 
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
-	
+
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
 
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
@@ -159,18 +160,24 @@ void ARandomWalker::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
-	if (PlayerCharacter != nullptr && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
-		15.0f)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
-		constexpr float DamageAmount = 0.5f;
-		PlayerCharacter->AttributesComponent->Health -= DamageAmount;
-		PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
-		if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
-		{
-			Destroy();
-			PlayerCharacter->Destroy();
-		}
+	UE_LOG(LogTemp, Warning, TEXT("BatHealth %f"), Health);
 
-	}}
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
+	if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+		25.0f)	
+	{
+		constexpr float DamageAmount = 1.0f;
+		PlayerCharacter->AttributesComponent->UpdateHealth(-DamageAmount);
+		if (PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			50.0f)
+		{
+			Health -= 50.0;
+
+			UE_LOG(LogTemp, Warning, TEXT("BatHealth %f"), Health);
+			if (Health <= 0)
+			{
+				Destroy();
+			}
+		}
+	}
+}

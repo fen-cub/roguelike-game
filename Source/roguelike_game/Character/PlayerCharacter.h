@@ -25,7 +25,7 @@ public:
 	bool bIsAttacking;
 
 	
-protected:
+public:
 	// True if character is dead
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
 	bool bIsDead;
@@ -37,8 +37,7 @@ protected:
 	// Max sprint speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float SprintSpeed;
-
-protected:
+	
 	// Max walking speed
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
