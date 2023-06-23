@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components\CapsuleComponent.h"
-#include "Components\TextRenderComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "../Interfaces/InteractableInterface.h"
 #include "PaperSpriteActor.h"
 #include "Item.generated.h"

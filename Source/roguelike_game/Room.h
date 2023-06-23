@@ -15,13 +15,18 @@ class ROGUELIKE_GAME_API URoom : public UPaperTileMapComponent
 	GENERATED_BODY()
 
 public:
+
+	URoom();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Doors")
 	TArray<bool> Doors;
 
 	uint8 RoomWidth;
 	uint8 RoomHeight;
-
+	
 	TArray<bool> Walls;
 	
-	void CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side);
+	void CreateRoom(const uint8 Width, const uint8 Height, const uint8 Side, int TemplateNum = -1);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

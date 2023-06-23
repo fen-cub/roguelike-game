@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "RoomActor.h"
+#include "Items/AttributesRecoveryItem.h"
 #include "Character/PlayerCharacter.h"
 #include "GameFramework/Actor.h"
+#include "Net/UnrealNetwork.h" 
 #include "LevelGenerator.generated.h"
 
 enum ERoomType {
@@ -18,8 +20,8 @@ enum ERoomType {
 
 
   struct FMapCell {
-    TSet<int> Doors;
-    TSet<int> Walls;
+    TArray<int> Doors;
+    TArray<int> Walls;
     ERoomType CellRoomType = None;
     bool Main = false;
     bool Generated = false;
@@ -45,8 +47,8 @@ public:
   // Called every frame
   virtual void Tick(float DeltaTime) override;
   
-  UPROPERTY(EditAnywhere, Category = "Room")
-  TSubclassOf<ARoomActor> RoomActorClass;
+  UPROPERTY(EditAnywhere, Replicated, Category = "Room")
+  TSubclassOf<ARoomActor> RoomActorClass = ARoomActor::StaticClass();
 
   uint8 NumOfRooms;
 
@@ -74,10 +76,17 @@ public:
   const TPair<uint8, uint8> FirstRoom = TPair<uint8, uint8>(MapWidth / 2, MapHeight / 2);
 
   TQueue<TPair<uint8, uint8>> RoomQueue;
-  TQueue<ARoomActor*> AllRooms;
+
+  TArray<ARoomActor*> AllRooms;
 
   int8 DirX[4] = {0, 1, 0, -1};
   int8 DirY[4] = {-1, 0, 1, 0};
+
+  TArray<int> UnusedDefaultTemplates;
+  TArray<int> UnusedHorizontalAdditionsTemplates;
+  TArray<int> UnusedVerticalAdditionsTemplates;
+  TArray<int> UnusedHorizontalCorridorsTemplates;
+  TArray<int> UnusedVerticalCorridorsTemplates;
 
   float CorrDirX[4] = {RealTileHeight * CorridorHeight,
                       -(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight,
@@ -134,5 +143,12 @@ public:
   void SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type);
 
   void CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
+
+virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelGenerator, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> AttributesRecoveryItemClass;
+
+  void SpawnItem(UClass* ItemToSpawn, FVector Location);
   
 };
