@@ -16,14 +16,14 @@ bool FItemData::IsEmpty() const
 
 AItem::AItem()
 {
-	SetReplicates(true);
+	bReplicates = true;
 	SetReplicateMovement(true);
-	
+
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
-	SetActorRelativeScale3D(FVector(1.0f, 2.0f, 1.0f));
+	SetActorRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
-	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
+	TriggerCapsule->InitCapsuleSize(20.0f, 20.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
@@ -32,14 +32,14 @@ AItem::AItem()
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
-	Tooltip->SetAbsolute(false, true, false);
-	Tooltip->SetRelativeLocation(FVector(0.0f, 0.0f, 10.0f));
+	Tooltip->SetAbsolute(false, true, true);
+	Tooltip->SetRelativeLocation(FVector(0.0f, 200.0f, 10.0f));
 	Tooltip->SetRelativeRotation(FRotator(90.0f, 180.0f, 0.0f));
-	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
+	Tooltip->SetWorldScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
-	Tooltip->SetText(FText::FromString("Press E to take item"));
-	Tooltip->SetTextRenderColor(FColor(0, 255, 255, 255));
+	Tooltip->SetText(FText::FromString("Press E to take"));
+	Tooltip->SetTextRenderColor(FColor(255, 122, 0, 255));
 	Tooltip->SetHiddenInGame(true);
 	Tooltip->SetIsReplicated(true);
 
@@ -52,14 +52,22 @@ AItem::AItem()
 	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
 	GetRenderComponent()->SetIsReplicated(true);
+
+	Data.Name = GetName();
 }
 
 void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 {
 	if (PlayerCharacter)
 	{
-		PlayerCharacter->Inventory->AddItem(GetItemData());
-		Destroy();
+		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+
+		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize())
+		{
+			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
+															Position);
+			Destroy();
+		}
 	}
 }
 
@@ -68,8 +76,13 @@ FItemData AItem::GetItemData() const
 	return Data;
 }
 
-void AItem::Use(APlayerCharacter* PlayerCharacter)
+void AItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
+}
+
+void AItem::SetItemData(const FItemData& NewData)
+{
+	Data = NewData;
 }
 
 void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -3,13 +3,23 @@
 
 #include "PlayerHUD.h"
 
-#include "Components/PanelSlot.h"
-#include "InventorySlot.h"
+#include "StorageDisplay.h"
 #include "Components/ProgressBar.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Components/UniformGridPanel.h"
 
+UEquipmentWidget* UPlayerHUD::GetEquipmentWidget() const
+{
+	return EquipmentWidget;
+}
 
+UStorageDisplay* UPlayerHUD::GetInteractableStorageWidget() const
+{
+	return InteractableStorageWidget;
+}
+
+void UPlayerHUD::SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget)
+{
+	InteractableStorageWidget = NewInteractableStorageWidget;
+}
 
 void UPlayerHUD::SetHealth(float CurrentHealth, float MaxHealth)
 {
@@ -27,3 +37,17 @@ void UPlayerHUD::SetStamina(float CurrentStamina, float MaxStamina)
 	}
 }
 
+UProgressBar* UPlayerHUD::GetHealthBar() const
+{
+	return HealthBar;
+}
+
+UProgressBar* UPlayerHUD::GetStaminaBar() const
+{
+	return StaminaBar;
+}
+
+UInventory* UPlayerHUD::GetInventoryWidget() const
+{
+	return InventoryWidget;
+}

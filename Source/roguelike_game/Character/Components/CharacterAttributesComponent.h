@@ -19,7 +19,7 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -29,7 +29,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float MaxHealth;
-	
+
 	UPROPERTY(ReplicatedUsing = OnRepHealth)
 	float Health;
 
@@ -40,7 +40,7 @@ protected:
 	// Called back from server when health updated
 	UFUNCTION()
 	void OnRepHealth();
-	
+
 	UPROPERTY(EditAnywhere)
 	float MaxStamina;
 

@@ -3,6 +3,7 @@
 
 #include "CharacterAnimationComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
 
 UCharacterAnimationComponent::UCharacterAnimationComponent()
 {
@@ -19,6 +20,8 @@ void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookC
 // Called while walking
 void UCharacterAnimationComponent::AnimateWalking()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -41,6 +44,8 @@ void UCharacterAnimationComponent::AnimateWalking()
 // Called while running
 void UCharacterAnimationComponent::AnimateRunning()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -63,6 +68,8 @@ void UCharacterAnimationComponent::AnimateRunning()
 // Called while idle
 void UCharacterAnimationComponent::AnimateIdle()
 {
+	OwnerFlipbookComponent->SetLooping(true);
+	OwnerFlipbookComponent->Play();
 	switch (CurrentCharacterDirection)
 	{
 	case ECharacterDirection::Up:
@@ -80,6 +87,31 @@ void UCharacterAnimationComponent::AnimateIdle()
 	default:
 		break;
 	}
+}
+
+void UCharacterAnimationComponent::AnimateAttack()
+{
+	OwnerFlipbookComponent->SetLooping(false);
+	OwnerFlipbookComponent->Play();
+	switch (CurrentCharacterDirection)
+	{
+	case ECharacterDirection::Up:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackUp);
+		break;
+	case ECharacterDirection::Down:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackDown);
+		break;
+	case ECharacterDirection::Left:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackLeft);
+		break;
+	case ECharacterDirection::Right:
+		OwnerFlipbookComponent->SetFlipbook(AttackFlipbooks.AttackRight);
+		break;
+	default:
+		break;
+	}
+
+	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::OnFinishedAttack);
 }
 
 // Called when dying
@@ -102,6 +134,21 @@ void UCharacterAnimationComponent::AnimateDeath()
 		break;
 	default:
 		break;
+	}
+}
+
+void UCharacterAnimationComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void UCharacterAnimationComponent::OnFinishedAttack()
+{
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->bIsAttacking = false;
+		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
 	}
 }
 
