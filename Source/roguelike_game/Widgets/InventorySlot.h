@@ -44,6 +44,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UTextBlock* InteractButtonText;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* PutItemSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* TakeItemSound;
+
 	UFUNCTION(BlueprintCallable)
 	void SetInteractButtonVisibility(ESlateVisibility NewVisibility);
 };

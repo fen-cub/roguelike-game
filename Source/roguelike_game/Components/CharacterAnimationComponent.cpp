@@ -3,6 +3,7 @@
 
 #include "CharacterAnimationComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 UCharacterAnimationComponent::UCharacterAnimationComponent()
@@ -85,6 +86,12 @@ void UCharacterAnimationComponent::AnimateWalking()
 	default:
 		break;
 	}
+
+	if ((OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 1 || OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 4) && LastFrameNumber != OwnerFlipbookComponent->GetPlaybackPositionInFrames())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, StepSound, GetOwner()->GetActorLocation());
+	}
+	LastFrameNumber = OwnerFlipbookComponent->GetPlaybackPositionInFrames();
 }
 
 // Called while running
@@ -109,6 +116,12 @@ void UCharacterAnimationComponent::AnimateRunning()
 	default:
 		break;
 	}
+
+	if ((OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 1 || OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 4) && LastFrameNumber != OwnerFlipbookComponent->GetPlaybackPositionInFrames())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, StepSound, GetOwner()->GetActorLocation());
+	}
+	LastFrameNumber = OwnerFlipbookComponent->GetPlaybackPositionInFrames();
 }
 
 // Called while idle
@@ -157,6 +170,11 @@ void UCharacterAnimationComponent::AnimateAttack()
 		break;
 	}
 
+	if (GetOwner())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, AttackSound, GetOwner()->GetActorLocation());
+	}
+	
 	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::OnFinishedAttack);
 }
 

@@ -36,6 +36,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* InteractSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* StopInteractSound;
+
 	// Sets spawn properties
 	UFUNCTION()
 	virtual void BeginPlay() override;

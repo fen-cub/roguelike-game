@@ -4,6 +4,7 @@
 #include "Storage.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Widgets/EquipmentWidget.h"
 #include "roguelike_game/Widgets/StorageDisplay.h"
@@ -107,12 +108,14 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		}
 
 		PlayerCharacter->SetInteractableStorage(this);
+		UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, InteractSound, PlayerCharacter->GetActorLocation());
 	}
 }
 
 void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 {
 	PlayerCharacter->SetInteractableStorage(nullptr);
+
 
 	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
 	{
@@ -133,4 +136,6 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->HideLastClickedSlot();
 		PlayerCharacter->GetPlayerHUD()->GetEquipmentWidget()->HideLastClickedSlot();
 	}
+
+	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, StopInteractSound, PlayerCharacter->GetActorLocation());
 }

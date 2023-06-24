@@ -138,20 +138,29 @@ protected:
 	// Running flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FRunningAnimationFlipbooks RunningFlipbooks;
-
+	
 	// Attack flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FAttackAnimationFlipbooks AttackFlipbooks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundCharacter | Config ")
+	class USoundBase* AttackSound;
 
 	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundCharacter | Config ")
+	class USoundBase* StepSound;
+	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void OnFinishedAttack();
+
+private:
+	int32 LastFrameNumber = -1;
 
 public:
 	UCharacterAnimationComponent();

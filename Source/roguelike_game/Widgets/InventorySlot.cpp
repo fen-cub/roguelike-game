@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Components/ItemStorageComponent.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
@@ -79,6 +80,16 @@ void UInventorySlot::InteractButtonOnClicked()
 				InventoryWidget->GetPairingStorage()->AddItem(
 					ItemData, NewPosition);
 				InventoryWidget->GetOwnerStorage()->RemoveItem(PositionInInventory);
+			}
+
+			AActor* PlayerCharacter;
+			if(InventoryWidget->GetCurrentInventoryType() == EInventoryType::PlayerInventoryInStorage) {
+				PlayerCharacter = InventoryWidget->GetOwnerStorage()->GetOwner();
+				UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, PutItemSound, PlayerCharacter->GetActorLocation());
+			} else
+			{
+				PlayerCharacter = InventoryWidget->GetPairingStorage()->GetOwner();
+				UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, TakeItemSound, PlayerCharacter->GetActorLocation());
 			}
 		}
 	}

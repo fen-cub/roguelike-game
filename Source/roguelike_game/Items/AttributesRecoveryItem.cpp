@@ -3,6 +3,7 @@
 
 #include "AttributesRecoveryItem.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "roguelike_game/Components/ItemStorageComponent.h"
@@ -18,4 +19,5 @@ void AAttributesRecoveryItem::Use(APlayerCharacter* PlayerCharacter, int64 Inven
 	PlayerCharacter->GetAttributesComponent()->UpdateHealth(HealthRecoveryValue);
 	PlayerCharacter->GetAttributesComponent()->UpdateStamina(StaminaRecoveryValue);
 	PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
+	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 }

@@ -4,6 +4,7 @@
 #include "Item.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperSpriteComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 #include "roguelike_game/Components/ItemStorageComponent.h"
@@ -90,6 +91,7 @@ void AItem::Interact(class APlayerCharacter* PlayerCharacter)
 		{
 			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
 															Position);
+			UGameplayStatics::SpawnSoundAtLocation(this, InteractSound,  PlayerCharacter->GetActorLocation());
 			Destroy();
 		}
 	}
