@@ -35,9 +35,9 @@ void UItemStorageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UItemStorageComponent, bIsGenerated);
 }
 
-int64 UItemStorageComponent::GetFirstEmptySlotPosition() const
+void UItemStorageComponent::ServerAddItem_Implementation(FItemData Item, int64 Position)
 {
-	return FirstEmptySlotPosition;
+	OnRep_AddItem(Item, Position);
 }
 
 void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 Position)
@@ -57,6 +57,11 @@ void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 P
 			FirstEmptySlotPosition++;
 		}
 	}
+}
+
+void UItemStorageComponent::ServerRemoveItem_Implementation(int64 Position)
+{
+	OnRep_RemoveItem(Position);
 }
 
 void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
@@ -79,6 +84,11 @@ void UItemStorageComponent::OnRep_RemoveItem_Implementation(int64 Position)
 	}
 }
 
+void UItemStorageComponent::ServerUseItem_Implementation(int64 Position)
+{
+	OnRep_UseItem(Position);
+}
+
 void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 {
 	if (!ItemStorage[Position].IsEmpty())
@@ -97,21 +107,6 @@ void UItemStorageComponent::OnRep_UseItem_Implementation(int64 Position)
 			}
 		}
 	}
-}
-
-void UItemStorageComponent::ServerAddItem_Implementation(FItemData Item, int64 Position)
-{
-	OnRep_AddItem(Item, Position);
-}
-
-void UItemStorageComponent::ServerRemoveItem_Implementation(int64 Position)
-{
-	OnRep_RemoveItem(Position);
-}
-
-void UItemStorageComponent::ServerUseItem_Implementation(int64 Position)
-{
-	OnRep_UseItem(Position);
 }
 
 int64 UItemStorageComponent::GetNextRandomInteger(uint64 LastRandom) const
@@ -202,4 +197,9 @@ void UItemStorageComponent::SetStorageSize(int64 Size)
 int64 UItemStorageComponent::GetStorageSize() const
 {
 	return StorageSize;
+}
+
+int64 UItemStorageComponent::GetFirstEmptySlotPosition() const
+{
+	return FirstEmptySlotPosition;
 }

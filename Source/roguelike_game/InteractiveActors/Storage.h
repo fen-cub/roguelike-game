@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "PaperSpriteActor.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 #include "roguelike_game/Interfaces/InteractableInterface.h"
 #include "Storage.generated.h"
 
 /**
- * 
+ The storage actor that contains the items. The player can add and remove items
  */
 UCLASS()
 class ROGUELIKE_GAME_API AStorage : public APaperSpriteActor, public IInteractableInterface

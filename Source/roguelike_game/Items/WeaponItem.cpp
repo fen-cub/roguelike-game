@@ -4,7 +4,7 @@
 #include "WeaponItem.h"
 
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {

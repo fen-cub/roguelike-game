@@ -18,28 +18,21 @@ public:
 	// Sets default values for this component's properties
 	UItemStorageComponent();
 
+	// Is the item content is random generated
 	UPROPERTY(Replicated)
 	bool bIsGenerated;
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	// Setup properties that should be replicated from the server to clients.
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	// Storage and order of items
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	TArray<FItemData> ItemStorage;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<FItemData> ItemRandomStorage;
-
-	// Storage and order of items
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	int64 StorageSize;
-
-	// Storage and order of items
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	int64 FirstEmptySlotPosition;
 
@@ -49,24 +42,32 @@ protected:
 	// Need to be set at the begining of the game
 	UPROPERTY()
 	class UInventory* InventoryWidget;
+	
+	// Called when the game starts
+	virtual void BeginPlay() override;
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void OnRep_AddItem(FItemData Item, int64 Position);
+	// Setup properties that should be replicated from the server to clients.
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void OnRep_RemoveItem(int64 Position);
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void OnRep_UseItem(int64 Position);
-
+private:
+	
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerAddItem(FItemData Item, int64 Position);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_AddItem(FItemData Item, int64 Position);
 
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerRemoveItem(int64 Position);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_RemoveItem(int64 Position);
+
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerUseItem(int64 Position);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_UseItem(int64 Position);
 
 	int64 GetNextRandomInteger(uint64 LastRandom) const;
 

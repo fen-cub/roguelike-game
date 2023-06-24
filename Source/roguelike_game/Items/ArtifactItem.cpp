@@ -3,7 +3,7 @@
 
 #include "ArtifactItem.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {

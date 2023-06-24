@@ -6,7 +6,7 @@
 #include "PaperSpriteComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 
 bool FItemData::IsEmpty() const

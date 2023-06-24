@@ -19,13 +19,6 @@ UCharacterAttributesComponent::UCharacterAttributesComponent()
 	Stamina = MaxStamina;
 }
 
-void UCharacterAttributesComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UCharacterAttributesComponent, Health);
-	DOREPLIFETIME(UCharacterAttributesComponent, Stamina);
-}
-
 // Called when the game starts
 void UCharacterAttributesComponent::BeginPlay()
 {
@@ -34,15 +27,22 @@ void UCharacterAttributesComponent::BeginPlay()
 	// ...
 }
 
+void UCharacterAttributesComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UCharacterAttributesComponent, Health);
+	DOREPLIFETIME(UCharacterAttributesComponent, Stamina);
+}
+
 // Updates health on the server
 void UCharacterAttributesComponent::ServerUpdateHealth_Implementation(float HealthDelta)
 {
 	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
-	OnRepHealth();
+	OnRepUpdateHealth();
 }
 
 // Changes HUD after server health replication
-void UCharacterAttributesComponent::OnRepHealth()
+void UCharacterAttributesComponent::OnRepUpdateHealth()
 {
 	if (PlayerHUD)
 	{
@@ -53,10 +53,10 @@ void UCharacterAttributesComponent::OnRepHealth()
 void UCharacterAttributesComponent::ServerUpdateStamina_Implementation(float StaminaDelta)
 {
 	Stamina = FMath::Clamp(Stamina + StaminaDelta, 0.f, MaxStamina);
-	OnRepStamina();
+	OnRepUpdateStamina();
 }
 
-void UCharacterAttributesComponent::OnRepStamina()
+void UCharacterAttributesComponent::OnRepUpdateStamina()
 {
 	if (PlayerHUD)
 	{

@@ -7,7 +7,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
 
 
@@ -29,7 +29,7 @@ void UInventorySlot::NativeConstruct()
 
 void UInventorySlot::ItemButtonOnClicked()
 {
-	UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter())
+	UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
 
 	if (InventoryWidget && !ItemData.IsEmpty())
 	{
