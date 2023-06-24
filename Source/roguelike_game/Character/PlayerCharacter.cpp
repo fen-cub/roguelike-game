@@ -349,20 +349,14 @@ void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
 		if (Interface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
 			AStorage* Storage = Cast<AStorage>(Actor);
 			if (Storage && !Storage->GetStorageComponent()->bIsGenerated)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Random hash: %d"), static_cast<int>(RandomHash));
 				Storage->GetStorageComponent()->GenerateRandomContents(RandomHash);
 			}
 
 			Interface->Interact(this);
 		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
 	}
 }
 
@@ -436,7 +430,7 @@ void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp,
 	// check if Actors do not equal nullptr
 	if (OtherActor && OtherActor != this)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
+		// Actor on overlap...
 	}
 }
 

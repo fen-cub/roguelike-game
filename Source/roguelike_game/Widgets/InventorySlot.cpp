@@ -29,12 +29,7 @@ void UInventorySlot::NativeConstruct()
 
 void UInventorySlot::ItemButtonOnClicked()
 {
-	UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
-
-	if (!InventoryWidget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No Outer"));
-	}
+	UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter())
 
 	if (InventoryWidget && !ItemData.IsEmpty())
 	{
@@ -56,7 +51,6 @@ void UInventorySlot::ItemButtonOnClicked()
 			break;
 		}
 		SetInteractButtonVisibility(ESlateVisibility::Visible);
-		UE_LOG(LogTemp, Warning, TEXT("Set new clicked slot"));
 	}
 
 	if (InventoryWidget)
@@ -68,11 +62,6 @@ void UInventorySlot::ItemButtonOnClicked()
 void UInventorySlot::InteractButtonOnClicked()
 {
 	const UInventory* InventoryWidget = Cast<UInventory>(GetParent()->GetOuter()->GetOuter());
-
-	if (!InventoryWidget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No Outer"));
-	}
 
 	if (InventoryWidget)
 	{

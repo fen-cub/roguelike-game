@@ -21,7 +21,6 @@ AStorage::AStorage()
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AStorage::OnOverlapEnd);
 
 	StorageComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
-	UE_LOG(LogTemp, Warning, TEXT("Chest slot count to set: %d"), static_cast<int>(20));
 	StorageComponent->SetStorageSize(20);
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
