@@ -89,7 +89,7 @@ void AEnemyAIController::AttackPlayer()
 		if (PlayerCharacter != nullptr)
 		{
 			float DamageAmount = 20.0f;
-			PlayerCharacter->AttributesComponent->Health -= 10.0f;
+			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-10.0f);
 		}
 	}
 }
@@ -125,7 +125,7 @@ void AEnemyAIController::OnDetectPlayerBeginOverlap(UPrimitiveComponent* Overlap
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
 	if (PlayerCharacter != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
+		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->GetAttributesComponent()->GetHealth());
 
 		// Handle the overlap with the player character
 		// For example, start attacking the player or trigger other behavior

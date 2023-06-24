@@ -172,9 +172,9 @@ void AChaser::Tick(float DeltaTime)
 			15.0f)
 		{
 			constexpr float DamageAmount = 0.5f;
-			PlayerCharacter->AttributesComponent->Health -= DamageAmount;
-			PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
-			if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
+			
+			if (PlayerCharacter->GetAttributesComponent()->GetHealth() <= 0)
 			{
 				Destroy();
 				PlayerCharacter->Destroy();

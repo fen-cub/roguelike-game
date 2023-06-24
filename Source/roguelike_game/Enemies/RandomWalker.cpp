@@ -163,11 +163,10 @@ void ARandomWalker::Tick(float DeltaTime)
 	if (PlayerCharacter != nullptr && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 		15.0f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHeatlh %f"), PlayerCharacter->AttributesComponent->Health);
 		constexpr float DamageAmount = 0.5f;
-		PlayerCharacter->AttributesComponent->Health -= DamageAmount;
-		PlayerCharacter->PlayerHUD->SetHealth(PlayerCharacter->AttributesComponent->Health, 50);
-		if (PlayerCharacter->AttributesComponent->GetHealth() <= 0)
+		PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
+			
+		if (PlayerCharacter->GetAttributesComponent()->GetHealth() <= 0)
 		{
 			Destroy();
 			PlayerCharacter->Destroy();
