@@ -6,6 +6,37 @@
 #include "InventorySlot.h"
 #include "Components/UniformGridPanel.h"
 
+int64 UInventory::GetRow(int64 Position) const
+{
+	return Position / Columns + 1;
+}
+
+int64 UInventory::GetColumn(int64 Position) const
+{
+	return Position % Columns + 1;
+}
+
+EInventoryType UInventory::GetCurrentInventoryType() const
+{
+	return CurrentInventoryType;
+}
+
+void UInventory::SetCurrentInventoryType(const EInventoryType NewInventoryType)
+{
+	this->CurrentInventoryType = NewInventoryType;
+}
+
+UUniformGridPanel* UInventory::GetInventoryGridPanel() const
+{
+	return InventoryGridPanel;
+}
+
+void UInventory::SetGridPanelSizes(int64 RowCount, int64 ColumnCount)
+{
+	Rows = RowCount;
+	Columns = ColumnCount;
+}
+
 void UInventory::SetOwnerStorage(UItemStorageComponent* const NewOwnerStorage)
 {
 	OwnerStorage = NewOwnerStorage;
@@ -40,16 +71,6 @@ void UInventory::HideLastClickedSlot()
 	LastClickedSlotPosition = -1;
 }
 
-int64 UInventory::GetRow(int64 Position) const
-{
-	return Position / Columns + 1;
-}
-
-int64 UInventory::GetColumn(int64 Position) const
-{
-	return Position % Columns + 1;
-}
-
 UItemStorageComponent* UInventory::GetOwnerStorage() const
 {
 	return OwnerStorage;
@@ -58,25 +79,4 @@ UItemStorageComponent* UInventory::GetOwnerStorage() const
 UItemStorageComponent* UInventory::GetPairingStorage() const
 {
 	return PairingStorage;
-}
-
-EInventoryType UInventory::GetCurrentInventoryType() const
-{
-	return CurrentInventoryType;
-}
-
-void UInventory::SetCurrentInventoryType(const EInventoryType NewInventoryType)
-{
-	this->CurrentInventoryType = NewInventoryType;
-}
-
-UUniformGridPanel* UInventory::GetInventoryGridPanel() const
-{
-	return InventoryGridPanel;
-}
-
-void UInventory::SetGridPanelSizes(int64 RowCount, int64 ColumnCount)
-{
-	Rows = RowCount;
-	Columns = ColumnCount;
 }

@@ -19,16 +19,18 @@ public:
 	ALevelTeleport();
 
 protected:
-	// Sets spawn properties
-	UFUNCTION()
-	virtual void BeginPlay() override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Tooltip)
 	class UTextRenderComponent* Tooltip;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+
+	// Sets spawn properties
+	UFUNCTION()
+	virtual void BeginPlay() override;
+
+private:
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,

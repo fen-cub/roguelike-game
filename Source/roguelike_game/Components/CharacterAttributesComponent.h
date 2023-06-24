@@ -40,7 +40,6 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	
 	// Called to update Health on the server
 	UFUNCTION(Server, Reliable)
 	void ServerUpdateHealth(float HealthDelta);

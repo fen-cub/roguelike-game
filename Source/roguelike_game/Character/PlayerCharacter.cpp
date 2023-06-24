@@ -296,7 +296,7 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 // Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
-	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
+	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead && !bIsAttacking)
 	{
 		SetMaxWalkSpeed(SprintSpeed);
 	}

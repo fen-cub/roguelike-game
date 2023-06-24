@@ -146,7 +146,7 @@ protected:
 	// Death flipbooks animation storage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
 	FDeathAnimationFlipbooks DeathFlipbooks;
-	
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 

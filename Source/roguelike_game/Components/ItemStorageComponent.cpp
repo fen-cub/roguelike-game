@@ -43,7 +43,7 @@ void UItemStorageComponent::ServerAddItem_Implementation(FItemData Item, int64 P
 void UItemStorageComponent::OnRep_AddItem_Implementation(FItemData Item, int64 Position)
 {
 	check(Position >= 0 && Position <= StorageSize);
-	
+
 	if (StorageSize > 0 && Position != StorageSize && ItemStorage[Position].IsEmpty())
 	{
 		ItemStorage[Position] = Item;
@@ -179,7 +179,7 @@ void UItemStorageComponent::GenerateRandomContents(int64 RandomHash)
 void UItemStorageComponent::SetUpInventoryWidget(UInventory* Widget)
 {
 	InventoryWidget = Widget;
-	
+
 	for (int64 Position = 0; Position < StorageSize; ++Position)
 	{
 		InventoryWidget->InsertItem(Position, ItemStorage[Position]);

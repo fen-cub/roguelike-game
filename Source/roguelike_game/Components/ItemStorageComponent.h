@@ -29,10 +29,10 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TArray<FItemData> ItemRandomStorage;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	int64 StorageSize;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	int64 FirstEmptySlotPosition;
 
@@ -42,7 +42,7 @@ protected:
 	// Need to be set at the begining of the game
 	UPROPERTY()
 	class UInventory* InventoryWidget;
-	
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -50,10 +50,9 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerAddItem(FItemData Item, int64 Position);
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_AddItem(FItemData Item, int64 Position);
 
@@ -65,7 +64,7 @@ private:
 
 	UFUNCTION(Server, Unreliable, BlueprintCallable, Category = Storage)
 	void ServerUseItem(int64 Position);
-	
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_UseItem(int64 Position);
 

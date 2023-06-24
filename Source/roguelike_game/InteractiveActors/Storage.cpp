@@ -48,6 +48,25 @@ void AStorage::BeginPlay()
 	}
 }
 
+void AStorage::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+							const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
+	{
+		Tooltip->SetHiddenInGame(false);
+	}
+}
+
+void AStorage::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
+	{
+		Tooltip->SetHiddenInGame(true);
+	}
+}
+
 UItemStorageComponent* AStorage::GetStorageComponent() const
 {
 	return StorageComponent;
@@ -113,24 +132,5 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->SetVisibility(ESlateVisibility::HitTestInvisible);
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->HideLastClickedSlot();
 		PlayerCharacter->GetPlayerHUD()->GetEquipmentWidget()->HideLastClickedSlot();
-	}
-}
-
-void AStorage::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-							const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
-	{
-		Tooltip->SetHiddenInGame(false);
-	}
-}
-
-void AStorage::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
-	{
-		Tooltip->SetHiddenInGame(true);
 	}
 }
