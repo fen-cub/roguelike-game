@@ -17,6 +17,9 @@ class ROGUELIKE_GAME_API UInventorySlot : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	int64 PositionInInventory;
+	
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
@@ -24,9 +27,6 @@ protected:
 
 	UFUNCTION()
 	void InteractButtonOnClicked();
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int64 PositionInInventory;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
@@ -43,6 +43,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UTextBlock* InteractButtonText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* PutItemSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* TakeItemSound;
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractButtonVisibility(ESlateVisibility NewVisibility);

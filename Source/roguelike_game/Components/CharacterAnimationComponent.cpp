@@ -3,6 +3,7 @@
 
 #include "CharacterAnimationComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 UCharacterAnimationComponent::UCharacterAnimationComponent()
@@ -11,10 +12,56 @@ UCharacterAnimationComponent::UCharacterAnimationComponent()
 	ComparisonErrorTolerance = 1e-7;
 }
 
+void UCharacterAnimationComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void UCharacterAnimationComponent::OnFinishedAttack()
+{
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->bIsAttacking = false;
+		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
+	}
+}
+
+
 void UCharacterAnimationComponent::SetupOwner(UPaperFlipbookComponent* FlipbookComponent)
 {
 	OwnerFlipbookComponent = FlipbookComponent;
 	AnimateIdle();
+}
+
+
+// Called every animation while alive
+void UCharacterAnimationComponent::SetCurrentCharacterDirection(FVector const& Velocity)
+{
+	const float x = Velocity.GetSafeNormal().X;
+	const float y = Velocity.GetSafeNormal().Y;
+
+	bool bIsMoving = !FMath::IsNearlyZero(Velocity.Size(), ComparisonErrorTolerance);
+
+	if (bIsMoving)
+	{
+		if (y > 0.5f)
+		{
+			CurrentCharacterDirection = ECharacterDirection::Right;
+		}
+		else if (y < -0.5f)
+		{
+			CurrentCharacterDirection = ECharacterDirection::Left;
+		}
+		else if (x < -0.5f)
+		{
+			CurrentCharacterDirection = ECharacterDirection::Down;
+		}
+		else if (x > 0.5f)
+		{
+			CurrentCharacterDirection = ECharacterDirection::Up;
+		}
+	}
 }
 
 // Called while walking
@@ -39,6 +86,12 @@ void UCharacterAnimationComponent::AnimateWalking()
 	default:
 		break;
 	}
+
+	if ((OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 1 || OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 4) && LastFrameNumber != OwnerFlipbookComponent->GetPlaybackPositionInFrames())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, StepSound, GetOwner()->GetActorLocation());
+	}
+	LastFrameNumber = OwnerFlipbookComponent->GetPlaybackPositionInFrames();
 }
 
 // Called while running
@@ -63,6 +116,12 @@ void UCharacterAnimationComponent::AnimateRunning()
 	default:
 		break;
 	}
+
+	if ((OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 1 || OwnerFlipbookComponent->GetPlaybackPositionInFrames() == 4) && LastFrameNumber != OwnerFlipbookComponent->GetPlaybackPositionInFrames())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, StepSound, GetOwner()->GetActorLocation());
+	}
+	LastFrameNumber = OwnerFlipbookComponent->GetPlaybackPositionInFrames();
 }
 
 // Called while idle
@@ -111,6 +170,11 @@ void UCharacterAnimationComponent::AnimateAttack()
 		break;
 	}
 
+	if (GetOwner())
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, AttackSound, GetOwner()->GetActorLocation());
+	}
+	
 	OwnerFlipbookComponent->OnFinishedPlaying.AddUniqueDynamic(this, &UCharacterAnimationComponent::OnFinishedAttack);
 }
 
@@ -134,50 +198,5 @@ void UCharacterAnimationComponent::AnimateDeath()
 		break;
 	default:
 		break;
-	}
-}
-
-void UCharacterAnimationComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UCharacterAnimationComponent::OnFinishedAttack()
-{
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-	if (PlayerCharacter)
-	{
-		PlayerCharacter->bIsAttacking = false;
-		PlayerCharacter->SetMaxWalkSpeed(PlayerCharacter->GetWalkSpeed());
-	}
-}
-
-
-// Called every animation while alive
-void UCharacterAnimationComponent::SetCurrentCharacterDirection(FVector const& Velocity)
-{
-	const float x = Velocity.GetSafeNormal().X;
-	const float y = Velocity.GetSafeNormal().Y;
-
-	bool bIsMoving = !FMath::IsNearlyZero(Velocity.Size(), ComparisonErrorTolerance);
-
-	if (bIsMoving)
-	{
-		if (y > 0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Right;
-		}
-		else if (y < -0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Left;
-		}
-		else if (x < -0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Down;
-		}
-		else if (x > 0.5f)
-		{
-			CurrentCharacterDirection = ECharacterDirection::Up;
-		}
 	}
 }

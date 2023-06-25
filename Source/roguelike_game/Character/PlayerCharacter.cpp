@@ -6,11 +6,11 @@
 #include "PaperFlipbookComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/CharacterAnimationComponent.h"
-#include "Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "roguelike_game/Items/Item.h"
 #include "Components/InputComponent.h"
-#include "Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/InputSettings.h"
@@ -48,11 +48,12 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	// Default capsule component properties
-	GetCapsuleComponent()->InitCapsuleSize(7.0f, 10.0f);
+	GetCapsuleComponent()->InitCapsuleSize(11.0f, 11.0f);
 
 	// Default sprite properties
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	GetSprite()->SetRelativeLocation(FVector(9.0f, 0.0f, 0.0f));
 
 	// Default camera boom properties
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
@@ -79,7 +80,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// Default trigger capsule properties
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger Capsule");
-	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
+	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
@@ -188,6 +189,38 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 																static_cast<int64>(9));
 }
 
+void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
+{
+	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
+	{
+		StopSprint();
+	}
+
+	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
+
+	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
+
+	if (bIsMoving && !bIsDead && !bIsAttacking)
+	{
+		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
+		{
+			AnimationComponent->AnimateRunning();
+			if (IsLocallyControlled())
+			{
+				AttributesComponent->UpdateStamina(RunningStaminaLossRate);
+			}
+		}
+		else
+		{
+			AnimationComponent->AnimateWalking();
+		}
+	}
+	else if (!bIsDead && !bIsAttacking)
+	{
+		AnimationComponent->AnimateIdle();
+	}
+}
+
 void APlayerCharacter::SwitchMouseCursorVisibility()
 {
 	APlayerController* Fpc = GetController<APlayerController>();
@@ -223,45 +256,15 @@ void APlayerCharacter::SwitchMouseCursorVisibility()
 	}
 }
 
-void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
+// Called when some actor in overlap
+void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+									const FHitResult& SweepResult)
 {
-	WalkSpeed = NewWalkSpeed;
-}
-
-void APlayerCharacter::ServerSetSprintSpeed_Implementation(float NewSprintSpeed)
-{
-	SprintSpeed = NewSprintSpeed;
-}
-
-void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
-{
-	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
+	// check if Actors do not equal nullptr
+	if (OtherActor && OtherActor != this)
 	{
-		StopSprint();
-	}
-
-	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
-
-	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
-
-	if (bIsMoving && !bIsDead && !bIsAttacking)
-	{
-		if (GetCharacterMovement()->MaxWalkSpeed >= SprintSpeed - ComparisonErrorTolerance)
-		{
-			AnimationComponent->AnimateRunning();
-			if (IsLocallyControlled())
-			{
-				AttributesComponent->UpdateStamina(RunningStaminaLossRate);
-			}
-		}
-		else
-		{
-			AnimationComponent->AnimateWalking();
-		}
-	}
-	else if (!bIsDead && !bIsAttacking)
-	{
-		AnimationComponent->AnimateIdle();
+		// Actor on overlap...
 	}
 }
 
@@ -294,7 +297,7 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 // Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
-	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
+	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead && !bIsAttacking)
 	{
 		SetMaxWalkSpeed(SprintSpeed);
 	}
@@ -306,6 +309,14 @@ void APlayerCharacter::StopSprint()
 	if (!bIsDead && !bIsAttacking)
 	{
 		SetMaxWalkSpeed(WalkSpeed);
+	}
+}
+
+void APlayerCharacter::UseItem(const int64 Position)
+{
+	if (!bIsDead && HasLocalNetOwner())
+	{
+		InventoryComponent->UseItem(Position - 1);
 	}
 }
 
@@ -322,11 +333,24 @@ void APlayerCharacter::Die()
 	}
 }
 
-// Called when client dying
 void APlayerCharacter::ServerSetDying_Implementation()
 {
 	bIsDead = true;
-	OnRep_IsDead();
+	OnRepSetDying();
+}
+
+// Calls back from server when dying
+void APlayerCharacter::OnRepSetDying()
+{
+	AnimationComponent->AnimateDeath();
+
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
+	}
+
+	// EndPlay(EEndPlayReason::Destroyed);
 }
 
 void APlayerCharacter::Interact()
@@ -354,39 +378,70 @@ void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
 		if (Interface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
 			AStorage* Storage = Cast<AStorage>(Actor);
 			if (Storage && !Storage->GetStorageComponent()->bIsGenerated)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Random hash: %d"), static_cast<int>(RandomHash));
 				Storage->GetStorageComponent()->GenerateRandomContents(RandomHash);
 			}
 
 			Interface->Interact(this);
 		}
 	}
-	else
+}
+
+void APlayerCharacter::Attack()
+{
+	if (HasLocalNetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
+		ServerAttack();
 	}
 }
 
-void APlayerCharacter::UseItem(const int64 Position)
+void APlayerCharacter::ServerAttack_Implementation()
 {
-	if (!bIsDead && HasLocalNetOwner())
+	OnRep_Attack();
+}
+
+void APlayerCharacter::OnRep_Attack_Implementation()
+{
+	if (!bIsAttacking && !bIsDead && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
 	{
-		InventoryComponent->UseItem(Position - 1);
+		AnimationComponent->AnimateAttack();
+		bIsAttacking = true;
+		SetMaxWalkSpeed(0);
+
+		AttributesComponent->UpdateStamina(-5.0f);
 	}
 }
 
-UItemStorageComponent* APlayerCharacter::GetEquipmentComponent() const
+void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
 {
-	return EquipmentComponent;
+	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
+}
+
+void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
+}
+
+void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
+{
+	WalkSpeed = NewWalkSpeed;
+}
+
+void APlayerCharacter::ServerSetSprintSpeed_Implementation(float NewSprintSpeed)
+{
+	SprintSpeed = NewSprintSpeed;
 }
 
 UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
 {
 	return InventoryComponent;
+}
+
+UItemStorageComponent* APlayerCharacter::GetEquipmentComponent() const
+{
+	return EquipmentComponent;
 }
 
 UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
@@ -407,65 +462,6 @@ AStorage* APlayerCharacter::GetInteractableStorage() const
 void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableStorage)
 {
 	InteractableStorage = NewInteractableStorage;
-}
-
-void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
-{
-	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
-}
-
-void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
-{
-	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
-}
-
-// Calls back from server when dying
-void APlayerCharacter::OnRep_IsDead()
-{
-	AnimationComponent->AnimateDeath();
-
-	if (PlayerHUD)
-	{
-		PlayerHUD->RemoveFromParent();
-		PlayerHUD = nullptr;
-	}
-
-	// EndPlay(EEndPlayReason::Destroyed);
-}
-
-// Called when some actor in overlap
-void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-									const FHitResult& SweepResult)
-{
-	// check if Actors do not equal nullptr
-	if (OtherActor && OtherActor != this)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
-	}
-}
-
-void APlayerCharacter::ServerAttack_Implementation()
-{
-	OnRep_Attack();
-}
-
-void APlayerCharacter::OnRep_Attack_Implementation()
-{
-	if (!bIsAttacking && !bIsDead)
-	{
-		AnimationComponent->AnimateAttack();
-		bIsAttacking = true;
-		SetMaxWalkSpeed(0);
-	}
-}
-
-void APlayerCharacter::Attack()
-{
-	if (HasLocalNetOwner())
-	{
-		ServerAttack();
-	}
 }
 
 void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)

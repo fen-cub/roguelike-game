@@ -18,11 +18,6 @@ public:
 	UCharacterAttributesComponent();
 
 protected:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 	// Need to be set at the begining of the game
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
@@ -30,22 +25,31 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float MaxHealth;
 
-	UPROPERTY(ReplicatedUsing = OnRepHealth)
+	UPROPERTY(Replicated)
 	float Health;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* DamageSound;
+	
+	UPROPERTY(EditAnywhere)
+	float MaxStamina;
+
+	UPROPERTY(ReplicatedUsing = OnRepUpdateStamina)
+	float Stamina;
+
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
 	// Called to update Health on the server
 	UFUNCTION(Server, Reliable)
 	void ServerUpdateHealth(float HealthDelta);
 
 	// Called back from server when health updated
-	UFUNCTION()
-	void OnRepHealth();
-
-	UPROPERTY(EditAnywhere)
-	float MaxStamina;
-
-	UPROPERTY(ReplicatedUsing = OnRepStamina)
-	float Stamina;
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRepUpdateHealth(float HealthDelta);
 
 	// Called to update Stamina on the server
 	UFUNCTION(Server, Reliable)
@@ -53,7 +57,7 @@ protected:
 
 	// Called back from server when stamina updated
 	UFUNCTION()
-	void OnRepStamina();
+	void OnRepUpdateStamina();
 
 public:
 	// Called when HUD created

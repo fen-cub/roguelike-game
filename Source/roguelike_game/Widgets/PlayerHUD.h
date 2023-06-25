@@ -34,6 +34,7 @@ protected:
 
 public:
 	UStorageDisplay* GetInteractableStorageWidget() const;
+
 	void SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget);
 
 	void SetHealth(float CurrentHealth, float MaxHealth);

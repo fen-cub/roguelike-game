@@ -2,8 +2,10 @@
 
 
 #include "ArmorItem.h"
+
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
@@ -27,4 +29,6 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
 		}
 	}
+
+	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 }

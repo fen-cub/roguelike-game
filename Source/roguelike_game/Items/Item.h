@@ -23,9 +23,9 @@ struct FItemData
 	UPROPERTY(BlueprintReadOnly)
 	FString Name;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsEquipped;
-	
+
 	bool IsEmpty() const;
 };
 
@@ -50,10 +50,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
 	FItemData Data;
 	
-protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* InteractSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* UseSound;
+
 	// Setup properties that should be replicated from the server to clients.
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+private:
 	// Called when on Overlap
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
@@ -65,7 +71,6 @@ protected:
 					class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:
-
 	// Flipbook texture of item
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPaperFlipbook* ItemFlipbook{nullptr};

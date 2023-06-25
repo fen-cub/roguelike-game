@@ -115,6 +115,53 @@ class ROGUELIKE_GAME_API UCharacterAnimationComponent : public UPaperSpriteCompo
 {
 	GENERATED_BODY()
 
+protected:
+	// Epsilon for float types comparison
+	float ComparisonErrorTolerance;
+
+	// Current direction, default - Down
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	ECharacterDirection CurrentCharacterDirection;
+
+	// Sprite of owner
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	class UPaperFlipbookComponent* OwnerFlipbookComponent;
+
+	// Idle flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FIdleAnimationFlipbooks IdleFlipbooks;
+
+	// Walking flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FWalkingAnimationFlipbooks WalkingFlipbooks;
+
+	// Running flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FRunningAnimationFlipbooks RunningFlipbooks;
+	
+	// Attack flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FAttackAnimationFlipbooks AttackFlipbooks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundCharacter | Config ")
+	class USoundBase* AttackSound;
+
+	// Death flipbooks animation storage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
+	FDeathAnimationFlipbooks DeathFlipbooks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SoundCharacter | Config ")
+	class USoundBase* StepSound;
+	
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnFinishedAttack();
+
+private:
+	int32 LastFrameNumber = -1;
+
 public:
 	UCharacterAnimationComponent();
 
@@ -145,42 +192,4 @@ public:
 	// Sets death animation 
 	UFUNCTION(BlueprintCallable, Category="AnimationCharacter | Animation")
 	void AnimateDeath();
-
-protected:
-	// Epsilon for float types comparison
-	float ComparisonErrorTolerance;
-
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	// Current direction, default - Down
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	ECharacterDirection CurrentCharacterDirection;
-
-	// Sprite of owner
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	class UPaperFlipbookComponent* OwnerFlipbookComponent;
-
-	// Idle flipbooks animation storage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FIdleAnimationFlipbooks IdleFlipbooks;
-
-	// Walking flipbooks animation storage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FWalkingAnimationFlipbooks WalkingFlipbooks;
-
-	// Running flipbooks animation storage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FRunningAnimationFlipbooks RunningFlipbooks;
-
-	// Attack flipbooks animation storage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FAttackAnimationFlipbooks AttackFlipbooks;
-
-	// Death flipbooks animation storage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AnimationCharacter | Config")
-	FDeathAnimationFlipbooks DeathFlipbooks;
-
-	UFUNCTION()
-	void OnFinishedAttack();
 };

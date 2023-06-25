@@ -4,6 +4,7 @@
 #include "Storage.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Widgets/EquipmentWidget.h"
 #include "roguelike_game/Widgets/StorageDisplay.h"
@@ -21,7 +22,6 @@ AStorage::AStorage()
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AStorage::OnOverlapEnd);
 
 	StorageComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
-	UE_LOG(LogTemp, Warning, TEXT("Chest slot count to set: %d"), static_cast<int>(20));
 	StorageComponent->SetStorageSize(20);
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
@@ -46,6 +46,25 @@ void AStorage::BeginPlay()
 		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 
 		SetOwner(PlayerController);
+	}
+}
+
+void AStorage::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+							const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
+	{
+		Tooltip->SetHiddenInGame(false);
+	}
+}
+
+void AStorage::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
+	{
+		Tooltip->SetHiddenInGame(true);
 	}
 }
 
@@ -89,12 +108,14 @@ void AStorage::Interact(APlayerCharacter* PlayerCharacter)
 		}
 
 		PlayerCharacter->SetInteractableStorage(this);
+		UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, InteractSound, PlayerCharacter->GetActorLocation());
 	}
 }
 
 void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 {
 	PlayerCharacter->SetInteractableStorage(nullptr);
+
 
 	if (StorageWidget && PlayerCharacter->IsLocallyControlled())
 	{
@@ -115,23 +136,6 @@ void AStorage::StopInteract(APlayerCharacter* PlayerCharacter)
 		PlayerCharacter->GetPlayerHUD()->GetInventoryWidget()->HideLastClickedSlot();
 		PlayerCharacter->GetPlayerHUD()->GetEquipmentWidget()->HideLastClickedSlot();
 	}
-}
 
-void AStorage::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-							const FHitResult& SweepResult)
-{
-	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
-	{
-		Tooltip->SetHiddenInGame(false);
-	}
-}
-
-void AStorage::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor && OtherActor != this && Cast<APlayerCharacter>(OtherActor))
-	{
-		Tooltip->SetHiddenInGame(true);
-	}
+	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, StopInteractSound, PlayerCharacter->GetActorLocation());
 }

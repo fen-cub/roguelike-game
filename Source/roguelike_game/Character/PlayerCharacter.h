@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
-#include "Components/CharacterAnimationComponent.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
 #include "roguelike_game/Widgets/PlayerHUD.h"
 #include "EnvironmentQuery/EnvQueryDebugHelpers.h"
 #include "PlayerCharacter.generated.h"
@@ -26,7 +26,7 @@ public:
 
 protected:
 	// True if character is dead
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRepSetDying, Category = "State")
 	bool bIsDead;
 
 	// True if character is moving
@@ -43,60 +43,6 @@ protected:
 
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
-
-	// Sets spawn properties
-	UFUNCTION()
-	virtual void BeginPlay() override;
-
-	// Sets spawn properties
-	UFUNCTION()
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	// Setup properties that should be replicated from the server to clients.
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	// Sets direction vector every moving
-	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
-
-	// Sets and binds input
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-	UFUNCTION(BlueprintCallable, Category= "AnimationCharacter | Config")
-	void UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
-
-	// Moves character forward or down
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void MoveForwardOrDown(const float Axis);
-
-	// Moves character right or left
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void MoveRightOrLeft(const float Axis);
-
-	// Increases maximum speed
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void Sprint();
-
-	// Sets maximum speed to default  
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void StopSprint();
-
-	// Stops movements and calls death animation
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void Die();
-
-	// Interact with Interactable Interface
-	UFUNCTION(BlueprintCallable, Category= Trigger)
-	void Interact();
-
-	UFUNCTION(Server, Reliable)
-	void ServerInteract();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void OnRep_Interact(int64 RandomHash);
-
-	// Interact with Interactable Interface
-	UFUNCTION(BlueprintCallable, Category= Trigger)
-	void UseItem(const int64 Position);
 
 	DECLARE_DELEGATE_OneParam(FNumberKeyActionDelegate, const int64);
 
@@ -143,38 +89,94 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
-	// Called back from server to set sprint
-	UFUNCTION(NetMulticast, Unreliable)
-	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
-
-	// Calls server to set dying
-	UFUNCTION(Server, Reliable)
-	void ServerSetDying();
-
-	// Calls back from server to set dying
+	// Sets spawn properties
 	UFUNCTION()
-	void OnRep_IsDead();
+	virtual void BeginPlay() override;
 
-	// Called when on Overlap
+	// Sets spawn properties
+	UFUNCTION()
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	// Setup properties that should be replicated from the server to clients.
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// Sets direction vector every moving
+	virtual void AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce) override;
+
+	// Sets and binds input
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintCallable, Category= "AnimationCharacter | Config")
+	void UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
+
+	UFUNCTION()
+	void SwitchMouseCursorVisibility();
+
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 
-	UFUNCTION(Server, UnReliable)
-	void ServerAttack();
+	// Moves character forward or down
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void MoveForwardOrDown(const float Axis);
+
+	// Moves character right or left
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void MoveRightOrLeft(const float Axis);
+
+	// Increases maximum speed
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void Sprint();
+
+	// Sets maximum speed to default  
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void StopSprint();
+
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void UseItem(const int64 Position);
+
+	// Stops movements and calls death animation
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void Die();
+
+private:
+	UFUNCTION(Server, Reliable)
+	void ServerSetDying();
 
 	UFUNCTION()
+	void OnRepSetDying();
+
+protected:
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void Interact();
+
+private:
+	UFUNCTION(Server, Reliable)
+	void ServerInteract();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void OnRep_Interact(int64 RandomHash);
+
+protected:
+	// Attack enemy
+	UFUNCTION()
 	void Attack();
+
+private:
+	UFUNCTION(Server, UnReliable)
+	void ServerAttack();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_Attack();
 
-	UFUNCTION()
-	void SwitchMouseCursorVisibility();
-
 	UFUNCTION(Server, Unreliable)
 	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	UFUNCTION(Server, Unreliable)
 	void ServerSetWalkSpeed(float NewWalkSpeed);

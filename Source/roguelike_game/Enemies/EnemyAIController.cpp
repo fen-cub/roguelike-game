@@ -8,7 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Runtime/NavigationSystem/Public/NavigationSystem.h"
 
