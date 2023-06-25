@@ -5,6 +5,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
@@ -16,6 +17,7 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 			Data.bIsEquipped = true;
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 1);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->GetAttributesComponent()->SetDamageProtection(DamageProtectionPercent);
 		}
 	}
 	else
@@ -27,6 +29,7 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->GetAttributesComponent()->SetDamageProtection(0);
 		}
 	}
 
