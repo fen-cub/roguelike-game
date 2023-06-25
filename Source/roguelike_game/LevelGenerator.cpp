@@ -2,17 +2,21 @@
 
 
 #include "LevelGenerator.h"
-
+#include "SpawnPoints.h"
+#include "GameFramework/PlayerStart.h"
 #include "EditorDirectories.h"
-
 
 // Sets default values
 ALevelGenerator::ALevelGenerator()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	UClass* ClassA = ARoomActor::StaticClass();
-	RoomActorClass = ClassA;
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> ItemBPClass(TEXT("/Game/Items/StaminaRecoveryItemBP"));
+	if (ItemBPClass.Succeeded())
+	{
+		AttributesRecoveryItemClass = ItemBPClass.Class;
+	}
 }
 
 // Called every frame
@@ -27,16 +31,22 @@ int8 Conjugate(const int8 X)
 	return (X + 2 + 4) % 4;
 }
 
+void ALevelGenerator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ALevelGenerator, RoomActorClass);
+
+}
+
 void ALevelGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
-
+	UE_LOG(LogTemp, Warning, TEXT("IN GENERATOR"))
+	if (HasAuthority()) {
 	NumOfRooms = FMath::RandRange(0, 1) + 5 + LevelNumber * 2.6;
-	MaxBigRooms = LevelNumber;
-	MaxLongRooms = LevelNumber * 1.5;
-	MaxLTypeRooms = LevelNumber * 1.5;
+	MaxBigRooms = LevelNumber - 1;
+	MaxLongRooms = LevelNumber;
+	MaxLTypeRooms = LevelNumber;
 	
 	uint8 RoomsExist = 0;
 	uint8 BigRoomsExist = 0;
@@ -44,6 +54,26 @@ void ALevelGenerator::BeginPlay()
 	uint8 LTypeRoomsExist = 0;
 
 	while (true) {
+		for (int i = 0; i < DefaultTemplatesSet.Num(); i++)
+		{
+			UnusedDefaultTemplates.Add(i);
+		}
+		for (int i = 0; i < HorizontalAdditionsTemplatesSet.Num(); i++)
+		{
+			UnusedHorizontalAdditionsTemplates.Add(i);
+		}
+		for (int i = 0; i < VerticalAdditionsTemplatesSet.Num(); i++)
+		{
+			UnusedVerticalAdditionsTemplates.Add(i);
+		}
+		for (int i = 0; i < HorizontalCorridorsTemplatesSet.Num(); i++)
+		{
+			UnusedHorizontalCorridorsTemplates.Add(i);
+		}
+		for (int i = 0; i < VerticalCorridorsTemplatesSet.Num(); i++)
+		{
+			UnusedVerticalCorridorsTemplates.Add(i);
+		}
 		LevelMap[FirstRoom.Key][FirstRoom.Value].CellRoomType = Default;
 		LevelMap[FirstRoom.Key][FirstRoom.Value].Main = true;
 		RoomQueue.Enqueue(FirstRoom);
@@ -60,7 +90,7 @@ void ALevelGenerator::BeginPlay()
 					continue;
 				}
 				auto &NeighboringCell = LevelMap[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]];
-				if (NeighboringCell.CellRoomType != None) {
+				if (NeighboringCell.CellRoomType != Empty) {
 					continue;
 				}
 				if (RoomsExist == NumOfRooms)
@@ -102,7 +132,6 @@ void ALevelGenerator::BeginPlay()
 						LTypeRoomsExist++;
 						CurrentCell.Doors.Add(i);
 						NeighboringCell.Doors.Add(Conjugate(i));
-						UE_LOG(LogTemp, Warning, TEXT("L Type Room %d %d"), LTypeRoom, FMath::Abs(LTypeRoom))
 						SetLTypeRoom(TPair<int, int>(FromQueue.Key + DirX[i], FromQueue.Value + DirY[i]), i, FMath::Sign(LTypeRoom), FMath::Abs(LTypeRoom));
 						continue;
 					}
@@ -154,14 +183,24 @@ void ALevelGenerator::BeginPlay()
 		}
 	}
 }
+}
 
 void ALevelGenerator::CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom)
 {
-	TSet<int> EmptySet;
+	TArray<int> EmptySet;
 	const FVector NewRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 	ARoomActor* NewRoom = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewRoomLocation, FRotator(0.f, 90.f, -90.f));
-	NewRoom->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, EmptySet, 0);
-	AllRooms.Enqueue(NewRoom);
+	UE_LOG(LogTemp, Warning, TEXT("Location = %f %f"), NewRoomLocation.X, NewRoomLocation.Y)
+	const int Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+	const int Num = UnusedDefaultTemplates[Index];
+	UnusedDefaultTemplates.Remove(Index);
+	//UE_LOG(LogTemp, Warning, TEXT("Num %d"), Num)
+	NewRoom->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, EmptySet, 0, Num);
+	for (auto SpawnPoint : DefaultTemplatesSet[Num]) {
+		//UE_LOG(LogTemp, Warning, TEXT("Spawn Item"))
+		SpawnItem(AttributesRecoveryItemClass, FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
+	}
+	AllRooms.Add(NewRoom);
 	CreateCorridors(CurrentRoom);
 }
 
@@ -173,7 +212,7 @@ int ALevelGenerator::CanAddLongRoom(const TPair<uint8, uint8> StartRoom, uint8 D
 		for (int8 i = -1; i <= 1; i++)
 		{
 			if (StartRoom.Key + DirX[(Dir + i + 4) % 4] >= 0 && StartRoom.Key + DirX[(Dir + i + 4) % 4] < MapWidth && StartRoom.Value + DirY[(Dir + i + 4) % 4] >= 0 && StartRoom.Value + DirY[(Dir + i + 4) % 4] < MapHeight) {
-				if (LevelMap[StartRoom.Key + DirX[(Dir + i + 4) % 4]][StartRoom.Value + DirY[(Dir + i + 4) % 4]].CellRoomType == None && FMath::RandBool())
+				if (LevelMap[StartRoom.Key + DirX[(Dir + i + 4) % 4]][StartRoom.Value + DirY[(Dir + i + 4) % 4]].CellRoomType == Empty && FMath::RandBool())
 				{
 					return (Dir + i + 4) % 4 + 2;
 				}
@@ -198,44 +237,56 @@ void ALevelGenerator::SetLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 
 void ALevelGenerator::CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 {
-	TSet<int> EmptySet;
+	TArray<int> EmptySet;
 	const TPair<int, int> SecondRoom = TPair<int, int>(CurrentRoom.Key + DirX[Dir], CurrentRoom.Value + DirY[Dir]);
 	const FVector CurRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 	ARoomActor* NewRoom1 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, CurRoomLocation, FRotator(0.f, 90.f, -90.f));
-	NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+	int Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+	int Num = UnusedDefaultTemplates[Index];
+	UnusedDefaultTemplates.Remove(Index);
+	NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 	CreateCorridors(CurrentRoom);
 	LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
 	
 	
 	const FVector SecondRoomLocation = FVector((FirstRoom.Value - SecondRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - SecondRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 	ARoomActor* NewRoom2 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SecondRoomLocation, FRotator(0.f, 90.f, -90.f));
-	NewRoom2->Init(LevelMap[SecondRoom.Key][SecondRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[SecondRoom.Key][SecondRoom.Value].Walls, 0);
+	Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+	Num = UnusedDefaultTemplates[Index];
+	UnusedDefaultTemplates.Remove(Index);
+	NewRoom2->Init(LevelMap[SecondRoom.Key][SecondRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[SecondRoom.Key][SecondRoom.Value].Walls, 0, Num);
 	CreateCorridors(SecondRoom);
 	LevelMap[SecondRoom.Key][SecondRoom.Value].Generated = true;
 
 	
 	const FVector AddedRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight) + AddDirX[Dir], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight) + AddDirY[Dir], 0.f);
 	ARoomActor* NewRoom3 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, AddedRoomLocation, FRotator(0.f, 90.f, -90.f));
-	TSet<int> AddedRoomWalls;
+	TArray<int> AddedRoomWalls;
 	AddedRoomWalls.Add(Dir);
 	AddedRoomWalls.Add(Conjugate(Dir));
 	if (Dir % 2 == 0)
 	{
-		NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0);
+		Index = FMath::RandRange(0, UnusedHorizontalAdditionsTemplates.Num() - 1);
+		Num = UnusedHorizontalAdditionsTemplates[Index];
+		UnusedHorizontalAdditionsTemplates.Remove(Index);
+		NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0, Num);
 	} else
 	{
-		NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0);
+		Index = FMath::RandRange(0, UnusedVerticalAdditionsTemplates.Num() - 1);
+		Num = UnusedVerticalAdditionsTemplates[Index];
+		UnusedVerticalAdditionsTemplates.Remove(Index);
+		NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0, Num);
 	}
 	
 	
-	AllRooms.Enqueue(NewRoom1);
-	AllRooms.Enqueue(NewRoom2);
-	AllRooms.Enqueue(NewRoom3);
+	AllRooms.Add(NewRoom1);
+	AllRooms.Add(NewRoom2);
+	AllRooms.Add(NewRoom3);
 }
 
 void ALevelGenerator::CreateCorridors(const TPair<int, int> CurrentRoom)
 {
-	TSet<int> EmptySet;
+	TArray<int> EmptySet;
 	for (const int& x : LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors)
 	{
 		if (LevelMap[CurrentRoom.Key + DirX[x]][CurrentRoom.Value + DirY[x]].Generated == false) {
@@ -243,30 +294,29 @@ void ALevelGenerator::CreateCorridors(const TPair<int, int> CurrentRoom)
 			const float NewY = (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + CorridorHeight * RealTileHeight) + CorrDirY[x];
 			FVector NewCorridorLocation = FVector(NewX, NewY, 0.f);
 			ARoomActor* NewCorridor = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewCorridorLocation, FRotator(0.f, 90.f, -90.f));
-			TSet<int> CorridorDir;
+			TArray<int> CorridorDir;
 			if (x % 2 == 0)
 			{
 				CorridorDir.Add(0);
 				CorridorDir.Add(2);
-				NewCorridor->Init(CorridorDir, CorridorWidth, CorridorHeight, EmptySet, 0);
+				NewCorridor->Init(CorridorDir, CorridorWidth, CorridorHeight, EmptySet, 0, 0);
 			} else
 			{
 				CorridorDir.Add(1);
 				CorridorDir.Add(3);
-				NewCorridor->Init(CorridorDir, CorridorHeight, CorridorWidth, EmptySet, 0);
+				NewCorridor->Init(CorridorDir, CorridorHeight, CorridorWidth, EmptySet, 0, 0);
 			}
-			AllRooms.Enqueue(NewCorridor);
+			AllRooms.Add(NewCorridor);
 		}
 	}
 }
 
 void ALevelGenerator::Clear()
 {
-	while(AllRooms.IsEmpty() != true)
+	while(AllRooms.Num() != 0)
 	{
-		ARoomActor* RoomToDelete;
-		AllRooms.Peek(RoomToDelete);
-		AllRooms.Pop();
+		ARoomActor* RoomToDelete = AllRooms[AllRooms.Num() - 1];
+		AllRooms.RemoveAt(AllRooms.Num() - 1);
 		RoomToDelete->Destroy();
 	}
 	for (int i = 0; i < MapWidth; i++)
@@ -276,9 +326,14 @@ void ALevelGenerator::Clear()
 			LevelMap[i][j].Doors.Empty();
 			LevelMap[i][j].Generated = false;
 			LevelMap[i][j].Main = false;
-			LevelMap[i][j].CellRoomType = None;
+			LevelMap[i][j].CellRoomType = Empty;
 		}
 	}
+	UnusedDefaultTemplates.Empty();
+	UnusedHorizontalAdditionsTemplates.Empty();
+	UnusedVerticalAdditionsTemplates.Empty();
+	UnusedHorizontalCorridorsTemplates.Empty();
+	UnusedVerticalCorridorsTemplates.Empty();
 }
 
 int ALevelGenerator::CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direction) const {
@@ -291,7 +346,7 @@ int ALevelGenerator::CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direct
 			if (CurrentRoomCopy1.Key < 0 || CurrentRoomCopy1.Key >= MapWidth || CurrentRoomCopy1.Value < 0 || CurrentRoomCopy1.Value >= MapHeight) {
 				break;
 			}
-			if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+			if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 			{
 				break;
 			}
@@ -305,7 +360,7 @@ int ALevelGenerator::CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direct
 			{
 				break;
 			}
-			if (LevelMap[CurrentRoomCopy2.Key][CurrentRoomCopy2.Value].CellRoomType != None)
+			if (LevelMap[CurrentRoomCopy2.Key][CurrentRoomCopy2.Value].CellRoomType != Empty)
 			{
 				break;
 			}
@@ -339,38 +394,39 @@ void ALevelGenerator::SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int
 
 void ALevelGenerator::CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Side)
 {
-	TSet<int> EmptySet;
+	TArray<int> EmptySet;
 	for (int i = 0; i <= 3; i++)
 	{
 		const FVector AddedRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + AddDirX[(Dir + Side * i + 4) % 4], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + AddDirY[(Dir + Side * i + 4) % 4], 0.f);
 		ARoomActor* NewRoom3 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, AddedRoomLocation, FRotator(0.f, 90.f, -90.f));
-		TSet<int> AddedRoomWalls;
+		TArray<int> AddedRoomWalls;
 		AddedRoomWalls.Add((Dir + Side * i + 4) % 4);
 		AddedRoomWalls.Add(Conjugate((Dir + Side * i + 4) % 4));
 		if (((Dir + Side * i + 4) % 4) % 2 == 0)
 		{
-			NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0);
+			const int Index = FMath::RandRange(0, UnusedHorizontalAdditionsTemplates.Num() - 1);
+			const int Num = UnusedHorizontalAdditionsTemplates[Index];
+			UnusedHorizontalAdditionsTemplates.Remove(Index);
+			NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0, Num);
 		} else
 		{
-			NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0);
+			const int Index = FMath::RandRange(0, UnusedVerticalAdditionsTemplates.Num() - 1);
+			const int Num = UnusedVerticalAdditionsTemplates[Index];
+			UnusedVerticalAdditionsTemplates.Remove(Index);
+			NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0, Num);
 		}
-		AllRooms.Enqueue(NewRoom3);
+		AllRooms.Add(NewRoom3);
 		CurrentRoom.Key += DirX[(Dir + Side * i + 4) % 4];
 		CurrentRoom.Value += DirY[(Dir + Side * i + 4) % 4];
 		const FVector CurRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 		ARoomActor* NewRoom1 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, CurRoomLocation, FRotator(0.f, 90.f, -90.f));
-		NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+		const int Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+		const int Num = UnusedDefaultTemplates[Index];
+		UnusedDefaultTemplates.Remove(Index);
+		NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 		CreateCorridors(CurrentRoom);
 		LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
-		AllRooms.Enqueue(NewRoom1);
-		/*
-		for (int j = 0; j < 4; j++)
-		{
-			const FVector SquareLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + SquareX[j], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + SquareY[j], 0.f);
-			ARoomActor* Square = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SquareLocation, FRotator(0.f, 90.f, -90.f));
-			Square->Init(EmptySet, 1, 1, EmptySet, j);
-			AllRooms.Enqueue(Square);
-		}*/
+		AllRooms.Add(NewRoom1);
 	}
 	
 }
@@ -392,7 +448,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}
@@ -416,7 +472,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}
@@ -440,7 +496,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}
@@ -459,7 +515,6 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 void ALevelGenerator::SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type)
 {
 	TPair<int, int> CurrentRoomCopy = CurrentRoom;
-	UE_LOG(LogTemp, Warning, TEXT("Set L Type Room %d %d Dir: %d Side: %d, Type: %d"), CurrentRoom.Key, CurrentRoom.Value, Dir, Side, Type)
 	switch (Type){
 	case 1:
 		for (int i = 0; i < 2; i++)
@@ -520,21 +575,16 @@ void ALevelGenerator::SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, i
 
 void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side)
 {
-	TSet<int> EmptySet;
+	TArray<int> EmptySet;
 	const int Type = LevelMap[CurrentRoom.Key][CurrentRoom.Value].RoomType;
 	const FVector CurRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
+	int Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+	int Num = UnusedDefaultTemplates[Index];
+	UnusedDefaultTemplates.Remove(Index);
 	ARoomActor* NewRoom1 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, CurRoomLocation, FRotator(0.f, 90.f, -90.f));
-	NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+	NewRoom1->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 	CreateCorridors(CurrentRoom);
 	LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
-	/*
-	for (int j = 0; j < 4; j++)
-	{
-		const FVector SquareLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + SquareX[j], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + SquareY[j], 0.f);
-		ARoomActor* Square = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SquareLocation, FRotator(0.f, 90.f, -90.f));
-		Square->Init(EmptySet, 1, 1, EmptySet, j);
-		AllRooms.Enqueue(Square);
-	}*/
 
 	switch (Type)
 	{
@@ -543,33 +593,34 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 		{
 			const FVector AddedRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + AddDirX[(Dir + Side * i + 4) % 4], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + AddDirY[(Dir + Side * i + 4) % 4], 0.f);
 			ARoomActor* NewRoom3 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, AddedRoomLocation, FRotator(0.f, 90.f, -90.f));
-			TSet<int> AddedRoomWalls;
+			TArray<int> AddedRoomWalls;
 			AddedRoomWalls.Add((Dir + Side * i + 4) % 4);
 			AddedRoomWalls.Add(Conjugate((Dir + Side * i + 4) % 4));
 			if (((Dir + Side * i + 4) % 4) % 2 == 0)
 			{
-				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedHorizontalAdditionsTemplates.Num() - 1);
+				Num = UnusedHorizontalAdditionsTemplates[Index];
+				UnusedHorizontalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0, Num);
 			} else
 			{
-				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedVerticalAdditionsTemplates.Num() - 1);
+				Num = UnusedVerticalAdditionsTemplates[Index];
+				UnusedVerticalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0, Num);
 			}
-			AllRooms.Enqueue(NewRoom3);
+			AllRooms.Add(NewRoom3);
 			CurrentRoom.Key += DirX[(Dir + Side * i + 4) % 4];
 			CurrentRoom.Value += DirY[(Dir + Side * i + 4) % 4];
 			const FVector NewRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 			ARoomActor* NewRoom2 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewRoomLocation, FRotator(0.f, 90.f, -90.f));
-			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+			Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+			Num = UnusedDefaultTemplates[Index];
+			UnusedDefaultTemplates.Remove(Index);
+			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 			CreateCorridors(CurrentRoom);
 			LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
-			AllRooms.Enqueue(NewRoom1);
-			/*
-			for (int j = 0; j < 4; j++)
-			{
-				const FVector SquareLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + SquareX[j], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + SquareY[j], 0.f);
-				ARoomActor* Square = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SquareLocation, FRotator(0.f, 90.f, -90.f));
-				Square->Init(EmptySet, 1, 1, EmptySet, j);
-				AllRooms.Enqueue(Square);
-			}*/
+			AllRooms.Add(NewRoom1);
 		}
 		break;
 	case 2:
@@ -577,33 +628,34 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 		{
 			const FVector AddedRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + AddDirX[(Dir + Side * i + 4) % 4], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + AddDirY[(Dir + Side * i + 4) % 4], 0.f);
 			ARoomActor* NewRoom3 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, AddedRoomLocation, FRotator(0.f, 90.f, -90.f));
-			TSet<int> AddedRoomWalls;
+			TArray<int> AddedRoomWalls;
 			AddedRoomWalls.Add((Dir + Side * i + 4) % 4);
 			AddedRoomWalls.Add(Conjugate((Dir + Side * i + 4) % 4));
 			if (((Dir + Side * i + 4) % 4) % 2 == 0)
 			{
-				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedHorizontalAdditionsTemplates.Num() - 1);
+				Num = UnusedHorizontalAdditionsTemplates[Index];
+				UnusedHorizontalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0, Num);
 			} else
 			{
-				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedVerticalAdditionsTemplates.Num() - 1);
+				Num = UnusedVerticalAdditionsTemplates[Index];
+				UnusedVerticalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0, Num);
 			}
-			AllRooms.Enqueue(NewRoom3);
+			AllRooms.Add(NewRoom3);
 			CurrentRoom.Key += DirX[(Dir + Side * i + 4) % 4];
 			CurrentRoom.Value += DirY[(Dir + Side * i + 4) % 4];
 			const FVector NewRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 			ARoomActor* NewRoom2 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewRoomLocation, FRotator(0.f, 90.f, -90.f));
-			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+			Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+			Num = UnusedDefaultTemplates[Index];
+			UnusedDefaultTemplates.Remove(Index);
+			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 			CreateCorridors(CurrentRoom);
 			LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
-			AllRooms.Enqueue(NewRoom1);
-			/*
-			for (int j = 0; j < 4; j++)
-			{
-				const FVector SquareLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + SquareX[j], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + SquareY[j], 0.f);
-				ARoomActor* Square = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SquareLocation, FRotator(0.f, 90.f, -90.f));
-				Square->Init(EmptySet, 1, 1, EmptySet, j);
-				AllRooms.Enqueue(Square);
-			}*/
+			AllRooms.Add(NewRoom1);
 			CurrentRoom.Key -= DirX[(Dir + Side * i + 4) % 4];
 			CurrentRoom.Value -= DirY[(Dir + Side * i + 4) % 4];
 		}
@@ -613,38 +665,41 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 		{
 			const FVector AddedRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + AddDirX[(Dir + Side * i + 4) % 4], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + AddDirY[(Dir + Side * i + 4) % 4], 0.f);
 			ARoomActor* NewRoom3 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, AddedRoomLocation, FRotator(0.f, 90.f, -90.f));
-			TSet<int> AddedRoomWalls;
+			TArray<int> AddedRoomWalls;
 			AddedRoomWalls.Add((Dir + Side * i + 4) % 4);
 			AddedRoomWalls.Add(Conjugate((Dir + Side * i + 4) % 4));
 			if (((Dir + Side * i + 4) % 4) % 2 == 0)
 			{
-				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedHorizontalAdditionsTemplates.Num() - 1);
+				Num = UnusedHorizontalAdditionsTemplates[Index];
+				UnusedHorizontalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, RoomWidth, CorridorHeight, AddedRoomWalls, 0, Num);
 			} else
 			{
-				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0);
+				Index = FMath::RandRange(0, UnusedVerticalAdditionsTemplates.Num() - 1);
+				Num = UnusedVerticalAdditionsTemplates[Index];
+				UnusedVerticalAdditionsTemplates.Remove(Index);
+				NewRoom3->Init(EmptySet, CorridorHeight, RoomHeight, AddedRoomWalls, 0, Num);
 			}
-			AllRooms.Enqueue(NewRoom3);
+			AllRooms.Add(NewRoom3);
 			CurrentRoom.Key += DirX[(Dir + Side * i + 4) % 4];
 			CurrentRoom.Value += DirY[(Dir + Side * i + 4) % 4];
 			const FVector NewRoomLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 			ARoomActor* NewRoom2 = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, NewRoomLocation, FRotator(0.f, 90.f, -90.f));
-			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0);
+			Index = FMath::RandRange(0, UnusedDefaultTemplates.Num() - 1);
+			Num = UnusedDefaultTemplates[Index];
+			UnusedDefaultTemplates.Remove(Index);
+			NewRoom2->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, LevelMap[CurrentRoom.Key][CurrentRoom.Value].Walls, 0, Num);
 			CreateCorridors(CurrentRoom);
 			LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
-			AllRooms.Enqueue(NewRoom1);
-			/*
-			for (int j = 0; j < 4; j++)
-			{
-				const FVector SquareLocation = FVector((FirstRoom.Value - CurrentRoom.Value) * (RealRoomHeight + RealTileHeight * (CorridorHeight)) + SquareX[j], (FirstRoom.Key - CurrentRoom.Key) * (RealRoomWidth + RealTileHeight * (CorridorHeight)) + SquareY[j], 0.f);
-				ARoomActor* Square = GetWorld()->SpawnActor<ARoomActor>(RoomActorClass, SquareLocation, FRotator(0.f, 90.f, -90.f));
-				Square->Init(EmptySet, 1, 1, EmptySet, j);
-				AllRooms.Enqueue(Square);
-			}*/
+			AllRooms.Add(NewRoom1);
 		}
 		break;
 	}
 
-	AllRooms.Enqueue(NewRoom1);
+	AllRooms.Add(NewRoom1);
 }
 
-
+void ALevelGenerator::SpawnItem(UClass* ItemToSpawn, FVector Location) {
+	GetWorld()->SpawnActor<AActor>(ItemToSpawn, Location, FRotator(0.f));
+}

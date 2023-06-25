@@ -17,21 +17,24 @@ class ROGUELIKE_GAME_API UPlayerHUD : public UUserWidget
 	GENERATED_BODY()
 
 protected:
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UProgressBar* HealthBar;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UProgressBar* StaminaBar;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
-	class  UInventory* InventoryWidget;
+	class UInventory* InventoryWidget;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
+	class UEquipmentWidget* EquipmentWidget;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	class  UStorageDisplay* InteractableStorageWidget;
+	class UStorageDisplay* InteractableStorageWidget;
 
 public:
 	UStorageDisplay* GetInteractableStorageWidget() const;
+
 	void SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget);
 
 	void SetHealth(float CurrentHealth, float MaxHealth);
@@ -43,5 +46,6 @@ public:
 	UProgressBar* GetStaminaBar() const;
 
 	UInventory* GetInventoryWidget() const;
-	
+
+	UEquipmentWidget* GetEquipmentWidget() const;
 };

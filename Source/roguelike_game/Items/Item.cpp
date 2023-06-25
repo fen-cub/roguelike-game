@@ -4,9 +4,10 @@
 #include "Item.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperSpriteComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 
 bool FItemData::IsEmpty() const
@@ -20,10 +21,10 @@ AItem::AItem()
 	SetReplicateMovement(true);
 
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
-	SetActorRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	SetActorRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
-	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
+	TriggerCapsule->InitCapsuleSize(20.0f, 20.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
@@ -32,10 +33,10 @@ AItem::AItem()
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
-	Tooltip->SetAbsolute(false, true, false);
+	Tooltip->SetAbsolute(false, true, true);
 	Tooltip->SetRelativeLocation(FVector(0.0f, 200.0f, 10.0f));
 	Tooltip->SetRelativeRotation(FRotator(90.0f, 180.0f, 0.0f));
-	Tooltip->SetRelativeScale3D(FVector(1.0f, 0.15f, 0.15f));
+	Tooltip->SetWorldScale3D(FVector(1.0f, 0.15f, 0.15f));
 	Tooltip->SetHorizontalAlignment(EHTA_Center);
 	Tooltip->SetVerticalAlignment(EVRTA_TextBottom);
 	Tooltip->SetText(FText::FromString("Press E to take"));
@@ -49,29 +50,11 @@ AItem::AItem()
 	GetRenderComponent()->SetConstraintMode(EDOFMode::Type::Default);
 	GetRenderComponent()->GetBodyInstance()->bLockXRotation = true;
 	GetRenderComponent()->GetBodyInstance()->bLockYRotation = true;
-	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
+	GetRenderComponent()->GetBodyInstance()->MassScale = 500.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
 	GetRenderComponent()->SetIsReplicated(true);
-}
 
-void AItem::Interact(class APlayerCharacter* PlayerCharacter)
-{
-	if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
-	{
-		int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
-		PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
-													Position);
-	}
-	Destroy();
-}
-
-FItemData AItem::GetItemData() const
-{
-	return Data;
-}
-
-void AItem::Use(APlayerCharacter* PlayerCharacter)
-{
+	Data.Name = GetName();
 }
 
 void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -96,4 +79,34 @@ void AItem::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor
 	{
 		Tooltip->SetHiddenInGame(true);
 	}
+}
+
+void AItem::Interact(class APlayerCharacter* PlayerCharacter)
+{
+	if (PlayerCharacter)
+	{
+		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+
+		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize())
+		{
+			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
+															Position);
+			UGameplayStatics::SpawnSoundAtLocation(this, InteractSound,  PlayerCharacter->GetActorLocation());
+			Destroy();
+		}
+	}
+}
+
+FItemData AItem::GetItemData() const
+{
+	return Data;
+}
+
+void AItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
+{
+}
+
+void AItem::SetItemData(const FItemData& NewData)
+{
+	Data = NewData;
 }

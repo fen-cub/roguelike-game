@@ -46,3 +46,8 @@ UInventory* UPlayerHUD::GetInventoryWidget() const
 {
 	return InventoryWidget;
 }
+
+UEquipmentWidget* UPlayerHUD::GetEquipmentWidget() const
+{
+	return EquipmentWidget;
+}

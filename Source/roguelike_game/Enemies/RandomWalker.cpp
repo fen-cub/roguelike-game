@@ -2,7 +2,7 @@
 
 
 #include "RandomWalker.h"
-#include "../Character/Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"

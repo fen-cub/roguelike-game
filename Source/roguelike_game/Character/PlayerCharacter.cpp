@@ -6,17 +6,19 @@
 #include "PaperFlipbookComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/CharacterAnimationComponent.h"
-#include "Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "roguelike_game/Items/Item.h"
 #include "Components/InputComponent.h"
-#include "Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
+#include "roguelike_game/TestGameState.h"
+#include "roguelike_game/Widgets/EquipmentWidget.h"
 
 // Set default player properties
 APlayerCharacter::APlayerCharacter()
@@ -26,8 +28,9 @@ APlayerCharacter::APlayerCharacter()
 	bIsMoving = false;
 	PrimaryActorTick.bCanEverTick = true;
 	ComparisonErrorTolerance = 1e-4f;
-	StaminaRegenerateRate = 0.25f;
+	StaminaRegenerateRate = 0.15f;
 	RunningStaminaLossRate = -0.5f;
+	HealthRegenerateRate = 0.01f;
 
 	// HUD
 	PlayerHUDClass = nullptr;
@@ -45,11 +48,12 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
 	// Default capsule component properties
-	GetCapsuleComponent()->InitCapsuleSize(7.0f, 10.0f);
+	GetCapsuleComponent()->InitCapsuleSize(11.0f, 11.0f);
 
 	// Default sprite properties
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	GetSprite()->SetRelativeLocation(FVector(9.0f, 0.0f, 0.0f));
 
 	// Default camera boom properties
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
@@ -76,7 +80,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// Default trigger capsule properties
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>("Trigger Capsule");
-	TriggerCapsule->InitCapsuleSize(10.0f, 10.0f);
+	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnOverlapBegin);
@@ -84,6 +88,10 @@ APlayerCharacter::APlayerCharacter()
 	// Default inventory properties
 	InventoryComponent = CreateDefaultSubobject<UItemStorageComponent>("Inventory Component");
 	InventoryComponent->SetStorageSize(9);
+
+	// Default inventory properties
+	EquipmentComponent = CreateDefaultSubobject<UItemStorageComponent>("Equipment Component");
+	EquipmentComponent->SetStorageSize(3);
 }
 
 // Called when spawned
@@ -106,9 +114,14 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD->GetInventoryWidget()->SetCurrentInventoryType(EInventoryType::PlayerHUDInventory);
 		PlayerHUD->GetInventoryWidget()->SetOwnerStorage(InventoryComponent);
 
+		PlayerHUD->GetEquipmentWidget()->SetGridPanelSizes(3, 1);
+		PlayerHUD->GetEquipmentWidget()->SetCurrentInventoryType(EInventoryType::EquipmentInventory);
+		PlayerHUD->GetEquipmentWidget()->SetOwnerStorage(EquipmentComponent);
+
 		// Set up HUD for character components
 		AttributesComponent->SetUpHUD(PlayerHUD);
 		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
+		EquipmentComponent->SetUpInventoryWidget(PlayerHUD->GetEquipmentWidget());
 	}
 }
 
@@ -130,6 +143,8 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerCharacter, bIsMoving);
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
+	DOREPLIFETIME(APlayerCharacter, WalkSpeed);
+	DOREPLIFETIME(APlayerCharacter, SprintSpeed);
 }
 
 // Called when moves
@@ -150,51 +165,28 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
-	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this, &APlayerCharacter::SwitchMouseCursorVisibility);
+	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this,
+									&APlayerCharacter::SwitchMouseCursorVisibility);
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
 
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem1", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(1));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem2", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(2));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem3", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(3));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem4", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(4));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem5", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(5));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem6", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(6));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem7", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(7));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(8));
-	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem, static_cast<int64>(9));
-}
-
-void APlayerCharacter::SwitchMouseCursorVisibility()
-{
-	APlayerController* Fpc = GetController<APlayerController>();
-
-	if (Fpc)
-	{
-		if (!Fpc->bShowMouseCursor)
-		{
-			Fpc->bShowMouseCursor = true;
-			Fpc->bEnableClickEvents = true;
-			Fpc->bEnableMouseOverEvents = true;
-			Fpc->SetInputMode(FInputModeGameAndUI());
-			if (PlayerHUD)
-			{
-				PlayerHUD->SetVisibility(ESlateVisibility::Visible);
-				PlayerHUD->SetCursor(EMouseCursor::Default);
-			}
-		} else
-		{
-			Fpc->bShowMouseCursor = false;
-			Fpc->bEnableClickEvents = false;
-			Fpc->bEnableMouseOverEvents = false;
-			Fpc->SetInputMode(FInputModeGameOnly());
-			if (PlayerHUD)
-			{
-				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
-				PlayerHUD->SetCursor(EMouseCursor::None);
-				PlayerHUD->GetInventoryWidget()->HideLastClickedSlot();
-			}
-		}
-	} 
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem1", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(1));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem2", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(2));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem3", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(3));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem4", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(4));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem5", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(5));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem6", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(6));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem7", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(7));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(8));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(9));
 }
 
 void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
@@ -202,8 +194,8 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 	if (FMath::IsNearlyZero(AttributesComponent->GetStamina(), 0.1f))
 	{
 		StopSprint();
-	} 
-	
+	}
+
 	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
 
 	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
@@ -226,6 +218,53 @@ void APlayerCharacter::UpdateMovementProperties(float DeltaTime, FVector OldLoca
 	else if (!bIsDead && !bIsAttacking)
 	{
 		AnimationComponent->AnimateIdle();
+	}
+}
+
+void APlayerCharacter::SwitchMouseCursorVisibility()
+{
+	APlayerController* Fpc = GetController<APlayerController>();
+
+	if (Fpc)
+	{
+		if (!Fpc->bShowMouseCursor)
+		{
+			Fpc->bShowMouseCursor = true;
+			Fpc->bEnableClickEvents = true;
+			Fpc->bEnableMouseOverEvents = true;
+			Fpc->SetInputMode(FInputModeGameAndUI());
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+				PlayerHUD->SetCursor(EMouseCursor::Default);
+			}
+		}
+		else
+		{
+			Fpc->bShowMouseCursor = false;
+			Fpc->bEnableClickEvents = false;
+			Fpc->bEnableMouseOverEvents = false;
+			Fpc->SetInputMode(FInputModeGameOnly());
+			if (PlayerHUD)
+			{
+				PlayerHUD->SetVisibility(ESlateVisibility::HitTestInvisible);
+				PlayerHUD->SetCursor(EMouseCursor::None);
+				PlayerHUD->GetInventoryWidget()->HideLastClickedSlot();
+				PlayerHUD->GetEquipmentWidget()->HideLastClickedSlot();
+			}
+		}
+	}
+}
+
+// Called when some actor in overlap
+void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+									const FHitResult& SweepResult)
+{
+	// check if Actors do not equal nullptr
+	if (OtherActor && OtherActor != this)
+	{
+		// Actor on overlap...
 	}
 }
 
@@ -258,7 +297,7 @@ void APlayerCharacter::MoveRightOrLeft(const float Axis)
 // Called when shift is pressed
 void APlayerCharacter::Sprint()
 {
-	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead)
+	if (!FMath::IsNearlyZero(AttributesComponent->GetStamina(), ComparisonErrorTolerance) && !bIsDead && !bIsAttacking)
 	{
 		SetMaxWalkSpeed(SprintSpeed);
 	}
@@ -273,6 +312,14 @@ void APlayerCharacter::StopSprint()
 	}
 }
 
+void APlayerCharacter::UseItem(const int64 Position)
+{
+	if (!bIsDead && HasLocalNetOwner())
+	{
+		InventoryComponent->UseItem(Position - 1);
+	}
+}
+
 // Called when dying 
 void APlayerCharacter::Die()
 {
@@ -280,13 +327,30 @@ void APlayerCharacter::Die()
 	{
 		ServerSetDying();
 	}
+	if (IsLocallyControlled())
+	{
+		GetWorld()->GetGameState<ATestGameState>()->GameOver(false);
+	}
 }
 
-// Called when client dying
 void APlayerCharacter::ServerSetDying_Implementation()
 {
 	bIsDead = true;
-	OnRep_IsDead();
+	OnRepSetDying();
+}
+
+// Calls back from server when dying
+void APlayerCharacter::OnRepSetDying()
+{
+	AnimationComponent->AnimateDeath();
+
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromParent();
+		PlayerHUD = nullptr;
+	}
+
+	// EndPlay(EEndPlayReason::Destroyed);
 }
 
 void APlayerCharacter::Interact()
@@ -294,15 +358,15 @@ void APlayerCharacter::Interact()
 	if (!bIsDead && HasLocalNetOwner())
 	{
 		ServerInteract();
-	} 
+	}
 }
 
 void APlayerCharacter::ServerInteract_Implementation()
 {
-	OnRep_Interact();
+	OnRep_Interact(FMath::RandRange(0LL, (1LL << 32LL)));
 }
 
-void APlayerCharacter::OnRep_Interact_Implementation()
+void APlayerCharacter::OnRep_Interact_Implementation(int64 RandomHash)
 {
 	TArray<AActor*> OverlappingActors;
 	TriggerCapsule->GetOverlappingActors(OverlappingActors);
@@ -314,26 +378,70 @@ void APlayerCharacter::OnRep_Interact_Implementation()
 		IInteractableInterface* Interface = Cast<IInteractableInterface>(Actor);
 		if (Interface)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacted with Actor: %s on client: %p"), *Actor->GetName(), this);
+			AStorage* Storage = Cast<AStorage>(Actor);
+			if (Storage && !Storage->GetStorageComponent()->bIsGenerated)
+			{
+				Storage->GetStorageComponent()->GenerateRandomContents(RandomHash);
+			}
+
 			Interface->Interact(this);
 		}
 	}
-	else
+}
+
+void APlayerCharacter::Attack()
+{
+	if (HasLocalNetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No interacted actors"));
+		ServerAttack();
 	}
 }
 
-void APlayerCharacter::UseItem(const int64 Position)
+void APlayerCharacter::ServerAttack_Implementation()
 {
-	if (!bIsDead && HasLocalNetOwner()){
-		InventoryComponent->UseItem(Position - 1);
+	OnRep_Attack();
+}
+
+void APlayerCharacter::OnRep_Attack_Implementation()
+{
+	if (!bIsAttacking && !bIsDead && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
+	{
+		AnimationComponent->AnimateAttack();
+		bIsAttacking = true;
+		SetMaxWalkSpeed(0);
+
+		AttributesComponent->UpdateStamina(-5.0f);
 	}
+}
+
+void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
+}
+
+void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
+}
+
+void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
+{
+	WalkSpeed = NewWalkSpeed;
+}
+
+void APlayerCharacter::ServerSetSprintSpeed_Implementation(float NewSprintSpeed)
+{
+	SprintSpeed = NewSprintSpeed;
 }
 
 UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
 {
 	return InventoryComponent;
+}
+
+UItemStorageComponent* APlayerCharacter::GetEquipmentComponent() const
+{
+	return EquipmentComponent;
 }
 
 UCharacterAttributesComponent* APlayerCharacter::GetAttributesComponent() const
@@ -356,71 +464,12 @@ void APlayerCharacter::SetInteractableStorage(AStorage* const NewInteractableSto
 	InteractableStorage = NewInteractableStorage;
 }
 
-void APlayerCharacter::ServerSetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
-{
-	OnRep_SetMaxWalkSpeed(NewMaxWalkSpeed);
-}
-
-void APlayerCharacter::OnRep_SetMaxWalkSpeed_Implementation(float NewMaxWalkSpeed)
-{
-	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
-}
-
-// Calls back from server when dying
-void APlayerCharacter::OnRep_IsDead()
-{
-	AnimationComponent->AnimateDeath();
-
-	if (PlayerHUD)
-	{
-		PlayerHUD->RemoveFromParent();
-		PlayerHUD = nullptr;
-	}
-	
-	// EndPlay(EEndPlayReason::Destroyed);
-}
-
-// Called when some actor in overlap
-void APlayerCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-									const FHitResult& SweepResult)
-{
-	// check if Actors do not equal nullptr
-	if (OtherActor && OtherActor != this)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("On overlap: %s"), *OtherActor->GetName());
-	}
-}
-
-void APlayerCharacter::ServerAttack_Implementation()
-{
-	OnRep_Attack();
-}
-
-void APlayerCharacter::OnRep_Attack_Implementation()
-{
-	if (!bIsAttacking && !bIsDead)
-	{
-		AnimationComponent->AnimateAttack();
-		bIsAttacking = true;
-		OnRep_SetMaxWalkSpeed(0);
-	}
-}
-
-void APlayerCharacter::Attack()
-{
-	if (HasLocalNetOwner())
-	{
-		ServerAttack();
-	} 
-}
-
 void APlayerCharacter::SetMaxWalkSpeed(float NewMaxWalkSpeed)
 {
 	if (HasLocalNetOwner())
 	{
 		ServerSetMaxWalkSpeed(NewMaxWalkSpeed);
-	} 
+	}
 }
 
 float APlayerCharacter::GetSprintSpeed() const
@@ -430,7 +479,10 @@ float APlayerCharacter::GetSprintSpeed() const
 
 void APlayerCharacter::SetSprintSpeed(const float NewSprintSpeed)
 {
-	SprintSpeed = NewSprintSpeed;
+	if (HasLocalNetOwner())
+	{
+		ServerSetSprintSpeed(NewSprintSpeed);
+	}
 }
 
 float APlayerCharacter::GetWalkSpeed() const
@@ -440,7 +492,10 @@ float APlayerCharacter::GetWalkSpeed() const
 
 void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
 {
-	WalkSpeed = NewWalkSpeed;
+	if (HasLocalNetOwner())
+	{
+		ServerSetWalkSpeed(NewWalkSpeed);
+	}
 }
 
 // Called every frame
@@ -454,7 +509,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 		{
 			Die();
 		}
-		
+
 		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+		AttributesComponent->UpdateHealth(HealthRegenerateRate);
 	}
 }

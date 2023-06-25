@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components\CapsuleComponent.h"
-#include "Components\TextRenderComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "../Interfaces/InteractableInterface.h"
 #include "PaperSpriteActor.h"
 #include "Item.generated.h"
@@ -19,7 +19,13 @@ struct FItemData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UPaperSprite* Image{nullptr};
-	
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Name;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bIsEquipped;
+
 	bool IsEmpty() const;
 };
 
@@ -43,10 +49,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Config)
 	FItemData Data;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* InteractSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* UseSound;
 
 	// Setup properties that should be replicated from the server to clients.
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+private:
 	// Called when on Overlap
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
@@ -67,5 +80,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FItemData GetItemData() const;
 
-	virtual void Use(class APlayerCharacter* PlayerCharacter);
+	UFUNCTION(BlueprintCallable)
+	void SetItemData(const FItemData& NewData);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition);
 };

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
-#include "Components/CharacterAnimationComponent.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
 #include "roguelike_game/Widgets/PlayerHUD.h"
 #include "EnvironmentQuery/EnvQueryDebugHelpers.h"
 #include "PlayerCharacter.generated.h"
@@ -24,26 +24,70 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	bool bIsAttacking;
 
-	
-public:
+protected:
 	// True if character is dead
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_IsDead, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRepSetDying, Category = "State")
 	bool bIsDead;
-	
+
 	// True if character is moving
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "MovementCharacter | Config")
 	bool bIsMoving;
 
 	// Max sprint speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float SprintSpeed;
-	
+
 	// Max walking speed
-	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
+
+	DECLARE_DELEGATE_OneParam(FNumberKeyActionDelegate, const int64);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	class USpringArmComponent* CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
+	class UCharacterAnimationComponent* AnimationComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
+	class UCapsuleComponent* TriggerCapsule;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
+	class UItemStorageComponent* InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
+	class UItemStorageComponent* EquipmentComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UCharacterAttributesComponent* AttributesComponent;
+
+	// Sets up on the BeginPlay()
+	UPROPERTY()
+	class UPlayerHUD* PlayerHUD;
+
+	UPROPERTY()
+	class AStorage* InteractableStorage;
+
+	// How much Stamina regenerates for a Tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
+	float StaminaRegenerateRate;
+
+	// How much Health regenerates for a Tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
+	float HealthRegenerateRate;
+
+	// How much Stamina losses for a Tick while running
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
+	float RunningStaminaLossRate;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
 	// Sets spawn properties
 	UFUNCTION()
@@ -65,6 +109,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category= "AnimationCharacter | Config")
 	void UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity);
 
+	UFUNCTION()
+	void SwitchMouseCursorVisibility();
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+						const FHitResult& SweepResult);
+
 	// Moves character forward or down
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void MoveForwardOrDown(const float Axis);
@@ -81,97 +133,64 @@ public:
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void StopSprint();
 
-	// Stops movements and calls death animation
-	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
-	void Die();
-
-	// Interact with Interactable Interface
-	UFUNCTION(BlueprintCallable, Category= Trigger)
-	void Interact();
-	
-	UFUNCTION(Server, Reliable)
-	void ServerInteract();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void OnRep_Interact();
-
 	// Interact with Interactable Interface
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void UseItem(const int64 Position);
 
-	DECLARE_DELEGATE_OneParam(FNumberKeyActionDelegate, const int64);
+	// Stops movements and calls death animation
+	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
+	void Die();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	class USpringArmComponent* CameraBoom;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	class UCameraComponent* FollowCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
-	class UCharacterAnimationComponent* AnimationComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
-	class UCapsuleComponent* TriggerCapsule;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
-	class UItemStorageComponent* InventoryComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
-	class UCharacterAttributesComponent* AttributesComponent;
-
-	// Sets up on the BeginPlay()
-	UPROPERTY()
-	class UPlayerHUD* PlayerHUD;
-	
-	UPROPERTY()
-	class AStorage* InteractableStorage;
-	
-	// How much Stamina regenerates for a Tick
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
-	float StaminaRegenerateRate;
-
-	// How much Stamina losses for a Tick while running
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attributes)
-	float RunningStaminaLossRate;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
-
-	// Called back from server to set sprint
-	UFUNCTION(NetMulticast, Unreliable)
-	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
-
-	// Calls server to set dying
+private:
 	UFUNCTION(Server, Reliable)
 	void ServerSetDying();
 
-	// Calls back from server to set dying
 	UFUNCTION()
-	void OnRep_IsDead();
+	void OnRepSetDying();
 
-	// Called when on Overlap
-	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
-						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-						const FHitResult& SweepResult);
+protected:
+	// Interact with Interactable Interface
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void Interact();
 
-	UFUNCTION()
-	void SwitchMouseCursorVisibility();
+private:
+	UFUNCTION(Server, Reliable)
+	void ServerInteract();
 
-	UFUNCTION(Server, UnReliable)
-	void ServerAttack();
+	UFUNCTION(NetMulticast, Reliable)
+	void OnRep_Interact(int64 RandomHash);
 
+protected:
+	// Attack enemy
 	UFUNCTION()
 	void Attack();
 
+private:
+	UFUNCTION(Server, UnReliable)
+	void ServerAttack();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void OnRep_Attack();
-	
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRep_SetMaxWalkSpeed(float NewMaxWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetWalkSpeed(float NewWalkSpeed);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetSprintSpeed(float NewSprintSpeed);
+
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
-	
+
 	UItemStorageComponent* GetInventoryComponent() const;
+
+	UItemStorageComponent* GetEquipmentComponent() const;
 
 	UCharacterAttributesComponent* GetAttributesComponent() const;
 
@@ -182,21 +201,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetInteractableStorage(AStorage* const NewInteractableStorage);
-	
-	UFUNCTION(Server, Unreliable)
-	void ServerSetMaxWalkSpeed(float NewMaxWalkSpeed);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetMaxWalkSpeed(float NewMaxWalkSpeed);
 
 	float GetSprintSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetSprintSpeed(const float NewSprintSpeed);
 
 	float GetWalkSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
-	
 };
-
-
