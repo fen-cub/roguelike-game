@@ -16,7 +16,7 @@ void AEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
 
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 
@@ -108,6 +108,7 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		if (NavArea->ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector))
 		{
 			MoveToLocation(PlayerPawn->GetActorLocation());
+			
 		}
 		else
 		{

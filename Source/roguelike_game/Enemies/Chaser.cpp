@@ -170,9 +170,10 @@ void AChaser::OnRep_IsDead()
 void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
 	if (PlayerPawn)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%s") , *PlayerPawn->GetName() );
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			15.0f)
@@ -180,7 +181,7 @@ void AChaser::Tick(float DeltaTime)
 			constexpr float DamageAmount = 0.25f;
 			PlayerCharacter->AttributesComponent->UpdateHealth(-DamageAmount);
 		}
-		if (PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f)
 		{
 			Health -= 1.0;
