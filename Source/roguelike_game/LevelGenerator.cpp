@@ -12,10 +12,45 @@ ALevelGenerator::ALevelGenerator()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	bReplicates = true;
 	bAlwaysRelevant = true;
-	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> ItemBPClass(TEXT("/Game/Items/StaminaRecoveryItemBP"));
-	if (ItemBPClass.Succeeded())
+	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> StaminaRecoveryItemBP(TEXT("/Game/Items/StaminaRecoveryItemBP"));
+	if (StaminaRecoveryItemBP.Succeeded())
 	{
-		AttributesRecoveryItemClass = ItemBPClass.Class;
+		StaminaRecoveryItemClass = StaminaRecoveryItemBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> HealthDecreaseItemBP(TEXT("/Game/Items/HealthDecreaseItemBP"));
+	if (HealthDecreaseItemBP.Succeeded())
+	{
+		HealthDecreaseItemClass = HealthDecreaseItemBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> HealthRecoveryItemBP(TEXT("/Game/Items/HealthRecoveryItemBP"));
+	if (HealthRecoveryItemBP.Succeeded())
+	{
+		HealthRecoveryItemClass = HealthRecoveryItemBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AArtifactItem> BootsBP(TEXT("/Game/Items/Seven-LeagueBoots"));
+	if (BootsBP.Succeeded())
+	{
+		BootsClass = BootsBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AArmorItem> ArmorBP(TEXT("/Game/Items/ArmorBP"));
+	if (ArmorBP.Succeeded())
+	{
+		ArmorItemClass = ArmorBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AWeaponItem> SwordBP(TEXT("/Game/Items/SwordBP"));
+	if (SwordBP.Succeeded())
+	{
+		SwordClass = SwordBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AStorage> ChestBP(TEXT("/Game/InteractableActors/ChestBP"));
+	if (ChestBP.Succeeded())
+	{
+		StorageClass = ChestBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<ALevelTeleport> TeleportBP(TEXT("/Game/InteractableActors/LevelTeleporBP"));
+	if (TeleportBP.Succeeded())
+	{
+		LevelTeleportClass = TeleportBP.Class;
 	}
 }
 
@@ -166,10 +201,8 @@ void ALevelGenerator::BeginPlay()
 				{
 					CreateLTypeRoom(FromQueue, LevelMap[FromQueue.Key][FromQueue.Value].Direction, LevelMap[FromQueue.Key][FromQueue.Value].Side);
 				}
-				
 			}
 		}
-
 		if (RoomsExist != NumOfRooms)
 		{
 			Clear();
@@ -179,6 +212,11 @@ void ALevelGenerator::BeginPlay()
 			BigRoomsExist = 0;
 		} else
 		{
+			// Spawn teleport
+			UE_LOG(LogTemp, Warning, TEXT("Spawn Teleport %d %d"), LastRoom.Key, LastRoom.Value)
+			const FVector LastRoomLocation = FVector((FirstRoom.Value - LastRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - LastRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
+			UE_LOG(LogTemp, Warning, TEXT("Last Room location %f %f"), LastRoomLocation.X, LastRoomLocation.Y)
+			SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
 			break;
 		}
 	}
@@ -198,7 +236,11 @@ void ALevelGenerator::CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom)
 	NewRoom->Init(LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors, RoomWidth, RoomHeight, EmptySet, 0, Num);
 	for (auto SpawnPoint : DefaultTemplatesSet[Num]) {
 		//UE_LOG(LogTemp, Warning, TEXT("Spawn Item"))
-		SpawnItem(AttributesRecoveryItemClass, FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
+		SpawnItem(PickRandItem(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
+	}
+	if (LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors.Num() == 1)
+	{
+		LastRoom = CurrentRoom;	
 	}
 	AllRooms.Add(NewRoom);
 	CreateCorridors(CurrentRoom);
@@ -702,4 +744,26 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 
 void ALevelGenerator::SpawnItem(UClass* ItemToSpawn, FVector Location) {
 	GetWorld()->SpawnActor<AActor>(ItemToSpawn, Location, FRotator(0.f));
+}
+
+UClass* ALevelGenerator::PickRandItem()
+{
+	int Type = FMath::RandRange(0, 6);
+	switch (Type)
+	{
+	case 0:
+		return StaminaRecoveryItemClass;
+	case 1:
+		return HealthRecoveryItemClass;
+	case 2:
+		return HealthDecreaseItemClass;
+	case 3:
+		return BootsClass;
+	case 4:
+		return ArmorItemClass;
+	case 5:
+		return SwordClass;
+	default:
+		return StorageClass;
+	}
 }

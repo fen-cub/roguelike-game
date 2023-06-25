@@ -5,7 +5,12 @@
 #include "CoreMinimal.h"
 #include "RoomActor.h"
 #include "Items/AttributesRecoveryItem.h"
-#include "Character/PlayerCharacter.h"
+#include "Items/ArmorItem.h"
+#include "Items/ArtifactItem.h"
+#include "Items/WeaponItem.h"
+#include "Items/ArtifactItem.h"
+#include "InteractiveActors/Storage.h"
+#include "InteractiveActors/LevelTeleport.h"
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h" 
 #include "LevelGenerator.generated.h"
@@ -59,6 +64,8 @@ public:
   uint8 MaxBigRooms;
   uint8 MaxLongRooms;
   uint8 MaxLTypeRooms;
+
+  TPair<int, int> LastRoom;
 
   uint8 RoomWidth = 20;
   uint8 RoomHeight = 20;
@@ -136,6 +143,8 @@ public:
 
   void Clear();
 
+  UClass* PickRandItem();
+
   void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
 
   int CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
@@ -146,9 +155,30 @@ public:
 
 virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = LevelGenerator, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AAttributesRecoveryItem> AttributesRecoveryItemClass;
-
   void SpawnItem(UClass* ItemToSpawn, FVector Location);
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> StaminaRecoveryItemClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> HealthRecoveryItemClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> HealthDecreaseItemClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AArtifactItem> BootsClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AArmorItem> ArmorItemClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AWeaponItem> SwordClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AStorage> StorageClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<ALevelTeleport> LevelTeleportClass;
   
 };
