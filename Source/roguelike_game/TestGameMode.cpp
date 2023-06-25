@@ -11,7 +11,6 @@
 ATestGameMode::ATestGameMode() {
     UE_LOG(LogTemp, Warning, TEXT("GameMode Constructor"));
     GameStateClass = ATestGameState::StaticClass();
-    //PlayerControllerClass = ABattlePlayerController::StaticClass();
     PlayerStateClass = ATestPlayerState::StaticClass();
     DefaultPawnClass = APlayerCharacter::StaticClass();
 }
@@ -42,30 +41,4 @@ void ATestGameMode::PostLogin(APlayerController *NewPlayer) {
     Super::PostLogin(NewPlayer);
     NewPlayer->SetShowMouseCursor(false);
     UE_LOG(LogTemp, Warning, TEXT("PostLogin"));
-    // PlayerControllers.Add(dynamic_cast<AMyPlayerController *>(NewPlayer));
-    // const auto World = GetWorld();
-    const auto CurrentNumberOfPlayers = GetNumPlayers();
-
-    // 0-indexation
-    //Cast<ATestPlayerController>(NewPlayer)->SetPlayerIndex(
-    //    CurrentNumberOfPlayers - 1);
-    UE_LOG(LogTemp, Warning, TEXT("%d"), CurrentNumberOfPlayers);
-    if (CurrentNumberOfPlayers == 2) {
-        UE_LOG(LogTemp, Warning, TEXT("Game Start"));
-        // start the game
-        // dynamic_cast<AMyGameState *>(
-        //             GetWorld()->GetGameState())->StartGame();
-        // InitializeBattleField();
-        StartGame();
-        // GetMyGameState()->PlayerInTurn()->SetEnemySelection();
-        // GetMyGameState()->PlayerNotInTurn()->SetEnemySelection();
-    } else {
-        // delay the game
-        UE_LOG(LogTemp, Warning, TEXT("Game Delay"));
-    }
-}
-
-void ATestGameMode::StartGame_Implementation()
-{
-    //GetMyGameState()->StartGame();
 }
