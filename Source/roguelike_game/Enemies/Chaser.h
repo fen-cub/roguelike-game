@@ -43,6 +43,10 @@ protected:
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 
+	uint64 AttackTickCount = 0;
+
+	uint64 DamageTickCount = 0;
+
 	// Sets spawn properties
 	UFUNCTION()
 	virtual void BeginPlay() override;
@@ -81,20 +85,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UWidgetComponent* WidgetComponent;
+
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float Health;
 
+	UPROPERTY(EditAnywhere, Category = Attributes)
+	float MaxHealth;
+	
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float RunningStaminaLossRate;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UEnemyHealthBar> UEnemyHealthBarClass;
-	
-	UPROPERTY()
-	class UEnemyHealthBar* EnemyHealthBar;
 
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)

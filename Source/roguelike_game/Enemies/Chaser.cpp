@@ -17,6 +17,7 @@
 #include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Widgets/EnemyHealthBar.h"
+#include "Components/WidgetComponent.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 AChaser::AChaser()
@@ -29,10 +30,11 @@ AChaser::AChaser()
 	RunningStaminaLossRate = -0.5f;
 
 	Health = 50;
+	MaxHealth = 50;
+
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
-
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
 
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
@@ -44,11 +46,12 @@ AChaser::AChaser()
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
 	AnimationComponent->SetupAttachment(RootComponent);
-	EnemyHealthBar = CreateWidget<UEnemyHealthBar>(GetController<APlayerController>(), UEnemyHealthBarClass);
-	if (EnemyHealthBar)
-	{
-		EnemyHealthBar->SetHealth(50, 50);
-	}
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget Component");
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetRelativeRotation(FRotator(90.0f, 0.0f, 180.0f));
+	WidgetComponent->SetRelativeScale3D(FVector(0.025f, 0.025f, 0.025f));
+	WidgetComponent->SetRelativeLocation(FVector(10.0f, 0.0f, 0.0f));
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -64,6 +67,7 @@ void AChaser::BeginPlay()
 
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &AChaser::UpdateMovementProperties);
+	
 }
 
 // Called when dying or in the end
@@ -170,25 +174,41 @@ void AChaser::OnRep_IsDead()
 void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
+	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (PlayerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s") , *PlayerPawn->GetName() );
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
-			15.0f)
+			30.0f && AttackTickCount >= 100)
 		{
-			constexpr float DamageAmount = 0.25f;
+			constexpr float DamageAmount = 10.0f;
+
 			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
+
+			AttackTickCount = 0;
 		}
-		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
-			30.0f)
+		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(
+				GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			30.0f && DamageTickCount >= 100)
 		{
-			Health -= 1.0;
+			Health -= PlayerCharacter->GetDamageDealt();
 			if (Health <= 0)
 			{
 				Destroy();
 			}
+
+			DamageTickCount = 0;
 		}
 	}
+
+
+	UEnemyHealthBar* HealthBarWidget = Cast<UEnemyHealthBar>(WidgetComponent->GetWidget());
+	if (HealthBarWidget && !FMath::IsNearlyZero(MaxHealth))
+	{
+		HealthBarWidget->SetHealth(Health, MaxHealth);
+	}
+
+	AttackTickCount++;
+	DamageTickCount++;
 }

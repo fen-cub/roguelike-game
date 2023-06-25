@@ -16,7 +16,7 @@ void AEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 

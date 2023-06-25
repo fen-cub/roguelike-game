@@ -145,6 +145,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(APlayerCharacter, bIsDead);
 	DOREPLIFETIME(APlayerCharacter, WalkSpeed);
 	DOREPLIFETIME(APlayerCharacter, SprintSpeed);
+	DOREPLIFETIME(APlayerCharacter, DamageDealt);
 }
 
 // Called when moves
@@ -404,7 +405,7 @@ void APlayerCharacter::ServerAttack_Implementation()
 
 void APlayerCharacter::OnRep_Attack_Implementation()
 {
-	if (!bIsAttacking && !bIsDead && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
+	if (!bIsAttacking && !bIsDead && !GetEquipmentComponent()->GetItem(0).IsEmpty() && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
 	{
 		AnimationComponent->AnimateAttack();
 		bIsAttacking = true;
@@ -432,6 +433,28 @@ void APlayerCharacter::ServerSetWalkSpeed_Implementation(float NewWalkSpeed)
 void APlayerCharacter::ServerSetSprintSpeed_Implementation(float NewSprintSpeed)
 {
 	SprintSpeed = NewSprintSpeed;
+}
+
+void APlayerCharacter::ServerSetDamageDealt_Implementation(float NewDamageDealt)
+{
+	DamageDealt = NewDamageDealt;
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsLocallyControlled() && AttributesComponent)
+	{
+		if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
+		{
+			Die();
+		}
+
+		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
+		AttributesComponent->UpdateHealth(HealthRegenerateRate);
+	}
 }
 
 UItemStorageComponent* APlayerCharacter::GetInventoryComponent() const
@@ -498,19 +521,15 @@ void APlayerCharacter::SetWalkSpeed(const float NewWalkSpeed)
 	}
 }
 
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
+void APlayerCharacter::SetDamageDealt(const float NewDamageDealt)
 {
-	Super::Tick(DeltaTime);
-
-	if (IsLocallyControlled())
+	if (HasLocalNetOwner())
 	{
-		if (FMath::IsNearlyZero(AttributesComponent->GetHealth(), ComparisonErrorTolerance))
-		{
-			Die();
-		}
-
-		AttributesComponent->UpdateStamina(StaminaRegenerateRate);
-		AttributesComponent->UpdateHealth(HealthRegenerateRate);
+		ServerSetDamageDealt(NewDamageDealt);
 	}
+}
+
+float APlayerCharacter::GetDamageDealt() const
+{
+	return DamageDealt;
 }

@@ -49,7 +49,7 @@ void UCharacterAttributesComponent::OnRepUpdateHealth_Implementation(float Healt
 {
 	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
 
-	if (HealthDelta < 0.0f)
+	if (HealthDelta < 0.0f && !FMath::IsNearlyZero(Health))
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, DamageSound, GetOwner()->GetActorLocation());
 	}
