@@ -18,6 +18,9 @@ UCharacterAttributesComponent::UCharacterAttributesComponent()
 	// Stamina
 	MaxStamina = 50.0f;
 	Stamina = MaxStamina;
+
+	// DamageProtectionPercent
+	DamageProtectionPercent = 0.0f;
 }
 
 // Called when the game starts
@@ -33,6 +36,7 @@ void UCharacterAttributesComponent::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCharacterAttributesComponent, Health);
 	DOREPLIFETIME(UCharacterAttributesComponent, Stamina);
+	DOREPLIFETIME(UCharacterAttributesComponent, DamageProtectionPercent);
 }
 
 // Updates health on the server
@@ -44,12 +48,12 @@ void UCharacterAttributesComponent::ServerUpdateHealth_Implementation(float Heal
 void UCharacterAttributesComponent::OnRepUpdateHealth_Implementation(float HealthDelta)
 {
 	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
-	
+
 	if (HealthDelta < 0.0f)
 	{
-		UGameplayStatics::SpawnSoundAtLocation(this, DamageSound,  GetOwner()->GetActorLocation());
+		UGameplayStatics::SpawnSoundAtLocation(this, DamageSound, GetOwner()->GetActorLocation());
 	}
-	
+
 	if (PlayerHUD)
 	{
 		PlayerHUD->SetHealth(Health, MaxHealth);
@@ -68,6 +72,16 @@ void UCharacterAttributesComponent::OnRepUpdateStamina()
 	{
 		PlayerHUD->SetStamina(Stamina, MaxStamina);
 	}
+}
+
+void UCharacterAttributesComponent::ServerSetDamageProtection_Implementation(float NewDamageProtection)
+{
+	DamageProtectionPercent = NewDamageProtection;
+}
+
+void UCharacterAttributesComponent::ServerDamageCharacter_Implementation(float Damage)
+{
+	UpdateHealth(-Damage * (100 - DamageProtectionPercent) / 100);
 }
 
 // Set Player's HUD
@@ -95,6 +109,23 @@ void UCharacterAttributesComponent::UpdateStamina(float StaminaDelta)
 		ServerUpdateStamina(StaminaDelta);
 	}
 }
+
+void UCharacterAttributesComponent::SetDamageProtection(float NewDamageProtection)
+{
+	if (GetOwner()->HasLocalNetOwner())
+	{
+		ServerSetDamageProtection(NewDamageProtection);
+	}
+}
+
+void UCharacterAttributesComponent::DamageCharacter(float Damage)
+{
+	if (GetOwner()->HasLocalNetOwner())
+	{
+		ServerDamageCharacter(Damage);
+	}
+}
+
 
 // Returns current health
 float UCharacterAttributesComponent::GetHealth() const

@@ -22,6 +22,9 @@ protected:
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
 
+	UPROPERTY(Replicated)
+	float DamageProtectionPercent;
+
 	UPROPERTY(EditAnywhere)
 	float MaxHealth;
 
@@ -44,7 +47,7 @@ protected:
 
 private:
 	// Called to update Health on the server
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Unreliable)
 	void ServerUpdateHealth(float HealthDelta);
 
 	// Called back from server when health updated
@@ -52,12 +55,20 @@ private:
 	void OnRepUpdateHealth(float HealthDelta);
 
 	// Called to update Stamina on the server
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Unreliable)
 	void ServerUpdateStamina(float StaminaDelta);
 
 	// Called back from server when stamina updated
 	UFUNCTION()
 	void OnRepUpdateStamina();
+
+	// Called to set damage on the server
+	UFUNCTION(Server, Unreliable)
+	void ServerSetDamageProtection(float NewDamageProtection);
+
+	// Called to damage character on server
+	UFUNCTION(Server, Reliable)
+	void ServerDamageCharacter(float Damage);
 
 public:
 	// Called when HUD created
@@ -68,6 +79,12 @@ public:
 
 	// Called to update stamina
 	void UpdateStamina(float StaminaDelta);
+
+	// Called to update damage protection
+	void SetDamageProtection(float NewDamageProtectionPercent);
+
+	// Call to damage character
+	void DamageCharacter(float Damage);
 
 	// Returns current health
 	float GetHealth() const;
