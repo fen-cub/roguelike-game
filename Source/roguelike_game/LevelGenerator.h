@@ -15,14 +15,14 @@ enum ERoomType {
   Long,
   LType,
   Big,
-  None
+  Empty
 };
 
 
   struct FMapCell {
     TArray<int> Doors;
     TArray<int> Walls;
-    ERoomType CellRoomType = None;
+    ERoomType CellRoomType = Empty;
     bool Main = false;
     bool Generated = false;
     int Direction = 0;

@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "roguelike_game/TestGameState.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 
@@ -54,6 +55,7 @@ void ALevelTeleport::Interact(APlayerCharacter* PlayerCharacter)
 
 		if (PlayerCharacter->IsLocallyControlled() && Fpc)
 		{
+			GetWorld()->GetGameState<ATestGameState>()->OpenNextLevel();
 			// Implement logic
 		}
 	}
