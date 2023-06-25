@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
+#include "../Widgets/EnemyHealthBar.h"
 #include "Chaser.generated.h"
 
 /**
@@ -90,7 +91,10 @@ protected:
 	float RunningStaminaLossRate;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
+	TSubclassOf<class UEnemyHealthBar> UEnemyHealthBarClass;
+	
+	UPROPERTY()
+	class UEnemyHealthBar* EnemyHealthBar;
 
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)

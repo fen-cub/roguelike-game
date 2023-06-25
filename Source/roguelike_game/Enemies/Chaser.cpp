@@ -2,6 +2,8 @@
 
 
 #include "Chaser.h"
+
+#include "EnemyAIController.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -14,6 +16,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
+#include "../Widgets/EnemyHealthBar.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 AChaser::AChaser()
@@ -26,7 +29,6 @@ AChaser::AChaser()
 	RunningStaminaLossRate = -0.5f;
 
 	Health = 50;
-	
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
@@ -41,8 +43,12 @@ AChaser::AChaser()
 	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
-
 	AnimationComponent->SetupAttachment(RootComponent);
+	EnemyHealthBar = CreateWidget<UEnemyHealthBar>(GetController<APlayerController>(), UEnemyHealthBarClass);
+	if (EnemyHealthBar)
+	{
+		EnemyHealthBar->SetHealth(50, 50);
+	}
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -164,20 +170,24 @@ void AChaser::OnRep_IsDead()
 void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
 	if (PlayerPawn)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%s") , *PlayerPawn->GetName() );
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			15.0f)
 		{
-			constexpr float DamageAmount = 0.5f;
+			constexpr float DamageAmount = 0.25f;
 			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
-			
-			if (PlayerCharacter->GetAttributesComponent()->GetHealth() <= 0)
+		}
+		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			30.0f)
+		{
+			Health -= 1.0;
+			if (Health <= 0)
 			{
 				Destroy();
-				PlayerCharacter->Destroy();
 			}
 		}
 	}
