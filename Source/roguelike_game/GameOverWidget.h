@@ -15,13 +15,9 @@ class ROGUELIKE_GAME_API UGameOverWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override;
 
 	UFUNCTION(Client, Reliable)
 	void SetWidgetText(bool HasWon);
-
-	UFUNCTION()
-	void QuitCurrentSession();
 
 protected:
 	UPROPERTY(meta = (BindWidget))

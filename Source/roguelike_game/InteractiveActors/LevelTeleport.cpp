@@ -56,7 +56,6 @@ void ALevelTeleport::Interact(APlayerCharacter* PlayerCharacter)
 		if (PlayerCharacter->IsLocallyControlled() && Fpc)
 		{
 			GetWorld()->GetGameState<ATestGameState>()->OpenNextLevel();
-			// Implement logic
 		}
 	}
 }

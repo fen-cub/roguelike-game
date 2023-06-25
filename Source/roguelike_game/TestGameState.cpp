@@ -7,9 +7,6 @@
 
 void ATestGameState::GameOver(bool bIsWon) const {
     Cast<ATestPlayerState>(PlayerArray[0])->GameOver(bIsWon);
-    //if (bIsMultiplayer) {
-   //     Cast<ABattlePlayerState>(PlayerArray[1])->GameOver(PlayerIndexLose);
-    //}
 }
 
 void ATestGameState::OpenNextLevel()

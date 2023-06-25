@@ -18,9 +18,6 @@ class ROGUELIKE_GAME_API ATestGameMode : public AGameMode
 public:
 	ATestGameMode();
 
-	//virtual AActor *
-	//ChoosePlayerStart_Implementation(AController *Player) override;
-
 	virtual void PostLogin(APlayerController *NewPlayer) override;
 
 	virtual void BeginPlay() override;
@@ -28,14 +25,6 @@ public:
 	protected:
 	UPROPERTY()
 	bool bIsMultiplayer = true;
-
-	//void InitializeSpawnPointsIfNeeded(AController *Player);
-
-	// UPROPERTY()
-	// mutable TArray<ATrooper *> Troopers;
-
-	UFUNCTION(Server, Reliable)
-	void StartGame();
 
 	auto GetMyGameState() const;
 
