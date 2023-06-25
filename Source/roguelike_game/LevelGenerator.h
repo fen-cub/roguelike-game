@@ -86,6 +86,8 @@ public:
 
   TArray<ARoomActor*> AllRooms;
 
+  TArray<AActor*> AllItems;
+
   int8 DirX[4] = {0, 1, 0, -1};
   int8 DirY[4] = {-1, 0, 1, 0};
 
