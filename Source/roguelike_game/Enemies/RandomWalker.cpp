@@ -167,7 +167,7 @@ void ARandomWalker::Tick(float DeltaTime)
 		25.0f)	
 	{
 		constexpr float DamageAmount = 1.0f;
-		PlayerCharacter->AttributesComponent->UpdateHealth(-DamageAmount);
+		PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
 		if (PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			50.0f)
 		{

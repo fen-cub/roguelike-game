@@ -179,7 +179,7 @@ void AChaser::Tick(float DeltaTime)
 			15.0f)
 		{
 			constexpr float DamageAmount = 0.25f;
-			PlayerCharacter->AttributesComponent->UpdateHealth(-DamageAmount);
+			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
 		}
 		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f)
