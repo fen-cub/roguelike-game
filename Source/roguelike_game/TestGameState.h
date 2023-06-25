@@ -22,6 +22,6 @@ public:
 	int LevelNumber;
 
 	//UFUNCTION(Server, Reliable)
-	void OpenNextLevel();
+	bool OpenNextLevel();
 	
 };

@@ -518,3 +518,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 		AttributesComponent->UpdateHealth(HealthRegenerateRate);
 	}
 }
+
+void APlayerCharacter::CallEndPlay()
+{
+	EndPlay(EEndPlayReason::Destroyed);
+}

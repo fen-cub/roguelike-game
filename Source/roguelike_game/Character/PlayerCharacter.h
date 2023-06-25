@@ -212,4 +212,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
+
+	void CallEndPlay();
 };
