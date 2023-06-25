@@ -49,7 +49,7 @@ AItem::AItem()
 	GetRenderComponent()->SetConstraintMode(EDOFMode::Type::Default);
 	GetRenderComponent()->GetBodyInstance()->bLockXRotation = true;
 	GetRenderComponent()->GetBodyInstance()->bLockYRotation = true;
-	GetRenderComponent()->GetBodyInstance()->MassScale = 50.0f;
+	GetRenderComponent()->GetBodyInstance()->MassScale = 500.0f;
 	GetRenderComponent()->CanCharacterStepUpOn = ECB_No;
 	GetRenderComponent()->SetIsReplicated(true);
 
