@@ -16,6 +16,7 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 			Data.bIsEquipped = true;
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 0);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 	else
@@ -27,8 +28,8 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
-
-	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
+	
 }

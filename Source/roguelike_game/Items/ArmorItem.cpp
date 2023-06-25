@@ -18,6 +18,7 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 1);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
 			PlayerCharacter->GetAttributesComponent()->SetDamageProtection(DamageProtectionPercent);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 	else
@@ -30,8 +31,9 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
 			PlayerCharacter->GetAttributesComponent()->SetDamageProtection(0);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 
-	UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
+	
 }
