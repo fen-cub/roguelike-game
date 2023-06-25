@@ -41,6 +41,7 @@ void ALevelGenerator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void ALevelGenerator::BeginPlay()
 {
 	Super::BeginPlay();
+	UE_LOG(LogTemp, Warning, TEXT("IN GENERATOR"))
 	if (HasAuthority()) {
 	NumOfRooms = FMath::RandRange(0, 1) + 5 + LevelNumber * 2.6;
 	MaxBigRooms = LevelNumber - 1;
@@ -89,7 +90,7 @@ void ALevelGenerator::BeginPlay()
 					continue;
 				}
 				auto &NeighboringCell = LevelMap[FromQueue.Key + DirX[i]][FromQueue.Value + DirY[i]];
-				if (NeighboringCell.CellRoomType != None) {
+				if (NeighboringCell.CellRoomType != Empty) {
 					continue;
 				}
 				if (RoomsExist == NumOfRooms)
@@ -211,7 +212,7 @@ int ALevelGenerator::CanAddLongRoom(const TPair<uint8, uint8> StartRoom, uint8 D
 		for (int8 i = -1; i <= 1; i++)
 		{
 			if (StartRoom.Key + DirX[(Dir + i + 4) % 4] >= 0 && StartRoom.Key + DirX[(Dir + i + 4) % 4] < MapWidth && StartRoom.Value + DirY[(Dir + i + 4) % 4] >= 0 && StartRoom.Value + DirY[(Dir + i + 4) % 4] < MapHeight) {
-				if (LevelMap[StartRoom.Key + DirX[(Dir + i + 4) % 4]][StartRoom.Value + DirY[(Dir + i + 4) % 4]].CellRoomType == None && FMath::RandBool())
+				if (LevelMap[StartRoom.Key + DirX[(Dir + i + 4) % 4]][StartRoom.Value + DirY[(Dir + i + 4) % 4]].CellRoomType == Empty && FMath::RandBool())
 				{
 					return (Dir + i + 4) % 4 + 2;
 				}
@@ -325,7 +326,7 @@ void ALevelGenerator::Clear()
 			LevelMap[i][j].Doors.Empty();
 			LevelMap[i][j].Generated = false;
 			LevelMap[i][j].Main = false;
-			LevelMap[i][j].CellRoomType = None;
+			LevelMap[i][j].CellRoomType = Empty;
 		}
 	}
 	UnusedDefaultTemplates.Empty();
@@ -345,7 +346,7 @@ int ALevelGenerator::CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direct
 			if (CurrentRoomCopy1.Key < 0 || CurrentRoomCopy1.Key >= MapWidth || CurrentRoomCopy1.Value < 0 || CurrentRoomCopy1.Value >= MapHeight) {
 				break;
 			}
-			if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+			if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 			{
 				break;
 			}
@@ -359,7 +360,7 @@ int ALevelGenerator::CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direct
 			{
 				break;
 			}
-			if (LevelMap[CurrentRoomCopy2.Key][CurrentRoomCopy2.Value].CellRoomType != None)
+			if (LevelMap[CurrentRoomCopy2.Key][CurrentRoomCopy2.Value].CellRoomType != Empty)
 			{
 				break;
 			}
@@ -447,7 +448,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}
@@ -471,7 +472,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}
@@ -495,7 +496,7 @@ int ALevelGenerator::CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint
 				{
 					break;
 				}
-				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != None)
+				if (LevelMap[CurrentRoomCopy1.Key][CurrentRoomCopy1.Value].CellRoomType != Empty)
 				{
 					break;
 				}

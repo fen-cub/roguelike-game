@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "roguelike_game/TestGameState.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 
@@ -45,6 +46,24 @@ void ALevelTeleport::BeginPlay()
 	}
 }
 
+void ALevelTeleport::Interact(APlayerCharacter* PlayerCharacter)
+{
+	if (PlayerCharacter)
+	{
+		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
+		SetOwner(Fpc);
+
+		if (PlayerCharacter->IsLocallyControlled() && Fpc)
+		{
+			GetWorld()->GetGameState<ATestGameState>()->OpenNextLevel();
+		}
+	}
+}
+
+void ALevelTeleport::StopInteract(APlayerCharacter* PlayerCharacter)
+{
+}
+
 void ALevelTeleport::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 									class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 									const FHitResult& SweepResult)
@@ -62,23 +81,4 @@ void ALevelTeleport::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, cla
 	{
 		Tooltip->SetHiddenInGame(true);
 	}
-}
-
-void ALevelTeleport::Interact(APlayerCharacter* PlayerCharacter)
-{
-	if (PlayerCharacter)
-	{
-		APlayerController* Fpc = PlayerCharacter->GetController<APlayerController>();
-		SetOwner(Fpc);
-
-		if (PlayerCharacter->IsLocallyControlled() && Fpc)
-		{
-			// Implement logic
-		}
-	}
-}
-
-void ALevelTeleport::StopInteract(APlayerCharacter* PlayerCharacter)
-{
-	
 }

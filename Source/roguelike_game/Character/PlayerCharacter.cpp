@@ -17,6 +17,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
+#include "roguelike_game/TestGameState.h"
 #include "roguelike_game/Widgets/EquipmentWidget.h"
 
 // Set default player properties
@@ -325,6 +326,10 @@ void APlayerCharacter::Die()
 	if (HasLocalNetOwner())
 	{
 		ServerSetDying();
+	}
+	if (IsLocallyControlled())
+	{
+		GetWorld()->GetGameState<ATestGameState>()->GameOver(false);
 	}
 }
 
