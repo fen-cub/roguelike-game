@@ -13,6 +13,7 @@ ALevelTeleport::ALevelTeleport()
 {
 	SetActorRotation(FRotator(0.0f, 90.0f, -90.0f));
 	SetActorRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	bReplicates = true;
 
 	TriggerCapsule = CreateDefaultSubobject<class UCapsuleComponent>("Trigger capsule");
 	TriggerCapsule->InitCapsuleSize(15.0f, 15.0f);
@@ -20,6 +21,7 @@ ALevelTeleport::ALevelTeleport()
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &ALevelTeleport::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &ALevelTeleport::OnOverlapEnd);
+	TriggerCapsule->SetIsReplicated(true);
 
 	Tooltip = CreateDefaultSubobject<class UTextRenderComponent>("Tooltip");
 	Tooltip->SetupAttachment(RootComponent);
@@ -32,6 +34,7 @@ ALevelTeleport::ALevelTeleport()
 	Tooltip->SetText(FText::FromString("Press E to go next level"));
 	Tooltip->SetTextRenderColor(FColor(255, 122, 0, 255));
 	Tooltip->SetHiddenInGame(true);
+	Tooltip->SetIsReplicated(true);
 }
 
 void ALevelTeleport::BeginPlay()

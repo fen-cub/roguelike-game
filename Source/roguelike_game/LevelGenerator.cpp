@@ -212,14 +212,14 @@ void ALevelGenerator::BeginPlay()
 			BigRoomsExist = 0;
 		} else
 		{
-			// Spawn teleport
-			UE_LOG(LogTemp, Warning, TEXT("Spawn Teleport %d %d"), LastRoom.Key, LastRoom.Value)
-			const FVector LastRoomLocation = FVector((FirstRoom.Value - LastRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - LastRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
-			UE_LOG(LogTemp, Warning, TEXT("Last Room location %f %f"), LastRoomLocation.X, LastRoomLocation.Y)
-			SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
 			break;
 		}
 	}
+		// Spawn teleport
+		UE_LOG(LogTemp, Warning, TEXT("Spawn Teleport %d %d"), LastRoom.Key, LastRoom.Value)
+		const FVector LastRoomLocation = FVector((FirstRoom.Value - LastRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - LastRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
+		UE_LOG(LogTemp, Warning, TEXT("Last Room location %f %f"), LastRoomLocation.X, LastRoomLocation.Y)
+		SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
 }
 }
 
