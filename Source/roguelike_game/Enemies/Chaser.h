@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Config")
+	float DamageDealt;
+
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 

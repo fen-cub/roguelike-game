@@ -34,6 +34,8 @@ AChaser::AChaser()
 
 	WalkSpeed = 100.0f;
 
+	DamageDealt = 10.0f;
+
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
 
@@ -182,9 +184,7 @@ void AChaser::Tick(float DeltaTime)
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && AttackTickCount >= 100)
 		{
-			constexpr float DamageAmount = 10.0f;
-
-			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
+			PlayerCharacter->GetAttributesComponent()->DamageCharacter(DamageDealt);
 
 			AttackTickCount = 0;
 		}

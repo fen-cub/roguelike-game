@@ -42,10 +42,9 @@ protected:
 	float WalkSpeed;
 
 	// How much damage does the player deal
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Config")
 	float DamageDealt;
-
-protected:
+	
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 
