@@ -3,6 +3,7 @@
 
 #include "CharacterAttributesComponent.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
@@ -37,13 +38,18 @@ void UCharacterAttributesComponent::GetLifetimeReplicatedProps(TArray<FLifetimeP
 // Updates health on the server
 void UCharacterAttributesComponent::ServerUpdateHealth_Implementation(float HealthDelta)
 {
-	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
-	OnRepUpdateHealth();
+	OnRepUpdateHealth(HealthDelta);
 }
 
-// Changes HUD after server health replication
-void UCharacterAttributesComponent::OnRepUpdateHealth()
+void UCharacterAttributesComponent::OnRepUpdateHealth_Implementation(float HealthDelta)
 {
+	Health = FMath::Clamp(Health + HealthDelta, 0.f, MaxHealth);
+	
+	if (HealthDelta < 0.0f)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, DamageSound,  GetOwner()->GetActorLocation());
+	}
+	
 	if (PlayerHUD)
 	{
 		PlayerHUD->SetHealth(Health, MaxHealth);

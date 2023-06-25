@@ -25,9 +25,12 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float MaxHealth;
 
-	UPROPERTY(ReplicatedUsing = OnRepUpdateHealth)
+	UPROPERTY(Replicated)
 	float Health;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* DamageSound;
+	
 	UPROPERTY(EditAnywhere)
 	float MaxStamina;
 
@@ -45,8 +48,8 @@ private:
 	void ServerUpdateHealth(float HealthDelta);
 
 	// Called back from server when health updated
-	UFUNCTION()
-	void OnRepUpdateHealth();
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRepUpdateHealth(float HealthDelta);
 
 	// Called to update Stamina on the server
 	UFUNCTION(Server, Reliable)

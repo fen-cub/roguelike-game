@@ -399,11 +399,13 @@ void APlayerCharacter::ServerAttack_Implementation()
 
 void APlayerCharacter::OnRep_Attack_Implementation()
 {
-	if (!bIsAttacking && !bIsDead)
+	if (!bIsAttacking && !bIsDead && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
 	{
 		AnimationComponent->AnimateAttack();
 		bIsAttacking = true;
 		SetMaxWalkSpeed(0);
+
+		AttributesComponent->UpdateStamina(-5.0f);
 	}
 }
 
