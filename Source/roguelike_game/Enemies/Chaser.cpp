@@ -180,6 +180,8 @@ void AChaser::Tick(float DeltaTime)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
+
+		// logic for attack of mob
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && AttackTickCount >= 100)
 		{
@@ -187,6 +189,8 @@ void AChaser::Tick(float DeltaTime)
 
 			AttackTickCount = 0;
 		}
+
+		// logic for attack of character
 		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(
 				GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && DamageTickCount >= 100)
@@ -201,7 +205,7 @@ void AChaser::Tick(float DeltaTime)
 		}
 	}
 
-
+	// health bar widget
 	UEnemyHealthBar* HealthBarWidget = Cast<UEnemyHealthBar>(WidgetComponent->GetWidget());
 	if (HealthBarWidget && !FMath::IsNearlyZero(MaxHealth))
 	{
