@@ -19,8 +19,7 @@ public:
 
 protected:
 	// Need to be set at the begining of the game
-	UPROPERTY()
-	class UPlayerHUD* PlayerHUD;
+	class IDisplayInterface* Display;
 
 	UPROPERTY(Replicated)
 	float DamageProtectionPercent;
@@ -72,7 +71,7 @@ private:
 
 public:
 	// Called when HUD created
-	void SetUpHUD(class UPlayerHUD* HUD);
+	void SetUpDisplay(class IDisplayInterface* NewDisplay);
 
 	// Called to update health
 	void UpdateHealth(float HealthDelta);

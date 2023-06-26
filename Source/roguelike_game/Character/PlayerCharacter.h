@@ -70,7 +70,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
-
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Display)
+	class UWidgetComponent* WidgetComponent;
+	
 	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;

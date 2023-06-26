@@ -19,6 +19,7 @@
 #include "roguelike_game/InteractiveActors/Storage.h"
 #include "roguelike_game/TestGameState.h"
 #include "roguelike_game/Widgets/EquipmentWidget.h"
+#include "Components/WidgetComponent.h"
 
 // Set default player properties
 APlayerCharacter::APlayerCharacter()
@@ -92,6 +93,13 @@ APlayerCharacter::APlayerCharacter()
 	// Default inventory properties
 	EquipmentComponent = CreateDefaultSubobject<UItemStorageComponent>("Equipment Component");
 	EquipmentComponent->SetStorageSize(3);
+
+	// Default health bar wodget settings
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget Component");
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetRelativeRotation(FRotator(90.0f, 0.0f, 180.0f));
+	WidgetComponent->SetRelativeScale3D(FVector(0.025f, 0.025f, 0.025f));
+	WidgetComponent->SetRelativeLocation(FVector(10.0f, 0.0f, 0.0f));
 }
 
 // Called when spawned
@@ -119,9 +127,20 @@ void APlayerCharacter::BeginPlay()
 		PlayerHUD->GetEquipmentWidget()->SetOwnerStorage(EquipmentComponent);
 
 		// Set up HUD for character components
-		AttributesComponent->SetUpHUD(PlayerHUD);
+		AttributesComponent->SetUpDisplay(PlayerHUD);
 		InventoryComponent->SetUpInventoryWidget(PlayerHUD->GetInventoryWidget());
 		EquipmentComponent->SetUpInventoryWidget(PlayerHUD->GetEquipmentWidget());
+		WidgetComponent->SetHiddenInGame(true);
+	}
+	else if (WidgetComponent->GetWidget())
+	{
+		WidgetComponent->SetHiddenInGame(false);
+
+		IDisplayInterface* Display = Cast<IDisplayInterface>(WidgetComponent->GetWidget());
+		if (Display)
+		{
+			AttributesComponent->SetUpDisplay(Display);
+		}
 	}
 }
 
@@ -350,6 +369,8 @@ void APlayerCharacter::OnRepSetDying()
 		PlayerHUD->RemoveFromParent();
 		PlayerHUD = nullptr;
 	}
+	
+	WidgetComponent->SetHiddenInGame(true);
 
 	// EndPlay(EEndPlayReason::Destroyed);
 }
@@ -405,7 +426,8 @@ void APlayerCharacter::ServerAttack_Implementation()
 
 void APlayerCharacter::OnRep_Attack_Implementation()
 {
-	if (!bIsAttacking && !bIsDead && !GetEquipmentComponent()->GetItem(0).IsEmpty() && AttributesComponent->GetStamina() >= 5.0f - ComparisonErrorTolerance)
+	if (!bIsAttacking && !bIsDead && !GetEquipmentComponent()->GetItem(0).IsEmpty() && AttributesComponent->GetStamina()
+		>= 5.0f - ComparisonErrorTolerance)
 	{
 		AnimationComponent->AnimateAttack();
 		bIsAttacking = true;

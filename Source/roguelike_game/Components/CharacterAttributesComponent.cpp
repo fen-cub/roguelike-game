@@ -54,9 +54,9 @@ void UCharacterAttributesComponent::OnRepUpdateHealth_Implementation(float Healt
 		UGameplayStatics::SpawnSoundAtLocation(this, DamageSound, GetOwner()->GetActorLocation());
 	}
 
-	if (PlayerHUD)
+	if (Display)
 	{
-		PlayerHUD->SetHealth(Health, MaxHealth);
+		Display->SetHealth(Health, MaxHealth);
 	}
 }
 
@@ -68,9 +68,9 @@ void UCharacterAttributesComponent::ServerUpdateStamina_Implementation(float Sta
 
 void UCharacterAttributesComponent::OnRepUpdateStamina()
 {
-	if (PlayerHUD)
+	if (Display)
 	{
-		PlayerHUD->SetStamina(Stamina, MaxStamina);
+		Display->SetStamina(Stamina, MaxStamina);
 	}
 }
 
@@ -85,11 +85,11 @@ void UCharacterAttributesComponent::ServerDamageCharacter_Implementation(float D
 }
 
 // Set Player's HUD
-void UCharacterAttributesComponent::SetUpHUD(UPlayerHUD* HUD)
+void UCharacterAttributesComponent::SetUpDisplay(IDisplayInterface* NewDisplay)
 {
-	PlayerHUD = HUD;
-	PlayerHUD->SetHealth(Health, MaxHealth);
-	PlayerHUD->SetStamina(Stamina, MaxStamina);
+	Display = NewDisplay;
+	Display->SetHealth(Health, MaxHealth);
+	Display->SetStamina(Stamina, MaxStamina);
 }
 
 // Calls server to update health or updates health locally on the server
