@@ -16,7 +16,7 @@ void AEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 
@@ -42,7 +42,7 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 void AEnemyAIController::SearchForPlayer()
 {
 	FNavLocation NavLocation;
-
+	
 	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f && NavArea->
 		ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector)
 	)

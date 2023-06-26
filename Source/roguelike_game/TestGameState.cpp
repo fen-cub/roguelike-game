@@ -6,7 +6,7 @@
 #include "TestPlayerState.h"
 
 void ATestGameState::GameOver(bool bIsWon) const {
-    Cast<ATestPlayerState>(PlayerArray[0])->GameOver(bIsWon);
+   // Cast<ATestPlayerState>(PlayerArray[0])->GameOver(bIsWon);
 }
 
 void ATestGameState::OpenNextLevel()

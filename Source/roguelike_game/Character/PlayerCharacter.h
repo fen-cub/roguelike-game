@@ -41,6 +41,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
+	// How much damage does the player deal
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Config")
+	float DamageDealt;
+	
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
 
@@ -66,7 +70,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
-
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Display)
+	class UWidgetComponent* WidgetComponent;
+	
 	// Sets up on the BeginPlay()
 	UPROPERTY()
 	class UPlayerHUD* PlayerHUD;
@@ -184,6 +191,9 @@ private:
 	UFUNCTION(Server, Unreliable)
 	void ServerSetSprintSpeed(float NewSprintSpeed);
 
+	UFUNCTION(Server, Unreliable)
+	void ServerSetDamageDealt(float NewDamageDealt);
+
 public:
 	// Called every tick locally
 	virtual void Tick(float DeltaSeconds) override;
@@ -214,4 +224,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
+
+	UFUNCTION(BlueprintCallable)
+	void SetDamageDealt(const float NewDamageDealt);
+
+	float GetDamageDealt() const;
 };

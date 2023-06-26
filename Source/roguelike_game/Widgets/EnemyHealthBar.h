@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "roguelike_game/Interfaces/DisplayInterface.h"
 #include "EnemyHealthBar.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ROGUELIKE_GAME_API UEnemyHealthBar : public UUserWidget
+class ROGUELIKE_GAME_API UEnemyHealthBar : public UUserWidget, public IDisplayInterface
 {
 	GENERATED_BODY()
 
@@ -18,5 +19,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UProgressBar* HealthBar;
 	
-	void SetHealth(float CurrentHealth, float MaxHealth);
+	virtual void SetHealth(float CurrentHealth, float MaxHealth) override;
+	
+	virtual void SetStamina(float CurrentStamina, float MaxStamina) override;
 };

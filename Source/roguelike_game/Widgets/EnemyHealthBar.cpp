@@ -12,3 +12,7 @@ void UEnemyHealthBar::SetHealth(float CurrentHealth, float MaxHealth)
 		HealthBar->SetPercent(CurrentHealth / MaxHealth);
 	}
 }
+
+void UEnemyHealthBar::SetStamina(float CurrentStamina, float MaxStamina)
+{
+}

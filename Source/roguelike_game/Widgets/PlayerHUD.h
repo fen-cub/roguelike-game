@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "roguelike_game/Interfaces/DisplayInterface.h"
 #include "roguelike_game/Items/Item.h"
 #include "PlayerHUD.generated.h"
 
@@ -12,7 +13,7 @@
   Health indicator + Stamina indicator
  */
 UCLASS()
-class ROGUELIKE_GAME_API UPlayerHUD : public UUserWidget
+class ROGUELIKE_GAME_API UPlayerHUD : public UUserWidget, public IDisplayInterface
 {
 	GENERATED_BODY()
 
@@ -37,9 +38,9 @@ public:
 
 	void SetInteractableStorageWidget(UStorageDisplay* const NewInteractableStorageWidget);
 
-	void SetHealth(float CurrentHealth, float MaxHealth);
+	virtual void SetHealth(float CurrentHealth, float MaxHealth) override;
 
-	void SetStamina(float CurrentStamina, float MaxStamina);
+	virtual void SetStamina(float CurrentStamina, float MaxStamina) override;
 
 	UProgressBar* GetHealthBar() const;
 
