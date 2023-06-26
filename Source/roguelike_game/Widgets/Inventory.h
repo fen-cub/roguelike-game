@@ -33,12 +33,6 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (InstanceEditable = "true", ExposeOnSpawn = "true"))
 	int64 Columns = 1;
 
-	UFUNCTION(BlueprintCallable)
-	int64 GetRow(int64 Position) const;
-
-	UFUNCTION(BlueprintCallable)
-	int64 GetColumn(int64 Position) const;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (BindWidget))
 	class UUniformGridPanel* InventoryGridPanel;
 
@@ -53,6 +47,12 @@ protected:
 
 	int64 LastClickedSlotPosition = -1;
 
+	UFUNCTION(BlueprintCallable)
+	int64 GetRow(int64 Position) const;
+
+	UFUNCTION(BlueprintCallable)
+	int64 GetColumn(int64 Position) const;
+
 public:
 	UFUNCTION()
 	EInventoryType GetCurrentInventoryType() const;
@@ -61,12 +61,6 @@ public:
 	void SetCurrentInventoryType(const EInventoryType NewInventoryType);
 
 	UUniformGridPanel* GetInventoryGridPanel() const;
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void InsertItem(int64 Position, FItemData Item);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetItem(int64 Position, FItemData Item);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGridPanelSizes(int64 RowCount, int64 ColumnCount);
@@ -82,4 +76,10 @@ public:
 	UItemStorageComponent* GetOwnerStorage() const;
 
 	UItemStorageComponent* GetPairingStorage() const;
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void InsertItem(int64 Position, FItemData Item);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetItem(int64 Position, FItemData Item);
 };

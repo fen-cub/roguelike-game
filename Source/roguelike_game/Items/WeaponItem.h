@@ -14,6 +14,10 @@ class ROGUELIKE_GAME_API AWeaponItem : public AItem
 {
 	GENERATED_BODY()
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DamageDealt;
+
 public:
 	virtual void Use(class APlayerCharacter* PlayerCharacter, int64 InventoryPosition) override;
 };

@@ -2,11 +2,12 @@
 
 
 #include "Chaser.h"
+
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "../Character/Components/CharacterAnimationComponent.h"
-#include "../Character/Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -14,6 +15,8 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
+#include "../Widgets/EnemyHealthBar.h"
+#include "Components/WidgetComponent.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 AChaser::AChaser()
@@ -26,11 +29,13 @@ AChaser::AChaser()
 	RunningStaminaLossRate = -0.5f;
 
 	Health = 50;
-	
+	MaxHealth = 50;
+
 	WalkSpeed = 100.0f;
 
-	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
+	DamageDealt = 10.0f;
 
+	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
 
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
@@ -41,8 +46,13 @@ AChaser::AChaser()
 	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
 	AnimationComponent->SetupAttachment(RootComponent);
 	AnimationComponent->SetupOwner(GetSprite());
-
 	AnimationComponent->SetupAttachment(RootComponent);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget Component");
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetRelativeRotation(FRotator(90.0f, 0.0f, 180.0f));
+	WidgetComponent->SetRelativeScale3D(FVector(0.025f, 0.025f, 0.025f));
+	WidgetComponent->SetRelativeLocation(FVector(10.0f, 0.0f, 0.0f));
 }
 
 USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
@@ -58,6 +68,7 @@ void AChaser::BeginPlay()
 
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &AChaser::UpdateMovementProperties);
+	
 }
 
 // Called when dying or in the end
@@ -167,18 +178,36 @@ void AChaser::Tick(float DeltaTime)
 	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (PlayerPawn)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
-			15.0f)
+			30.0f && AttackTickCount >= 100)
 		{
-			constexpr float DamageAmount = 0.5f;
-			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-DamageAmount);
-			
-			if (PlayerCharacter->GetAttributesComponent()->GetHealth() <= 0)
+			PlayerCharacter->GetAttributesComponent()->DamageCharacter(DamageDealt);
+
+			AttackTickCount = 0;
+		}
+		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(
+				GetActorLocation(), PlayerPawn->GetActorLocation()) <
+			30.0f && DamageTickCount >= 100)
+		{
+			Health -= PlayerCharacter->GetDamageDealt();
+			if (Health <= 0)
 			{
 				Destroy();
-				PlayerCharacter->Destroy();
 			}
+
+			DamageTickCount = 0;
 		}
 	}
+
+
+	UEnemyHealthBar* HealthBarWidget = Cast<UEnemyHealthBar>(WidgetComponent->GetWidget());
+	if (HealthBarWidget && !FMath::IsNearlyZero(MaxHealth))
+	{
+		HealthBarWidget->SetHealth(Health, MaxHealth);
+	}
+
+	AttackTickCount++;
+	DamageTickCount++;
 }

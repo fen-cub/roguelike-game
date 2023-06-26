@@ -6,11 +6,6 @@
 #include "StorageDisplay.h"
 #include "Components/ProgressBar.h"
 
-UEquipmentWidget* UPlayerHUD::GetEquipmentWidget() const
-{
-	return EquipmentWidget;
-}
-
 UStorageDisplay* UPlayerHUD::GetInteractableStorageWidget() const
 {
 	return InteractableStorageWidget;
@@ -50,4 +45,9 @@ UProgressBar* UPlayerHUD::GetStaminaBar() const
 UInventory* UPlayerHUD::GetInventoryWidget() const
 {
 	return InventoryWidget;
+}
+
+UEquipmentWidget* UPlayerHUD::GetEquipmentWidget() const
+{
+	return EquipmentWidget;
 }

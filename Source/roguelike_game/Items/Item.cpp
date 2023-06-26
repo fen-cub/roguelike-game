@@ -4,9 +4,10 @@
 #include "Item.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperSpriteComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 
 bool FItemData::IsEmpty() const
@@ -56,35 +57,6 @@ AItem::AItem()
 	Data.Name = GetName();
 }
 
-void AItem::Interact(class APlayerCharacter* PlayerCharacter)
-{
-	if (PlayerCharacter)
-	{
-		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
-
-		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize())
-		{
-			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
-															Position);
-			Destroy();
-		}
-	}
-}
-
-FItemData AItem::GetItemData() const
-{
-	return Data;
-}
-
-void AItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
-{
-}
-
-void AItem::SetItemData(const FItemData& NewData)
-{
-	Data = NewData;
-}
-
 void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -107,4 +79,34 @@ void AItem::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor
 	{
 		Tooltip->SetHiddenInGame(true);
 	}
+}
+
+void AItem::Interact(class APlayerCharacter* PlayerCharacter)
+{
+	if (PlayerCharacter)
+	{
+		const int64 Position = PlayerCharacter->GetInventoryComponent()->GetFirstEmptySlotPosition();
+
+		if (Position < PlayerCharacter->GetInventoryComponent()->GetStorageSize())
+		{
+			PlayerCharacter->GetInventoryComponent()->AddItem(GetItemData(),
+															Position);
+			UGameplayStatics::SpawnSoundAtLocation(this, InteractSound,  PlayerCharacter->GetActorLocation());
+			Destroy();
+		}
+	}
+}
+
+FItemData AItem::GetItemData() const
+{
+	return Data;
+}
+
+void AItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
+{
+}
+
+void AItem::SetItemData(const FItemData& NewData)
+{
+	Data = NewData;
 }

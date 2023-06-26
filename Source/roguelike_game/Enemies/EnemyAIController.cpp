@@ -8,7 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/CharacterAttributesComponent.h"
+#include "roguelike_game/Components/CharacterAttributesComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Runtime/NavigationSystem/Public/NavigationSystem.h"
 
@@ -42,7 +42,7 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 void AEnemyAIController::SearchForPlayer()
 {
 	FNavLocation NavLocation;
-
+	
 	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f && NavArea->
 		ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector)
 	)
@@ -108,6 +108,7 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 		if (NavArea->ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector))
 		{
 			MoveToLocation(PlayerPawn->GetActorLocation());
+			
 		}
 		else
 		{

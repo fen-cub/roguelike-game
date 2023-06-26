@@ -2,8 +2,10 @@
 
 
 #include "ArtifactItem.h"
+
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
@@ -15,6 +17,7 @@ void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPositi
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 2);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
 			ApplyArtifactProperties(PlayerCharacter);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 	else
@@ -27,6 +30,8 @@ void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPositi
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
 			RemoveArtifactProperties(PlayerCharacter);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
+	
 }

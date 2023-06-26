@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "PaperSpriteActor.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 #include "roguelike_game/Interfaces/InteractableInterface.h"
 #include "Storage.generated.h"
 
 /**
- * 
+ The storage actor that contains the items. The player can add and remove items
  */
 UCLASS()
 class ROGUELIKE_GAME_API AStorage : public APaperSpriteActor, public IInteractableInterface
@@ -21,10 +21,6 @@ public:
 	AStorage();
 
 protected:
-	// Sets spawn properties
-	UFUNCTION()
-	virtual void BeginPlay() override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class UItemStorageComponent* StorageComponent;
 
@@ -40,6 +36,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Trigger)
 	class UCapsuleComponent* TriggerCapsule;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* InteractSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound | Config ")
+	class USoundBase* StopInteractSound;
+
+	// Sets spawn properties
+	UFUNCTION()
+	virtual void BeginPlay() override;
+
+private:
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 						class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,

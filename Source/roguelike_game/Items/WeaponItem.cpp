@@ -3,8 +3,9 @@
 
 #include "WeaponItem.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
-#include "roguelike_game/Character/Components/ItemStorageComponent.h"
+#include "roguelike_game/Components/ItemStorageComponent.h"
 
 void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 {
@@ -15,6 +16,8 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 			Data.bIsEquipped = true;
 			PlayerCharacter->GetEquipmentComponent()->AddItem(Data, 0);
 			PlayerCharacter->GetInventoryComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->SetDamageDealt(DamageDealt);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 	else
@@ -26,6 +29,8 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
 			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->SetDamageDealt(0);
+			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
 	}
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
+#include "../Widgets/EnemyHealthBar.h"
 #include "Chaser.generated.h"
 
 /**
@@ -39,8 +40,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "MovementCharacter | Config")
 	float WalkSpeed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Config")
+	float DamageDealt;
+
 	// Epsilon for float types comparison
 	float ComparisonErrorTolerance;
+
+	uint64 AttackTickCount = 0;
+
+	uint64 DamageTickCount = 0;
 
 	// Sets spawn properties
 	UFUNCTION()
@@ -80,17 +88,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
 	class UCharacterAttributesComponent* AttributesComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attributes)
+	class UWidgetComponent* WidgetComponent;
+
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float Health;
 
+	UPROPERTY(EditAnywhere, Category = Attributes)
+	float MaxHealth;
+	
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float StaminaRegenerateRate;
 
 	UPROPERTY(EditAnywhere, Category = Attributes)
 	float RunningStaminaLossRate;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UPlayerHUD> PlayerHUDClass;
 
 	// Calls server to set dying
 	UFUNCTION(Server, Reliable)
