@@ -42,7 +42,7 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 void AEnemyAIController::SearchForPlayer()
 {
 	FNavLocation NavLocation;
-
+	
 	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f && NavArea->
 		ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector)
 	)

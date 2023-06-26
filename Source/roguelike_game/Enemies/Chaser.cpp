@@ -3,7 +3,6 @@
 
 #include "Chaser.h"
 
-#include "EnemyAIController.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
