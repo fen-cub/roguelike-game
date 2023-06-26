@@ -22,8 +22,10 @@ Roguelike game with procedural dungeon generation and multiplayer. The player co
 
 ## Project build:
 
-Clone the project by first installing the Git LFS plugin. 
+Install [Unreal Engine 4.27](https://www.unrealengine.com/en-US/download).
 
-Next, you need to select the option “Generate visual studio project files” in the context menu of the .uproject file and choose the version of Unreal Engine, we used 4.27.
+Clone the project by first installing the [Git LFS](https://git-lfs.com/) plugin. 
+
+Next, select the option “Generate visual studio project files” in the context menu of the .uproject file and choose the 4.27 version of Unreal Engine.
 
 Open .uproject file and compile the project in editor or IDE. 
