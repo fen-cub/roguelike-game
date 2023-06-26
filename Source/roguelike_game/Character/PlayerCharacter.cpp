@@ -551,7 +551,14 @@ void APlayerCharacter::SetDamageDealt(const float NewDamageDealt)
 	}
 }
 
+
+void APlayerCharacter::CallEndPlay()
+{
+	EndPlay(EEndPlayReason::Destroyed);
+}
+
 float APlayerCharacter::GetDamageDealt() const
 {
 	return DamageDealt;
+
 }

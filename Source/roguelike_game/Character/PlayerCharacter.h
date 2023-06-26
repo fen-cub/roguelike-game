@@ -225,8 +225,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetWalkSpeed(const float NewWalkSpeed);
 
+	void CallEndPlay();
+  
 	UFUNCTION(BlueprintCallable)
 	void SetDamageDealt(const float NewDamageDealt);
 
 	float GetDamageDealt() const;
-};

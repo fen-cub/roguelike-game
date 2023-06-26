@@ -9,15 +9,17 @@ void ATestGameState::GameOver(bool bIsWon) const {
    // Cast<ATestPlayerState>(PlayerArray[0])->GameOver(bIsWon);
 }
 
-void ATestGameState::OpenNextLevel()
+bool ATestGameState::OpenNextLevel()
 {
     if (LevelNumber == 3) {
         GameOver(true);
+        return false;
     } else {
         if (LevelNumber == 1) {
             UGameplayStatics::OpenLevel(GetWorld(), TEXT("SecondLevel"));
         } else {
             UGameplayStatics::OpenLevel(GetWorld(), TEXT("ThirdLevel"));
         }
+        return true;
     }
 }
