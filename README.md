@@ -6,6 +6,10 @@ Roguelike game with procedural dungeon generation and multiplayer. The player co
 
 ## Screenshots:
 
+<div style="text-align: center;">
+    <img src="Screenshots/Screenshot_1.png" style="margin-bottom: 10px;" />
+</div>
+
 ## Controls:
 
 | Buttons | Action | 
