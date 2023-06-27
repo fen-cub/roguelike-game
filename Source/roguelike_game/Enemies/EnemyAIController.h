@@ -53,16 +53,5 @@ private:
 public:
 	// stuff to continue after location reached
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
-
-
-	// if overlap
-	UFUNCTION()
-	void OnDetectPlayerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-	                                const FHitResult& SweepResult);
-
-	// end overlap
-	UFUNCTION()
-	void OnDetectPlayerEndOverlap(class UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	                              class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 };
