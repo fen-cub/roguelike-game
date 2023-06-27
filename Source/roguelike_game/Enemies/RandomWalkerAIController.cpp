@@ -43,22 +43,16 @@ void ARandomWalkerAIController::GenerateRandomSearchLocation()
 
 void ARandomWalkerAIController::SearchForPlayer()
 {
-	if (NavArea && GetPawn())
+	if (NavArea && GetPawn() && !bIsMoving)
 	{
 		GenerateRandomSearchLocation();
-		if ( FVector::Dist(RandomLocation, GetPawn()->GetActorLocation()) > 10.0f )
-		{
-			bIsMoving = true;
-			MoveToLocation(RandomLocation); 
-		} else
-		{
-			bIsMoving = false;
-		}
+		bIsMoving = true;
+		MoveToLocation(RandomLocation); 
 	}
 }
 void ARandomWalkerAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
 
-	SearchForPlayer();
+	bIsMoving = false;
 }

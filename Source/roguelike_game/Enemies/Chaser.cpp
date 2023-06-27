@@ -178,8 +178,26 @@ void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	// UE_LOG(LogTemp, Warning, TEXT("Tick Chaser"));
+
+	TArray<AActor*> FoundPlayers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
 	
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	APawn* PlayerPawn = nullptr;
+
+	for (auto Player : FoundPlayers)
+	{
+		if (FVector::Dist(GetActorLocation(), Player->GetActorLocation()) < 100.0f &&
+			(PlayerPawn == nullptr || FVector::Dist(GetActorLocation(), Player->GetActorLocation()) <
+				FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation())))
+		{
+			APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(Player);
+			if (PlayerCharacter)
+			{
+				PlayerPawn = PlayerCharacter;
+			}
+		}
+	}
+	
 	if (PlayerPawn)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
