@@ -21,35 +21,22 @@ protected:
 private:
 	// Player
 	APawn* PlayerPawn;
-
-	// the mob itself
-	class AEnemyCharacter* ControlledEnemy;
-
+	
 	// nav mesh area
 	class UNavigationSystemV1* NavArea;
 
 	// location to move on
 	FVector RandomLocation = FVector();
-
-	bool bMoveToPlayer;
-	bool bSearchForPlayer;
-	bool bCanAttackPlayer;
+	
 	bool bIsMoving;
-
-	float PlayerStoppingDistance = 60.0f;
-	float PlayerAttackDistance = 200.0f;
-
+	
 	void GenerateRandomSearchLocation();
 
 	// keep looking for player character
 	void SearchForPlayer();
-	
-	void StartChasing();
 
 	// timers for cooldown
-	FTimerHandle SearchTimerHandle;
-	FTimerHandle AttackTimerPlayer;
-
+	
 public:
 	// stuff to continue after location reached
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
