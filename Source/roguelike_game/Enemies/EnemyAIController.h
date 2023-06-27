@@ -34,6 +34,7 @@ private:
 	bool bMoveToPlayer;
 	bool bSearchForPlayer;
 	bool bCanAttackPlayer;
+	bool bIsMoving;
 
 	float PlayerStoppingDistance = 60.0f;
 	float PlayerAttackDistance = 200.0f;
