@@ -28,7 +28,7 @@ void AArtifactItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPositi
 		{
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
-			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->GetEquipmentComponent()->RemoveItem(2);
 			RemoveArtifactProperties(PlayerCharacter);
 			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}

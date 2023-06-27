@@ -28,7 +28,7 @@ void AWeaponItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition
 		{
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
-			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->GetEquipmentComponent()->RemoveItem(0);
 			PlayerCharacter->SetDamageDealt(0);
 			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
