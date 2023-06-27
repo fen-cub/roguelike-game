@@ -1,13 +1,14 @@
-# roguelike-game
+# Ragalikson
 
 ## Project Description:
 
-Roguelike game with procedural dungeon generation and multiplayer. The player controls the character, fights enemies with swords and finds valuable items in chests and on the map. The game has various types of weapons, equipment, character attributes and potions that restore health and stamina. The game ends when the player reaches the last level and defeats the boss. If the player dies, then he must start the game again, according to the principle of the roguelike genre.
+Ragalikson is a roguelike game with procedural dungeon generation and multiplayer. The player controls the character, fights enemies with swords and finds valuable items in chests and on the map. The game has various swords, equipment, character attributes and potions that restore health and stamina. The game ends when the player reaches the last level and defeats the boss. If the player dies, then he must start the game again, according to the principle of the roguelike genre.
 
 ## Screenshots:
 
 <div style="text-align: center;">
     <img src="Screenshots/Screenshot_1.png" style="margin-bottom: 10px;" />
+    <img src="Screenshots/Screenshot_3.png" style="margin-bottom: 10px;" />
     <img src="Screenshots/Screenshot_2.png" style="margin-bottom: 10px;" />
 </div>
 
@@ -21,9 +22,10 @@ Roguelike game with procedural dungeon generation and multiplayer. The player co
 | `D` | Move right | 
 | `E` | Interact with items |
 | `1-9` | Use items |
+| `Сtrl` + `1-9` | Drop items |
 | `Left mouse click` | Attack enemies |
 | `Middle mouse click` | Show cursor |
-| `Escape` | Open the game menu during a game / Close the chest | |
+| `Escape` | Close the chest and menus | |
 
 ## Project build:
 

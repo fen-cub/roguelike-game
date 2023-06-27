@@ -3,7 +3,6 @@
 
 #include "MainMenuPlayerController.h"
 #include "Blueprint/UserWidget.h"
-#include "EditorDirectories.h"
 
 void AMainMenuPlayerController::BeginPlay() {
     Super::BeginPlay();

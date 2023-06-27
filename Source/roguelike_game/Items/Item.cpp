@@ -63,6 +63,14 @@ void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
+void AItem::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Data.Name = GetName();
+	Data.bIsEquipped = false;
+}
+
 void AItem::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 							class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 							const FHitResult& SweepResult)
