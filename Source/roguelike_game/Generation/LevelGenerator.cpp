@@ -7,7 +7,6 @@
 #include "NavMesh/NavMeshBoundsVolume.h"
 #include "roguelike_game/Enemies/EnemyAIController.h"
 #include "roguelike_game/Enemies/RandomWalkerAIController.h"
-#include "EditorDirectories.h"
 
 // Sets default values
 ALevelGenerator::ALevelGenerator()

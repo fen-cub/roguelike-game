@@ -13,204 +13,212 @@
 #include "roguelike_game/InteractiveActors/Storage.h"
 #include "roguelike_game/InteractiveActors/LevelTeleport.h"
 #include "GameFramework/Actor.h"
-#include "Net/UnrealNetwork.h" 
+#include "Net/UnrealNetwork.h"
+#include "roguelike_game/Enemies/Boss.h"
 #include "LevelGenerator.generated.h"
 
-enum ERoomType {
-  Default,
-  Long,
-  LType,
-  Big,
-  Empty
+enum ERoomType
+{
+	Default,
+	Long,
+	LType,
+	Big,
+	Empty
 };
 
 
-  struct FMapCell {
-    TArray<int> Doors;
-    TArray<int> Walls;
-    ERoomType CellRoomType = Empty;
-    bool Main = false;
-    bool Generated = false;
-    int Direction = 0;
-    int Side = 0;
-    int RoomType = 0;
-  };
+struct FMapCell
+{
+	TArray<int> Doors;
+	TArray<int> Walls;
+	ERoomType CellRoomType = Empty;
+	bool Main = false;
+	bool Generated = false;
+	int Direction = 0;
+	int Side = 0;
+	int RoomType = 0;
+};
 
 
 UCLASS()
-class ROGUELIKE_GAME_API ALevelGenerator : public AActor {
-  GENERATED_BODY()
+class ROGUELIKE_GAME_API ALevelGenerator : public AActor
+{
+	GENERATED_BODY()
 
 public:
-  // Sets default values for this actor's properties
-  ALevelGenerator();
+	// Sets default values for this actor's properties
+	ALevelGenerator();
 
 protected:
-  // Called when the game starts or when spawned
-  virtual void BeginPlay() override;
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 public:
-  // Called every frame
-  virtual void Tick(float DeltaTime) override;
-  
-  UPROPERTY(EditAnywhere, Replicated, Category = "Room")
-  TSubclassOf<ARoomActor> RoomActorClass = ARoomActor::StaticClass();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
-  uint8 NumOfRooms;
-  bool bIsFinalLevel = false;
+	UPROPERTY(EditAnywhere, Replicated, Category = "Room")
+	TSubclassOf<ARoomActor> RoomActorClass = ARoomActor::StaticClass();
 
-  uint8 LevelNumber;
-  static constexpr uint8 MapWidth = 10;
-  static constexpr uint8 MapHeight = 10;
+	uint8 NumOfRooms;
+	bool bIsFinalLevel = false;
 
-  uint8 MaxBigRooms;
-  uint8 MaxLongRooms;
-  uint8 MaxLTypeRooms;
+	uint8 LevelNumber;
+	static constexpr uint8 MapWidth = 10;
+	static constexpr uint8 MapHeight = 10;
 
-  TPair<int, int> LastRoom;
+	uint8 MaxBigRooms;
+	uint8 MaxLongRooms;
+	uint8 MaxLTypeRooms;
 
-  uint8 RoomWidth = 20;
-  uint8 RoomHeight = 20;
-  uint8 CorridorWidth = 6;
-  uint8 CorridorHeight = 7;
-  uint8 TileWidth = 16;
-  uint8 TileHeight = 16;
-  float PixelsPerUnrealUnit = 1.f;
-  float RealTileWidth = TileWidth / PixelsPerUnrealUnit;
-  float RealTileHeight = TileHeight / PixelsPerUnrealUnit;
-  float RealRoomWidth = RoomWidth * RealTileWidth;
-  float RealRoomHeight = RoomHeight * RealTileHeight;
-  FMapCell LevelMap[MapWidth][MapHeight];
+	TPair<int, int> LastRoom;
 
-  const TPair<uint8, uint8> FirstRoom = TPair<uint8, uint8>(MapWidth / 2, MapHeight / 2);
+	uint8 RoomWidth = 20;
+	uint8 RoomHeight = 20;
+	uint8 CorridorWidth = 6;
+	uint8 CorridorHeight = 7;
+	uint8 TileWidth = 16;
+	uint8 TileHeight = 16;
+	float PixelsPerUnrealUnit = 1.f;
+	float RealTileWidth = TileWidth / PixelsPerUnrealUnit;
+	float RealTileHeight = TileHeight / PixelsPerUnrealUnit;
+	float RealRoomWidth = RoomWidth * RealTileWidth;
+	float RealRoomHeight = RoomHeight * RealTileHeight;
+	FMapCell LevelMap[MapWidth][MapHeight];
 
-  TQueue<TPair<uint8, uint8>> RoomQueue;
+	const TPair<uint8, uint8> FirstRoom = TPair<uint8, uint8>(MapWidth / 2, MapHeight / 2);
 
-  TArray<ARoomActor*> AllRooms;
+	TQueue<TPair<uint8, uint8>> RoomQueue;
 
-  TArray<AActor*> AllItems;
+	TArray<ARoomActor*> AllRooms;
 
-  int8 DirX[4] = {0, 1, 0, -1};
-  int8 DirY[4] = {-1, 0, 1, 0};
+	TArray<AActor*> AllItems;
 
-  TArray<int> UnusedDefaultTemplates;
-  TArray<int> UnusedHorizontalAdditionsTemplates;
-  TArray<int> UnusedVerticalAdditionsTemplates;
-  TArray<int> UnusedHorizontalCorridorsTemplates;
-  TArray<int> UnusedVerticalCorridorsTemplates;
+	int8 DirX[4] = {0, 1, 0, -1};
+	int8 DirY[4] = {-1, 0, 1, 0};
 
-  float CorrDirX[4] = {RealTileHeight * CorridorHeight,
-                      -(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight,
-                      -(RoomHeight *RealTileHeight),
-                      -(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight};
-  float CorrDirY[4] = {(RoomWidth / 2 - CorridorWidth / 2) * RealTileWidth,
-                      -(RealTileWidth * CorridorHeight),
-                      (RoomWidth / 2 - CorridorWidth / 2) * RealTileWidth,
-                      RoomWidth * RealTileWidth};
+	TArray<int> UnusedDefaultTemplates;
+	TArray<int> UnusedHorizontalAdditionsTemplates;
+	TArray<int> UnusedVerticalAdditionsTemplates;
+	TArray<int> UnusedHorizontalCorridorsTemplates;
+	TArray<int> UnusedVerticalCorridorsTemplates;
 
-  float AddDirX[4] = {RealTileHeight * CorridorHeight,
-  0,
-  -(RoomHeight *RealTileHeight),
-    0};
-  float AddDirY[4] = {0,
-    -(RealTileWidth * CorridorHeight),
-    0,
-    RoomWidth * RealTileWidth
-  };
+	float CorrDirX[4] = {
+		RealTileHeight * CorridorHeight,
+		-(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight,
+		-(RoomHeight * RealTileHeight),
+		-(RoomHeight / 2 - CorridorWidth / 2) * RealTileHeight
+	};
+	float CorrDirY[4] = {
+		(RoomWidth / 2 - CorridorWidth / 2) * RealTileWidth,
+		-(RealTileWidth * CorridorHeight),
+		(RoomWidth / 2 - CorridorWidth / 2) * RealTileWidth,
+		RoomWidth * RealTileWidth
+	};
 
-  float SquareX[4] = {
-    - (RoomHeight - 1) * RealTileHeight,
-    - (RoomHeight - 1) * RealTileHeight,
-    0,
-    0
-  };
-  float SquareY[4] = {
-    0,
-    (RoomWidth - 1) * RealTileWidth,
-    (RoomWidth - 1) * RealTileWidth,
-    0
-  };
+	float AddDirX[4] = {
+		RealTileHeight * CorridorHeight,
+		0,
+		-(RoomHeight * RealTileHeight),
+		0
+	};
+	float AddDirY[4] = {
+		0,
+		-(RealTileWidth * CorridorHeight),
+		0,
+		RoomWidth * RealTileWidth
+	};
 
-  void CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom);
+	float SquareX[4] = {
+		- (RoomHeight - 1) * RealTileHeight,
+		- (RoomHeight - 1) * RealTileHeight,
+		0,
+		0
+	};
+	float SquareY[4] = {
+		0,
+		(RoomWidth - 1) * RealTileWidth,
+		(RoomWidth - 1) * RealTileWidth,
+		0
+	};
 
-  void CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
+	void CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom);
 
-  int CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direction) const;
+	void CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
 
-  int CanAddLongRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
+	int CanAddBigRoom(const TPair<int, int> CurrentRoom, int Direction) const;
 
-  void SetLongRoom(const TPair<int, int> CurrentRoom, int Dir);
+	int CanAddLongRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
 
-  void CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir);
+	void SetLongRoom(const TPair<int, int> CurrentRoom, int Dir);
 
-  void CreateCorridors(const TPair<int, int> CurrentRoom);
+	void CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir);
 
-  void Clear();
+	void CreateCorridors(const TPair<int, int> CurrentRoom);
 
-  UClass* PickRandItem();
+	void Clear();
 
-UClass* PickRandEnemy();
+	UClass* PickRandItem();
 
-  void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
+	UClass* PickRandEnemy();
 
-  int CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
+	void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
 
-  void SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type);
+	int CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
 
-  void CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
+	void SetLTypeRoom(const TPair<int, int> CurrentRoom, int Dir, int Side, int Type);
 
-virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int Side);
 
-  void SpawnItem(UClass* ItemToSpawn, FVector Location);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AAttributesRecoveryItem> StaminaRecoveryItemClass;
+	void SpawnItem(UClass* ItemToSpawn, FVector Location);
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AAttributesRecoveryItem> SuperPotionClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AAttributesRecoveryItem> StaminaRecoveryItemClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AAttributesRecoveryItem> HealthRecoveryItemClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AAttributesRecoveryItem> SuperPotionClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AAttributesRecoveryItem> HealthDecreaseItemClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AAttributesRecoveryItem> HealthRecoveryItemClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AArtifactItem> BootsClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AAttributesRecoveryItem> HealthDecreaseItemClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AArmorItem> GoldArmorClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AArtifactItem> BootsClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AWeaponItem> GoldSwordClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AArmorItem> GoldArmorClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AArmorItem> IronArmorClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeaponItem> GoldSwordClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AWeaponItem> IronSwordClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AArmorItem> IronArmorClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AArmorItem> LeatherArmorClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeaponItem> IronSwordClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AWeaponItem> WoodenSwordClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AArmorItem> LeatherArmorClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AStorage> StorageClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeaponItem> WoodenSwordClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<ALevelTeleport> LevelTeleportClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AStorage> StorageClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AChaser> RandomWalkerClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<ALevelTeleport> LevelTeleportClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AChaser> ChaserClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AChaser> RandomWalkerClass;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<ABoss> BossClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AChaser> ChaserClass;
 
-
-  
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<ABoss> BossClass;
 };
