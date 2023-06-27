@@ -19,8 +19,6 @@ void AEnemyAIController::BeginPlay()
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 	
 	bIsMoving = false;
-	
-	UE_LOG(LogTemp, Warning, TEXT("Begin play in Enemy AI"));
 }
 
 void AEnemyAIController::Tick(float DeltaSeconds)
@@ -32,10 +30,8 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 		NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
 	}
 
-	if (!bIsMoving)
+	if (!bIsMoving && NavArea && GetPawn())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Search for player in tick"));
-		GenerateRandomSearchLocation();
 		SearchForPlayer();
 	}
 }
@@ -53,7 +49,6 @@ void AEnemyAIController::SearchForPlayer()
 	if (NavArea && GetPawn())
 	{
 		bIsMoving = true;
-		FNavLocation NavLocation;
 
 		TArray<AActor*> FoundPlayers;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
@@ -78,7 +73,14 @@ void AEnemyAIController::SearchForPlayer()
 			MoveToLocation(PlayerPawn->GetActorLocation());
 		} else 
 		{
-			MoveToLocation(RandomLocation); 
+			GenerateRandomSearchLocation();
+			if ( FVector::Dist(RandomLocation, GetPawn()->GetActorLocation()) > 10.0f )
+			{
+				MoveToLocation(RandomLocation); 
+			} else
+			{
+				bIsMoving = false;
+			}
 		};
 	}
 }
@@ -87,7 +89,6 @@ void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFoll
 {
 	Super::OnMoveCompleted(RequestID, Result);
 	
-	GenerateRandomSearchLocation();
 	SearchForPlayer();
 }
 
