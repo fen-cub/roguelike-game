@@ -1,4 +1,4 @@
-# Roguelikson
+# Ragalikson
 
 ## Project Description:
 
