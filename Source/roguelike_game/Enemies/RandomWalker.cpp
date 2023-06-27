@@ -12,6 +12,12 @@
 #include "GameFramework/Controller.h"
 #include "Kismet/GameplayStatics.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
+#include "roguelike_game/Components/CharacterAnimationComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/Controller.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/Controller.h"
+#include "Components/WidgetComponent.h"
 
 ARandomWalker::ARandomWalker()
 {
@@ -27,7 +33,6 @@ ARandomWalker::ARandomWalker()
 	WalkSpeed = 100.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
-
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
 
 	GetCapsuleComponent()->InitCapsuleSize(10.0f, 10.0f);
@@ -35,9 +40,10 @@ ARandomWalker::ARandomWalker()
 	GetSprite()->SetRelativeRotation(FRotator(0.0f, 90.0f, -90.0f));
 	GetSprite()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 
-	// AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
-	// AnimationComponent->SetupAttachment(RootComponent);
-	// AnimationComponent->SetupOwner(GetSprite());
+	AnimationComponent = CreateDefaultSubobject<UCharacterAnimationComponent>("Animation Component");
+	AnimationComponent->SetupAttachment(RootComponent);
+	AnimationComponent->SetupOwner(GetSprite());
+	AnimationComponent->SetupAttachment(RootComponent);
 }
 
 USphereComponent* ARandomWalker::GetDetectPlayerCollisionSphere()
