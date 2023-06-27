@@ -21,6 +21,7 @@ Roguelike game with procedural dungeon generation and multiplayer. The player co
 | `D` | Move right | 
 | `E` | Interact with items |
 | `1-9` | Use items |
+| `Сtrl + 1-9` | Drop items |
 | `Left mouse click` | Attack enemies |
 | `Middle mouse click` | Show cursor |
 | `Escape` | Open the game menu during a game / Close the chest | |
