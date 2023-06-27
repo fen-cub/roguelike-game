@@ -2,7 +2,7 @@
 
 ## Project Description:
 
-Roguelike game with procedural dungeon generation and multiplayer. The player controls the character, fights enemies with swords and finds valuable items in chests and on the map. The game has various types of weapons, equipment, character attributes and potions that restore health and stamina. The game ends when the player reaches the last level and defeats the boss. If the player dies, then he must start the game again, according to the principle of the roguelike genre.
+Ragalikson is a roguelike game with procedural dungeon generation and multiplayer. The player controls the character, fights enemies with swords and finds valuable items in chests and on the map. The game has various types of weapons, equipment, character attributes and potions that restore health and stamina. The game ends when the player reaches the last level and defeats the boss. If the player dies, then he must start the game again, according to the principle of the roguelike genre.
 
 ## Screenshots:
 
