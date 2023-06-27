@@ -1,5 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerCharacter.h"
 
@@ -183,7 +183,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
-	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &APlayerCharacter::Die);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	PlayerInputComponent->BindAction("ShowMouseCursor", IE_Pressed, this,
 									&APlayerCharacter::SwitchMouseCursorVisibility);
@@ -206,6 +205,25 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem8", IE_Pressed, this, &APlayerCharacter::UseItem,
 																static_cast<int64>(8));
 	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("UseItem9", IE_Pressed, this, &APlayerCharacter::UseItem,
+																static_cast<int64>(9));
+
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem1", IE_Pressed, this, &APlayerCharacter::DropItem,
+															static_cast<int64>(1));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem2", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(2));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem3", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(3));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem4", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(4));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem5", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(5));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem6", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(6));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem7", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(7));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem8", IE_Pressed, this, &APlayerCharacter::DropItem,
+																static_cast<int64>(8));
+	PlayerInputComponent->BindAction<FNumberKeyActionDelegate>("DropItem9", IE_Pressed, this, &APlayerCharacter::DropItem,
 																static_cast<int64>(9));
 }
 
@@ -338,6 +356,30 @@ void APlayerCharacter::UseItem(const int64 Position)
 	{
 		InventoryComponent->UseItem(Position - 1);
 	}
+}
+
+void APlayerCharacter::DropItem(const int64 Position)
+{
+	if (!bIsDead && HasLocalNetOwner())
+	{
+		ServerDropItem(Position);
+	}
+}
+
+void APlayerCharacter::ServerDropItem_Implementation(const int64 Position)
+{
+	FItemData DroppedItem = InventoryComponent->GetItem(Position - 1);
+
+	if (!DroppedItem.IsEmpty())
+	{
+		GetWorld()->SpawnActor<AActor>(DroppedItem.Class, GetActorLocation(), FRotator(0.f));
+		OnRepDropItem(Position);
+	}
+}
+
+void APlayerCharacter::OnRepDropItem_Implementation(const int64 Position)
+{
+	InventoryComponent->RemoveItem(Position - 1);
 }
 
 // Called when dying 

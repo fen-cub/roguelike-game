@@ -144,6 +144,18 @@ protected:
 	UFUNCTION(BlueprintCallable, Category= Trigger)
 	void UseItem(const int64 Position);
 
+	UFUNCTION(BlueprintCallable, Category= Trigger)
+	void DropItem(const int64 Position);
+
+private:
+	UFUNCTION(Server, Reliable)
+	void ServerDropItem(const int64 Position);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void OnRepDropItem(const int64 Position);
+
+protected:
+
 	// Stops movements and calls death animation
 	UFUNCTION(BlueprintCallable, Category= "MovementCharacter | Movements")
 	void Die();

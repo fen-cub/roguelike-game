@@ -55,6 +55,7 @@ AItem::AItem()
 	GetRenderComponent()->SetIsReplicated(true);
 
 	Data.Name = GetName();
+	Data.bIsEquipped = false;
 }
 
 void AItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
