@@ -19,16 +19,9 @@ void AEnemyAIController::BeginPlay()
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
-
-	bSearchForPlayer = true;
-	bCanAttackPlayer = true;
-	bCanAttackPlayer = true;
-	bMoveToPlayer = false;
+	
 	bIsMoving = false;
 	
-	GenerateRandomSearchLocation();
-	SearchForPlayer();
-
 	UE_LOG(LogTemp, Warning, TEXT("Begin play in Enemy AI"));
 }
 
@@ -36,13 +29,13 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	if (!NavArea)
+	{
+		NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
+	}
+
 	if (!bIsMoving)
 	{
-		if (!NavArea)
-		{
-			NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
-		}
-
 		UE_LOG(LogTemp, Warning, TEXT("Search for player in tick"));
 		GenerateRandomSearchLocation();
 		SearchForPlayer();
@@ -54,10 +47,7 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 	if (NavArea && GetPawn())
 	{
 		RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 50.0f);
-	} else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Nav area false"));
-	}
+	} 
 }
 
 void AEnemyAIController::SearchForPlayer()
@@ -78,70 +68,12 @@ void AEnemyAIController::SearchForPlayer()
 	};
 }
 
-void AEnemyAIController::MoveToPlayer()
-{
-	if (PlayerPawn && bCanAttackPlayer)
-	{
-		bMoveToPlayer = true;
-		bSearchForPlayer = false;
-
-		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalActor(PlayerPawn);
-		MoveRequest.SetAcceptanceRadius(100.0f);
-
-		MoveTo(MoveRequest);
-	}
-}
-
-void AEnemyAIController::AttackPlayer()
-{
-	if (PlayerPawn && bCanAttackPlayer)
-	{
-		bMoveToPlayer = true;
-		bSearchForPlayer = false;
-
-		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalActor(PlayerPawn);
-		MoveRequest.SetAcceptanceRadius(100.0f);
-
-		MoveTo(MoveRequest);
-
-		// Deal damage to the player character
-		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
-		if (PlayerCharacter != nullptr)
-		{
-			float DamageAmount = 20.0f;
-			PlayerCharacter->GetAttributesComponent()->UpdateHealth(-10.0f);
-		}
-	}
-}
-
 void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
-
-	bIsMoving = false;
 	
-	if (bSearchForPlayer)
-	{
-		GenerateRandomSearchLocation();
-		SearchForPlayer();
-	}
-	else if (PlayerPawn)
-	{
-		FNavLocation NavLocation;
-		if (NavArea->ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector))
-		{
-			MoveToLocation(PlayerPawn->GetActorLocation());
-			
-		}
-		else
-		{
-			bSearchForPlayer = true;
-			GenerateRandomSearchLocation();
-			SearchForPlayer();
-		}
-	}
+	GenerateRandomSearchLocation();
+	SearchForPlayer();
 }
 
 void AEnemyAIController::OnDetectPlayerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -155,7 +87,6 @@ void AEnemyAIController::OnDetectPlayerBeginOverlap(UPrimitiveComponent* Overlap
 
 		// Handle the overlap with the player character
 		// For example, start attacking the player or trigger other behavior
-		AttackPlayer();
 	}
 }
 
