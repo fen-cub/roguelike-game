@@ -2,7 +2,7 @@
 
 
 #include "RandomWalkerAIController.h"
-
+#include "Chaser.h"
 #include "NavigationSystem.h"
 #include "Kismet/GameplayStatics.h"
 

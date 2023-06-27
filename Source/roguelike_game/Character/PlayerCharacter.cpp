@@ -17,7 +17,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "roguelike_game/InteractiveActors/Storage.h"
-#include "roguelike_game/TestGameState.h"
+#include "roguelike_game/Logics/TestGameState.h"
 #include "roguelike_game/Widgets/EquipmentWidget.h"
 #include "Components/WidgetComponent.h"
 
@@ -343,13 +343,13 @@ void APlayerCharacter::UseItem(const int64 Position)
 // Called when dying 
 void APlayerCharacter::Die()
 {
-	if (HasLocalNetOwner())
-	{
-		ServerSetDying();
-	}
 	if (IsLocallyControlled())
 	{
 		GetWorld()->GetGameState<ATestGameState>()->GameOver(false);
+	}
+	if (HasLocalNetOwner())
+	{
+		ServerSetDying();
 	}
 }
 

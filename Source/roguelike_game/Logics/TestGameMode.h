@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "EngineUtils.h"
 #include "GameFramework/GameMode.h"
-#include "Character/PlayerCharacter.h"
+#include "roguelike_game/Character/PlayerCharacter.h"
 #include "TestGameMode.generated.h"
 
 /**

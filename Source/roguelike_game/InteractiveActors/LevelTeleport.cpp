@@ -5,7 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Components/TextRenderComponent.h"
-#include "roguelike_game/TestGameState.h"
+#include "roguelike_game/Logics/TestGameState.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
 

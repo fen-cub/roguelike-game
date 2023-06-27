@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "GameOverWidget.h"
+#include "roguelike_game/Widgets/GameOverWidget.h"
 #include "TestPlayerState.generated.h"
 
 /**
