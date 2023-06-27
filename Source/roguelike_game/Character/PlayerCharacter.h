@@ -231,3 +231,4 @@ public:
 	void SetDamageDealt(const float NewDamageDealt);
 
 	float GetDamageDealt() const;
+};

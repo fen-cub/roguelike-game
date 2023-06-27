@@ -69,6 +69,8 @@ void AChaser::BeginPlay()
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &AChaser::UpdateMovementProperties);
 	
+
+	UE_LOG(LogTemp, Warning, TEXT("Chaser Begin Play"));
 }
 
 // Called when dying or in the end
@@ -175,12 +177,14 @@ void AChaser::OnRep_IsDead()
 void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// UE_LOG(LogTemp, Warning, TEXT("Tick Chaser"));
+	
 	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (PlayerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
-		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+		if (PlayerCharacter && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && AttackTickCount >= 100)
 		{
 			PlayerCharacter->GetAttributesComponent()->DamageCharacter(DamageDealt);
