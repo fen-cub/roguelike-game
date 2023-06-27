@@ -12,7 +12,6 @@ void ATestGameState::GameOver(bool bIsWon) const {
 bool ATestGameState::OpenNextLevel()
 {
     if (LevelNumber == 3) {
-        GameOver(true);
         return false;
     } else {
         if (LevelNumber == 1) {

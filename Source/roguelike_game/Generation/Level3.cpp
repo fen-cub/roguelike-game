@@ -7,4 +7,5 @@
 ALevel3::ALevel3()
 {
 	LevelNumber = 3;
+	bIsFinalLevel = true;
 }

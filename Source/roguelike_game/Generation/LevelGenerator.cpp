@@ -90,6 +90,11 @@ static ConstructorHelpers::FClassFinder<AArmorItem> LeatherArmorBP(TEXT("/Game/I
 	{
 		ChaserClass = ChaserBP.Class;
 	}
+	static ConstructorHelpers::FClassFinder<ABoss> BossBP(TEXT("/Game/Enemy/BP_Boss_1"));
+	if (BossBP.Succeeded())
+	{
+		BossClass = BossBP.Class;
+	}
 }
 
 // Called every frame
@@ -253,10 +258,15 @@ void ALevelGenerator::BeginPlay()
 			break;
 		}
 	}
+
 		UE_LOG(LogTemp, Warning, TEXT("Spawn Teleport %d %d"), LastRoom.Key, LastRoom.Value)
 		const FVector LastRoomLocation = FVector((FirstRoom.Value - LastRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - LastRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 		UE_LOG(LogTemp, Warning, TEXT("Last Room location %f %f"), LastRoomLocation.X, LastRoomLocation.Y)
-		SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
+		if (!bIsFinalLevel) {
+			SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
+		} else {
+			SpawnItem(BossClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
+		}
 }
 }
 
@@ -277,7 +287,7 @@ void ALevelGenerator::CreateDefaultRoom(const TPair<uint8, uint8> CurrentRoom)
 		SpawnItem(PickRandItem(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		} else
 		{
-			//TODO Spawn Mobs
+			SpawnItem(PickRandEnemy(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		}
 	}
 	if (LevelMap[CurrentRoom.Key][CurrentRoom.Value].Doors.Num() == 1)
@@ -337,7 +347,7 @@ void ALevelGenerator::CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 		SpawnItem(PickRandItem(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 0.f));
 	} else
 	{
-		//TODO Spawn Mobs
+		SpawnItem(PickRandEnemy(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 0.f));
 	}
 	}
 	
@@ -356,7 +366,7 @@ void ALevelGenerator::CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 			SpawnItem(PickRandItem(), FVector(SecondRoomLocation.X - SpawnPoint.Value * RealTileWidth, SecondRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		} else
 		{
-			//TODO Spawn Mobs
+			SpawnItem(PickRandEnemy(), FVector(SecondRoomLocation.X - SpawnPoint.Value * RealTileWidth, SecondRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		}
 	}
 
@@ -378,7 +388,7 @@ void ALevelGenerator::CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 				SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			} else
 			{
-				//TODO Spawn Mobs
+				SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			}
 		}
 	} else
@@ -393,7 +403,7 @@ void ALevelGenerator::CreateLongRoom(const TPair<int, int> CurrentRoom, int Dir)
 				SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			} else
 			{
-				//TODO Spawn Mobs
+				SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			}
 		}
 	}
@@ -540,7 +550,7 @@ void ALevelGenerator::CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Si
 					SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				} else
 				{
-					//TODO Spawn Mobs
+					SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				}
 			}
 		} else
@@ -555,7 +565,7 @@ void ALevelGenerator::CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Si
 					SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				} else
 				{
-					//TODO Spawn Mobs
+					SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				}
 			}
 		}
@@ -576,7 +586,7 @@ void ALevelGenerator::CreateBigRoom(TPair<int, int> CurrentRoom, int Dir, int Si
 				SpawnItem(PickRandItem(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			} else
 			{
-				//TODO Spawn Mobs
+				SpawnItem(PickRandEnemy(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 			}
 		}
 		AllRooms.Add(NewRoom1);
@@ -743,7 +753,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 			SpawnItem(PickRandItem(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		} else
 		{
-			//TODO Spawn Mobs
+			SpawnItem(PickRandEnemy(), FVector(CurRoomLocation.X - SpawnPoint.Value * RealTileWidth, CurRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 		}
 	}
 	LevelMap[CurrentRoom.Key][CurrentRoom.Value].Generated = true;
@@ -770,7 +780,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			} else
@@ -785,7 +795,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			}
@@ -807,7 +817,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 					SpawnItem(PickRandItem(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				} else
 				{
-					//TODO Spawn Mobs
+					SpawnItem(PickRandEnemy(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				}
 			}
 		}
@@ -832,7 +842,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			} else
@@ -847,7 +857,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			}
@@ -871,7 +881,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 					SpawnItem(PickRandItem(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				} else
 				{
-					//TODO Spawn Mobs
+					SpawnItem(PickRandEnemy(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				}
 			}
 		}
@@ -896,7 +906,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			} else
@@ -911,7 +921,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 						SpawnItem(PickRandItem(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					} else
 					{
-						//TODO Spawn Mobs
+						SpawnItem(PickRandEnemy(), FVector(AddedRoomLocation.X - SpawnPoint.Value * RealTileWidth, AddedRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 					}
 				}
 			}
@@ -932,7 +942,7 @@ void ALevelGenerator::CreateLTypeRoom(TPair<int, int> CurrentRoom, int Dir, int 
 					SpawnItem(PickRandItem(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				} else
 				{
-					//TODO Spawn Mobs
+					SpawnItem(PickRandEnemy(), FVector(NewRoomLocation.X - SpawnPoint.Value * RealTileWidth, NewRoomLocation.Y + SpawnPoint.Key * RealTileHeight, 10.f));
 				}
 			}
 			AllRooms.Add(NewRoom1);
@@ -975,5 +985,17 @@ UClass* ALevelGenerator::PickRandItem()
 		return WoodenSwordClass;
 	default:
 		return StorageClass;
+	}
+}
+
+UClass* ALevelGenerator::PickRandEnemy()
+{
+	int Type = FMath::RandRange(0, 1);
+	switch (Type)
+	{
+	case 0:
+		return RandomWalkerClass;
+	default:
+		return ChaserClass;
 	}
 }
