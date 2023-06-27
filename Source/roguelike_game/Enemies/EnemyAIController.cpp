@@ -42,7 +42,8 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 void AEnemyAIController::SearchForPlayer()
 {
 	FNavLocation NavLocation;
-	
+
+	// beware to check player is near and is valid
 	if (PlayerPawn && FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) < 100.0f && NavArea->
 		ProjectPointToNavigation(PlayerPawn->GetActorLocation(), NavLocation, FVector::ZeroVector)
 	)
@@ -50,7 +51,7 @@ void AEnemyAIController::SearchForPlayer()
 		bSearchForPlayer = false;
 		MoveToLocation(PlayerPawn->GetActorLocation());
 	}
-	else
+	else // else go to random location
 	{
 		MoveToLocation(RandomLocation);
 	};

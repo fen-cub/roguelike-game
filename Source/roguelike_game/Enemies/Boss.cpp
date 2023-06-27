@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// boss logic, controller is the EnemyAIController
 
-#include "Chaser.h"
 
+#include "Boss.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -19,21 +20,14 @@
 #include "Components/WidgetComponent.h"
 #include "roguelike_game/Character/PlayerCharacter.h"
 
-AChaser::AChaser()
+ABoss::ABoss()
 {
 	bIsDead = false;
 	bIsMoving = false;
-	PrimaryActorTick.bCanEverTick = true;
-	ComparisonErrorTolerance = 1e-7;
-	StaminaRegenerateRate = 0.25f;
-	RunningStaminaLossRate = -0.5f;
 
-	Health = 50;
-	MaxHealth = 50;
-
-	WalkSpeed = 100.0f;
-
-	DamageDealt = 10.0f;
+	Health = 100;
+	MaxHealth = 100;
+	DamageDealt = 20.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
@@ -55,96 +49,36 @@ AChaser::AChaser()
 	WidgetComponent->SetRelativeLocation(FVector(10.0f, 0.0f, 0.0f));
 }
 
-USphereComponent* AChaser::GetDetectPlayerCollisionSphere()
+USphereComponent* ABoss::GetDetectPlayerCollisionSphere()
 {
 	return DetectPlayerCollisionSphere;
 }
 
 
-// Called when spawned
-void AChaser::BeginPlay()
+void ABoss::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Animate character on movement
-	OnCharacterMovementUpdated.AddDynamic(this, &AChaser::UpdateMovementProperties);
-	
 }
 
-// Called when dying or in the end
-void AChaser::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ABoss::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 }
 
-// Replicate variables on the server
-void AChaser::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void ABoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AChaser, bIsMoving);
-	DOREPLIFETIME(AChaser, bIsDead);
+	DOREPLIFETIME(ABoss, bIsMoving);
+	DOREPLIFETIME(ABoss, bIsDead);
 }
 
-// Called when moves
-void AChaser::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
+void ABoss::AddMovementInput(FVector WorldDirection, float ScaleValue, bool bForce)
 {
 	GetMovementComponent()->AddInputVector(WorldDirection * ScaleValue, bForce);
 }
 
-// Called to bind functionality to input
-void AChaser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveUpOrDown", this, &AChaser::MoveForwardOrDown);
-	PlayerInputComponent->BindAxis("MoveRightOrLeft", this, &AChaser::MoveRightOrLeft);
-	PlayerInputComponent->BindAction("Die", IE_Pressed, this, &AChaser::Die);
-}
-
-void AChaser::UpdateMovementProperties(float DeltaTime, FVector OldLocation, FVector const OldVelocity)
-{
-	AnimationComponent->SetCurrentCharacterDirection(OldVelocity);
-
-	bIsMoving = !FMath::IsNearlyZero(OldVelocity.Size(), ComparisonErrorTolerance);
-
-	if (bIsMoving && !bIsDead)
-	{
-		// AnimationComponent->AnimateWalking();
-	}
-	else if (!bIsDead)
-	{
-		// AnimationComponent->AnimateIdle();
-	}
-}
-
-// Called when W or S keys are pressed
-void AChaser::MoveForwardOrDown(const float Axis)
-{
-	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
-	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Axis, true);
-	}
-}
-
-// Called when A or D keys are pressed
-void AChaser::MoveRightOrLeft(const float Axis)
-{
-	if ((Controller != nullptr) && !bIsDead && !FMath::IsNearlyZero(Axis, ComparisonErrorTolerance))
-	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction, Axis, true);
-	}
-}
-
-
-void AChaser::Die()
+void ABoss::Die()
 {
 	if (!HasAuthority())
 	{
@@ -158,21 +92,18 @@ void AChaser::Die()
 }
 
 
-// Called when client dying
-void AChaser::ServerSetDying_Implementation()
+void ABoss::ServerSetDying_Implementation()
 {
 	Die();
 }
 
-// Calls back from server when dying
-void AChaser::OnRep_IsDead()
+void ABoss::OnRep_IsDead()
 {
-	// AnimationComponent->AnimateDeath();
 	EndPlay(EEndPlayReason::Destroyed);
 }
 
 // Called every frame
-void AChaser::Tick(float DeltaTime)
+void ABoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -181,11 +112,11 @@ void AChaser::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
 
-		// logic for attack of mob
+		// logic for attack of boss
 		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && AttackTickCount >= 100)
 		{
-			PlayerCharacter->GetAttributesComponent()->DamageCharacter(DamageDealt);
+			PlayerCharacter->GetAttributesComponent()->DamageCharacter(3 * DamageDealt);
 
 			AttackTickCount = 0;
 		}
@@ -195,7 +126,7 @@ void AChaser::Tick(float DeltaTime)
 				GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && DamageTickCount >= 100)
 		{
-			Health -= PlayerCharacter->GetDamageDealt();
+			Health -= PlayerCharacter->GetDamageDealt() / 3;
 			if (Health <= 0)
 			{
 				Destroy();
