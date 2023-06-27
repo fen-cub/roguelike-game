@@ -69,6 +69,8 @@ void AChaser::BeginPlay()
 	// Animate character on movement
 	OnCharacterMovementUpdated.AddDynamic(this, &AChaser::UpdateMovementProperties);
 	
+
+	UE_LOG(LogTemp, Warning, TEXT("Chaser Begin Play"));
 }
 
 // Called when dying or in the end
@@ -175,18 +177,41 @@ void AChaser::OnRep_IsDead()
 void AChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	// UE_LOG(LogTemp, Warning, TEXT("Tick Chaser"));
+
+	TArray<AActor*> FoundPlayers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
+	
+	APawn* PlayerPawn = nullptr;
+
+	for (auto Player : FoundPlayers)
+	{
+		if (FVector::Dist(GetActorLocation(), Player->GetActorLocation()) < 100.0f &&
+			(PlayerPawn == nullptr || FVector::Dist(GetActorLocation(), Player->GetActorLocation()) <
+				FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation())))
+		{
+			APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(Player);
+			if (PlayerCharacter)
+			{
+				PlayerPawn = PlayerCharacter;
+			}
+		}
+	}
+	
 	if (PlayerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());
 		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerPawn);
-		if (FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
+
+		if (PlayerCharacter && FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && AttackTickCount >= 100)
 		{
 			PlayerCharacter->GetAttributesComponent()->DamageCharacter(DamageDealt);
 
 			AttackTickCount = 0;
 		}
+
+		// logic for attack of character
 		if (PlayerCharacter && PlayerCharacter->bIsAttacking && FVector::Dist(
 				GetActorLocation(), PlayerPawn->GetActorLocation()) <
 			30.0f && DamageTickCount >= 100)
@@ -201,7 +226,7 @@ void AChaser::Tick(float DeltaTime)
 		}
 	}
 
-
+	// health bar widget
 	UEnemyHealthBar* HealthBarWidget = Cast<UEnemyHealthBar>(WidgetComponent->GetWidget());
 	if (HealthBarWidget && !FMath::IsNearlyZero(MaxHealth))
 	{
