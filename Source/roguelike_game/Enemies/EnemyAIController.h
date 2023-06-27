@@ -43,12 +43,8 @@ private:
 
 	// keep looking for player character
 	void SearchForPlayer();
-
-	// moving exactly to player's location
-	void MoveToPlayer();
-
+	
 	void StartChasing();
-	void AttackPlayer();
 
 	// timers for cooldown
 	FTimerHandle SearchTimerHandle;
