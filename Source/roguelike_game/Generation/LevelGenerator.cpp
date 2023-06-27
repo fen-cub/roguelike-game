@@ -264,7 +264,7 @@ void ALevelGenerator::BeginPlay()
 		if (!bIsFinalLevel) {
 			SpawnItem(LevelTeleportClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
 		} else {
-			SpawnItem(BossClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 0.f));
+			SpawnItem(BossClass, FVector(LastRoomLocation.X -  (RealRoomHeight / 2), LastRoomLocation.Y + (RealRoomWidth / 2), 10.f));
 		}
 }
 }
