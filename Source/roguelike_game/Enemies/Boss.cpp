@@ -27,7 +27,7 @@ ABoss::ABoss()
 
 	Health = 100;
 	MaxHealth = 100;
-	DamageDealt = 20.0f;
+	DamageDealt = 15.0f;
 
 	DetectPlayerCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Sphere"));
 	DetectPlayerCollisionSphere->SetupAttachment(RootComponent);
@@ -89,6 +89,8 @@ void ABoss::Die()
 		bIsDead = true;
 		OnRep_IsDead();
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Boss Die"));
+	GetWorld()->GetGameState<ATestGameState>()->GameOver(true);
 }
 
 
@@ -148,7 +150,8 @@ void ABoss::Tick(float DeltaTime)
 			Health -= PlayerCharacter->GetDamageDealt() / 3;
 			if (Health <= 0)
 			{
-				Destroy();
+				Die();
+				PlayerCharacter->CallEndPlay();
 			}
 
 			DamageTickCount = 0;

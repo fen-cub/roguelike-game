@@ -57,6 +57,7 @@ public:
   TSubclassOf<ARoomActor> RoomActorClass = ARoomActor::StaticClass();
 
   uint8 NumOfRooms;
+  bool bIsFinalLevel = false;
 
   uint8 LevelNumber;
   static constexpr uint8 MapWidth = 10;
@@ -148,6 +149,8 @@ public:
 
   UClass* PickRandItem();
 
+UClass* PickRandEnemy();
+
   void SetBigRoom(const TPair<int, int> CurrentRoom, int Dir, int Side);
 
   int CanAddLTypeRoom(const TPair<uint8, uint8> CurrentRoom, uint8 Dir) const;
@@ -204,6 +207,9 @@ virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
   TSubclassOf<AChaser> ChaserClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<ABoss> BossClass;
 
 
   
