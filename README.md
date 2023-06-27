@@ -8,6 +8,7 @@ Ragalikson is a roguelike game with procedural dungeon generation and multiplaye
 
 <div style="text-align: center;">
     <img src="Screenshots/Screenshot_1.png" style="margin-bottom: 10px;" />
+    <img src="Screenshots/Screenshot_3.png" style="margin-bottom: 10px;" />
     <img src="Screenshots/Screenshot_2.png" style="margin-bottom: 10px;" />
 </div>
 
