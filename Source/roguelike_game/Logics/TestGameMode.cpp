@@ -4,9 +4,9 @@
 #include "TestGameMode.h"
 #include "TestGameState.h"
 #include "TestPlayerState.h"
-#include "Level1.h"
-#include "Level2.h"
-#include "Level3.h"
+#include "roguelike_game/Generation/Level1.h"
+#include "roguelike_game/Generation/Level2.h"
+#include "roguelike_game/Generation/Level3.h"
 
 ATestGameMode::ATestGameMode() {
     UE_LOG(LogTemp, Warning, TEXT("GameMode Constructor"));

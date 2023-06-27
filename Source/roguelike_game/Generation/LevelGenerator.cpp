@@ -4,6 +4,9 @@
 #include "LevelGenerator.h"
 #include "SpawnPoints.h"
 #include "GameFramework/PlayerStart.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+#include "roguelike_game/Enemies/EnemyAIController.h"
+#include "roguelike_game/Enemies/RandomWalkerAIController.h"
 #include "EditorDirectories.h"
 
 // Sets default values
@@ -16,6 +19,11 @@ ALevelGenerator::ALevelGenerator()
 	if (StaminaRecoveryItemBP.Succeeded())
 	{
 		StaminaRecoveryItemClass = StaminaRecoveryItemBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> SuperPotionBP(TEXT("/Game/Items/SuperPotionBP"));
+	if (SuperPotionBP.Succeeded())
+	{
+		SuperPotionClass = SuperPotionBP.Class;
 	}
 	static ConstructorHelpers::FClassFinder<AAttributesRecoveryItem> HealthDecreaseItemBP(TEXT("/Game/Items/HealthDecreaseItemBP"));
 	if (HealthDecreaseItemBP.Succeeded())
@@ -32,15 +40,35 @@ ALevelGenerator::ALevelGenerator()
 	{
 		BootsClass = BootsBP.Class;
 	}
-	static ConstructorHelpers::FClassFinder<AArmorItem> ArmorBP(TEXT("/Game/Items/ArmorBP"));
-	if (ArmorBP.Succeeded())
+	static ConstructorHelpers::FClassFinder<AArmorItem> GoldArmorBP(TEXT("/Game/Items/GoldArmorBP"));
+	if (GoldArmorBP.Succeeded())
 	{
-		ArmorItemClass = ArmorBP.Class;
+		GoldArmorClass = GoldArmorBP.Class;
 	}
-	static ConstructorHelpers::FClassFinder<AWeaponItem> SwordBP(TEXT("/Game/Items/SwordBP"));
-	if (SwordBP.Succeeded())
+	static ConstructorHelpers::FClassFinder<AWeaponItem> GoldSwordBP(TEXT("/Game/Items/GoldSwordBP"));
+	if (GoldSwordBP.Succeeded())
 	{
-		SwordClass = SwordBP.Class;
+		GoldSwordClass = GoldSwordBP.Class;
+	}
+static ConstructorHelpers::FClassFinder<AArmorItem> IronArmorBP(TEXT("/Game/Items/IronArmorBP"));
+	if (IronArmorBP.Succeeded())
+	{
+		IronArmorClass = IronArmorBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AWeaponItem> IronSwordBP(TEXT("/Game/Items/IronSwordBP"));
+	if (IronSwordBP.Succeeded())
+	{
+		IronSwordClass = IronSwordBP.Class;
+	}
+static ConstructorHelpers::FClassFinder<AArmorItem> LeatherArmorBP(TEXT("/Game/Items/LeatherArmorBP"));
+	if (LeatherArmorBP.Succeeded())
+	{
+		LeatherArmorClass = LeatherArmorBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AWeaponItem> WoodenSwordBP(TEXT("/Game/Items/WoodenSwordBP"));
+	if (WoodenSwordBP.Succeeded())
+	{
+		WoodenSwordClass = WoodenSwordBP.Class;
 	}
 	static ConstructorHelpers::FClassFinder<AStorage> ChestBP(TEXT("/Game/InteractableActors/ChestBP"));
 	if (ChestBP.Succeeded())
@@ -51,6 +79,16 @@ ALevelGenerator::ALevelGenerator()
 	if (TeleportBP.Succeeded())
 	{
 		LevelTeleportClass = TeleportBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AChaser> RandomWalkerBP(TEXT("/Game/Enemy/BP_RandomWalker"));
+	if (RandomWalkerBP.Succeeded())
+	{
+		RandomWalkerClass = RandomWalkerBP.Class;
+	}
+	static ConstructorHelpers::FClassFinder<AChaser> ChaserBP(TEXT("/Game/Enemy/BP_Chaser"));
+	if (ChaserBP.Succeeded())
+	{
+		ChaserClass = ChaserBP.Class;
 	}
 }
 
@@ -215,7 +253,6 @@ void ALevelGenerator::BeginPlay()
 			break;
 		}
 	}
-		// Spawn teleport
 		UE_LOG(LogTemp, Warning, TEXT("Spawn Teleport %d %d"), LastRoom.Key, LastRoom.Value)
 		const FVector LastRoomLocation = FVector((FirstRoom.Value - LastRoom.Value) * (RealRoomHeight + RealTileHeight * CorridorHeight), (FirstRoom.Key - LastRoom.Key) * (RealRoomWidth + RealTileHeight * CorridorHeight), 0.f);
 		UE_LOG(LogTemp, Warning, TEXT("Last Room location %f %f"), LastRoomLocation.X, LastRoomLocation.Y)
@@ -913,7 +950,7 @@ void ALevelGenerator::SpawnItem(UClass* ItemToSpawn, FVector Location) {
 
 UClass* ALevelGenerator::PickRandItem()
 {
-	int Type = FMath::RandRange(0, 6);
+	int Type = FMath::RandRange(0, 10);
 	switch (Type)
 	{
 	case 0:
@@ -925,9 +962,17 @@ UClass* ALevelGenerator::PickRandItem()
 	case 3:
 		return BootsClass;
 	case 4:
-		return ArmorItemClass;
+		return GoldArmorClass;
 	case 5:
-		return SwordClass;
+		return GoldSwordClass;
+	case 6:
+		return IronArmorClass;
+	case 7:
+		return IronSwordClass;
+	case 8:
+		return LeatherArmorClass;
+	case 9:
+		return WoodenSwordClass;
 	default:
 		return StorageClass;
 	}

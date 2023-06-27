@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "RoomActor.h"
-#include "Items/AttributesRecoveryItem.h"
-#include "Items/ArmorItem.h"
-#include "Items/ArtifactItem.h"
-#include "Items/WeaponItem.h"
-#include "Items/ArtifactItem.h"
-#include "InteractiveActors/Storage.h"
-#include "InteractiveActors/LevelTeleport.h"
+#include "roguelike_game/Items/AttributesRecoveryItem.h"
+#include "roguelike_game/Items/ArmorItem.h"
+#include "roguelike_game/Items/ArtifactItem.h"
+#include "roguelike_game/Items/WeaponItem.h"
+#include "roguelike_game/Items/ArtifactItem.h"
+#include "roguelike_game/Enemies/Chaser.h"
+#include "roguelike_game/InteractiveActors/Storage.h"
+#include "roguelike_game/InteractiveActors/LevelTeleport.h"
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h" 
 #include "LevelGenerator.generated.h"
@@ -163,6 +164,9 @@ virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
   TSubclassOf<AAttributesRecoveryItem> StaminaRecoveryItemClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AAttributesRecoveryItem> SuperPotionClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
   TSubclassOf<AAttributesRecoveryItem> HealthRecoveryItemClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
@@ -172,15 +176,35 @@ virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
   TSubclassOf<AArtifactItem> BootsClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AArmorItem> ArmorItemClass;
+  TSubclassOf<AArmorItem> GoldArmorClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
-  TSubclassOf<AWeaponItem> SwordClass;
+  TSubclassOf<AWeaponItem> GoldSwordClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AArmorItem> IronArmorClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AWeaponItem> IronSwordClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AArmorItem> LeatherArmorClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AWeaponItem> WoodenSwordClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
   TSubclassOf<AStorage> StorageClass;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
   TSubclassOf<ALevelTeleport> LevelTeleportClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AChaser> RandomWalkerClass;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemies, meta = (AllowPrivateAccess = "true"))
+  TSubclassOf<AChaser> ChaserClass;
+
+
   
 };

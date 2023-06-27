@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "PaperTileMapComponent.h"
-#include "Items/AttributesRecoveryItem.h"
+#include "roguelike_game/Items/AttributesRecoveryItem.h"
 #include "Room.h"
 #include "RoomActor.generated.h"
 
