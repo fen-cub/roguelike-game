@@ -29,7 +29,7 @@ void AArmorItem::Use(APlayerCharacter* PlayerCharacter, int64 InventoryPosition)
 		{
 			Data.bIsEquipped = false;
 			PlayerCharacter->GetInventoryComponent()->AddItem(Data, NewPosition);
-			PlayerCharacter->GetEquipmentComponent()->RemoveItem(InventoryPosition);
+			PlayerCharacter->GetEquipmentComponent()->RemoveItem(1);
 			PlayerCharacter->GetAttributesComponent()->SetDamageProtection(0);
 			UGameplayStatics::SpawnSoundAtLocation(PlayerCharacter, UseSound, PlayerCharacter->GetActorLocation());
 		}
