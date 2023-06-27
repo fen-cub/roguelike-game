@@ -17,7 +17,7 @@ void AEnemyAIController::BeginPlay()
 	Super::BeginPlay();
 
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
-	
+
 	bIsMoving = false;
 }
 
@@ -41,25 +41,23 @@ void AEnemyAIController::GenerateRandomSearchLocation()
 	if (NavArea && GetPawn())
 	{
 		RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 50.0f);
-	} 
+	}
 }
 
 void AEnemyAIController::SearchForPlayer()
 {
-	if (NavArea && GetPawn())
+	if (NavArea && GetPawn() && !bIsMoving)
 	{
-		bIsMoving = true;
-
 		TArray<AActor*> FoundPlayers;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
 
 		PlayerPawn = nullptr;
-	
-		for ( auto Player : FoundPlayers )
+
+		for (auto Player : FoundPlayers)
 		{
-			if ( FVector::Dist(GetPawn()->GetActorLocation(), Player->GetActorLocation()) < 100.0f &&
-			(PlayerPawn == nullptr || FVector::Dist(GetPawn()->GetActorLocation(), Player->GetActorLocation()) <
-				FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation()) ))
+			if (FVector::Dist(GetPawn()->GetActorLocation(), Player->GetActorLocation()) < 100.0f &&
+				(PlayerPawn == nullptr || FVector::Dist(GetPawn()->GetActorLocation(), Player->GetActorLocation()) <
+					FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation())))
 			{
 				APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(Player);
 				if (PlayerCharacter)
@@ -68,27 +66,24 @@ void AEnemyAIController::SearchForPlayer()
 				}
 			}
 		}
-	
-		if (PlayerPawn ) {
-			MoveToLocation(PlayerPawn->GetActorLocation());
-		} else 
+
+		bIsMoving = true;
+
+		GenerateRandomSearchLocation();
+		if (PlayerPawn)
 		{
-			GenerateRandomSearchLocation();
-			if ( FVector::Dist(RandomLocation, GetPawn()->GetActorLocation()) > 10.0f )
-			{
-				MoveToLocation(RandomLocation); 
-			} else
-			{
-				bIsMoving = false;
-			}
-		};
+			MoveToLocation(PlayerPawn->GetActorLocation());
+		}
+		else
+		{
+			MoveToLocation(RandomLocation);
+		}
 	}
 }
 
 void AEnemyAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
-	
-	SearchForPlayer();
-}
 
+	bIsMoving = false;
+}

@@ -106,7 +106,26 @@ void ABoss::OnRep_IsDead()
 void ABoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	TArray<AActor*> FoundPlayers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
+	
+	APawn* PlayerPawn = nullptr;
+
+	for (auto Player : FoundPlayers)
+	{
+		if (FVector::Dist(GetActorLocation(), Player->GetActorLocation()) < 100.0f &&
+			(PlayerPawn == nullptr || FVector::Dist(GetActorLocation(), Player->GetActorLocation()) <
+				FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation())))
+		{
+			APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(Player);
+			if (PlayerCharacter)
+			{
+				PlayerPawn = PlayerCharacter;
+			}
+		}
+	}
+
 	if (PlayerPawn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *PlayerPawn->GetName());

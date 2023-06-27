@@ -13,55 +13,46 @@ void ARandomWalkerAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
 	NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
-
-	bSearchForPlayer = true;
-	bCanAttackPlayer = true;
-	bMoveToPlayer = false;
-
-	GenerateRandomSearchLocation();
-	SearchForPlayer();
+	
+	bIsMoving = false;
 }
 
 void ARandomWalkerAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-}
 
-void ARandomWalkerAIController::GenerateRandomSearchLocation()
-{
-	RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 100.0f);
-}
-
-void ARandomWalkerAIController::SearchForPlayer()
-{
-	MoveToLocation(RandomLocation);
-}
-
-void ARandomWalkerAIController::AttackPlayer()
-{
-}
-
-void ARandomWalkerAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-	Super::OnMoveCompleted(RequestID, Result);
-
-	if (bSearchForPlayer)
+	if (!NavArea)
 	{
-		GenerateRandomSearchLocation();
+		NavArea = FNavigationSystem::GetCurrent<UNavigationSystemV1>(this);
+	}
+
+	if (!bIsMoving && NavArea && GetPawn())
+	{
 		SearchForPlayer();
 	}
 }
 
-void ARandomWalkerAIController::OnDetectPlayerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                                           bool bFromSweep, const FHitResult& SweepResult)
+void ARandomWalkerAIController::GenerateRandomSearchLocation()
 {
+	if (NavArea && GetPawn())
+	{
+		RandomLocation = NavArea->GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), 50.0f);
+	} 
 }
 
-void ARandomWalkerAIController::OnDetectPlayerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ARandomWalkerAIController::SearchForPlayer()
 {
+	if (NavArea && GetPawn() && !bIsMoving)
+	{
+		GenerateRandomSearchLocation();
+		bIsMoving = true;
+		MoveToLocation(RandomLocation); 
+	}
+}
+void ARandomWalkerAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+	Super::OnMoveCompleted(RequestID, Result);
+
+	bIsMoving = false;
 }
