@@ -59,6 +59,8 @@ protected:
 	// Setup properties that should be replicated from the server to clients.
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void BeginPlay() override;
+
 private:
 	// Called when on Overlap
 	UFUNCTION()
